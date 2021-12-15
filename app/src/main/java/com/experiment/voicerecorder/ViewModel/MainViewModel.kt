@@ -208,6 +208,7 @@ class MainViewModel(private val app: Application) : AndroidViewModel(app) {
 
     private fun pausePlayback() {
         mediaPlayer?.pause()
+        appState.value = VoiceRecorderState.STATE_IDLE
         Timber.e("Paused")
         isPlaying.value = false
     }
