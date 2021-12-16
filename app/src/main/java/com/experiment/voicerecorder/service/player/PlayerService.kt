@@ -3,6 +3,7 @@ package com.experiment.voicerecorder.service.player
 import android.app.Service
 import android.content.Intent
 import android.media.AudioAttributes
+import android.media.AudioManager
 import android.media.MediaPlayer
 import android.os.IBinder
 import timber.log.Timber
@@ -15,8 +16,11 @@ class PlayerService :
     Service(),
     MediaPlayer.OnPreparedListener,
     MediaPlayer.OnErrorListener,
-    MediaPlayer.OnCompletionListener {
-    var mediaPlayer: MediaPlayer? = null
+    MediaPlayer.OnCompletionListener,
+    AudioManager.OnAudioFocusChangeListener
+{
+
+    private var mediaPlayer: MediaPlayer? = null
     private var mediaPath: String? = null
 
     override fun onBind(intent: Intent?): IBinder? = null
@@ -67,6 +71,42 @@ class PlayerService :
         }
     }
 
+    override fun onAudioFocusChange(focusChange: Int) {
+       when(focusChange){
+           AudioManager.AUDIOFOCUS_GAIN->{
+               if (mediaPlayer== null) mediaPlayer = MediaPlayer()
+               mediaPlayer?.apply {
+                   if (!isPlaying){
+                       startPlaying()
+                   }
+               }
+           }
+           AudioManager.AUDIOFOCUS_LOSS->{
+               mediaPlayer?.apply {
+                   if (isPlaying){
+                       stopPlaying()
+                       release()
+                   }
+                   mediaPlayer = null
+               }
+           }
+           AudioManager.AUDIOFOCUS_LOSS_TRANSIENT->{
+               mediaPlayer?.apply {
+                   if (isPlaying){
+                       pause()
+                   }
+               }
+           }
+           AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK->{
+               mediaPlayer?.apply {
+                   if (isPlaying){
+                       setVolume(0.1f, 0.1f)
+                   }
+               }
+           }
+       }
+    }
+
     //player methods
     fun startPlaying() {
         mediaPlayer?.apply {
@@ -108,7 +148,21 @@ class PlayerService :
     }
 
     override fun onError(mp: MediaPlayer?, what: Int, extra: Int): Boolean {
-        TODO("Not yet implemented")
+        when(what){
+            MediaPlayer.MEDIA_ERROR_IO->{
+                Timber.e("Media player IO Error.$extra")
+            }
+            MediaPlayer.MEDIA_ERROR_MALFORMED->{
+                Timber.e("Media Error Malformed.$extra")
+            }
+            MediaPlayer.MEDIA_ERROR_UNSUPPORTED->{
+                Timber.e("Media player unsupported Error.$extra")
+            }
+            MediaPlayer.MEDIA_ERROR_UNKNOWN->{
+                Timber.e("Media player IO Error.$extra")
+            }
+        }
+        return false
     }
 
     override fun onCompletion(mp: MediaPlayer?) {
@@ -117,4 +171,5 @@ class PlayerService :
             stopSelf()
         }
     }
+
 }
