@@ -3,7 +3,6 @@ package com.experiment.voicerecorder.service.player
 import android.app.Service
 import android.content.Intent
 import android.media.AudioAttributes
-import android.media.MediaDataSource
 import android.media.MediaPlayer
 import android.os.IBinder
 import timber.log.Timber
@@ -15,23 +14,18 @@ const val ACTION_PLAY = "com.experiment.voicerecorder.action.play"
 class PlayerService :
     Service(),
     MediaPlayer.OnPreparedListener,
-    MediaPlayer.OnErrorListener {
+    MediaPlayer.OnErrorListener,
+    MediaPlayer.OnCompletionListener {
     var mediaPlayer: MediaPlayer? = null
     private var mediaPath: String? = null
 
-    override fun onBind(intent: Intent?): IBinder? {
-        TODO("Not yet implemented")
-    }
+    override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         mediaPlayer = MediaPlayer()
-        try {
-            mediaPath = intent?.getStringExtra("FILE_PATH")
-        } catch (e: NullPointerException) {
-            Timber.e("Media path is null")
-            stopSelf()
-        }
+        getMediaFile(intent)
         initMediaPlayer()
+
         return START_STICKY
     }
 
@@ -64,20 +58,63 @@ class PlayerService :
         }
     }
 
+    private fun getMediaFile(intent: Intent?) {
+        try {
+            mediaPath = intent?.getStringExtra("FILE_PATH")
+        } catch (e: NullPointerException) {
+            Timber.e("Media path is null")
+            stopSelf()
+        }
+    }
+
     //player methods
-    fun play() {
-        mediaPlayer?.start()
+    fun startPlaying() {
+        mediaPlayer?.apply {
+            if (!isPlaying) {
+                start()
+            }
+        }
+    }
+
+    fun stopPlaying() {
+        mediaPlayer?.apply {
+            if (isPlaying) {
+                stop()
+            }
+        }
+    }
+    fun pausePlaying(){
+        mediaPlayer?.apply {
+            if (isPlaying) {
+                pause()
+                // TODO: 12/16/2021 save resume position
+            }
+        }
+    }
+    fun resumePlaying(){
+        mediaPlayer?.apply {
+            if (isPlaying) {
+                // TODO: 12/16/2021 get resume position
+                start()
+            }
+        }
     }
 
     //player Listeners
     override fun onPrepared(mp: MediaPlayer?) {
         mp?.let {
-            play()
+            startPlaying()
         }
-
     }
 
     override fun onError(mp: MediaPlayer?, what: Int, extra: Int): Boolean {
         TODO("Not yet implemented")
+    }
+
+    override fun onCompletion(mp: MediaPlayer?) {
+        mp?.let {
+            stopPlaying()
+            stopSelf()
+        }
     }
 }
