@@ -3,11 +3,16 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.experiment.voicerecorder">
 
+<!--    <uses-permission android:name="android.permission.WAKE_LOCK" />-->
+<!--    <uses-permission android:name="android.permission.INTERNET" />-->
+
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="28"/>
     <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+
 
     <application
         android:name=".VoiceRecorderApplication"
@@ -17,6 +22,14 @@
         android:roundIcon="@drawable/ic_record"
         android:supportsRtl="true"
         android:theme="@style/Theme.VoiceRecorder">
+        <service android:name=".service.recorder.RecordingService"/>
+        <service android:name=".service.player.VoicePlaybackService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.media.browser.MediaBrowserService"/>
+            </intent-filter>
+        </service>
+        <service android:name=".service.player.PlayerService"/>
         <activity
             android:name=".MainActivity"
             android:exported="true"

@@ -1,4 +1,4 @@
-package com.experiment.voicerecorder.service.record
+package com.experiment.voicerecorder.service.recorder
 
 import android.app.Service
 import android.content.Intent

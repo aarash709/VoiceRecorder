@@ -149,7 +149,6 @@ class MainViewModel(private val app: Application) : AndroidViewModel(app) {
 //                startPlayback(it)
             }
         }
-
     }
 
     fun onPlayPause() {
