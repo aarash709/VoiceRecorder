@@ -10,7 +10,9 @@ import androidx.lifecycle.viewModelScope
 import com.experiment.voicerecorder.PlayerActivity
 import com.experiment.voicerecorder.Utils.FileSavedTime
 import com.experiment.voicerecorder.data.Voice
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 
@@ -21,18 +23,19 @@ class PlayerViewModel(app: Application):AndroidViewModel(app) {
 
     fun getAllVoices() {
         viewModelScope.launch {
-            val a = File(getStoragePath(),
-                "/$DIRECTORY_NAME").listFiles()
-                ?.map {
-                    allVoices.add(Voice(
-                        it.name,
-                        it.absolutePath,
-                        false,
-                        "",
-                        FileSavedTime().getLastTimeRecorded(it.lastModified())
-                    ))
-
-                }
+            withContext(Dispatchers.IO){
+                File(getStoragePath(),
+                    "/$DIRECTORY_NAME").listFiles()
+                    ?.map {
+                        allVoices.add(Voice(
+                            it.name,
+                            it.absolutePath,
+                            false,
+                            "",
+                            FileSavedTime().getLastTimeRecorded(it.lastModified())
+                        ))
+                    }
+            }
             Timber.e("loading all voices")
         }
     }

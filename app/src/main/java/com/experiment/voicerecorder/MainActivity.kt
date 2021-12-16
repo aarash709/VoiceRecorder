@@ -132,9 +132,7 @@ class MainActivity : ComponentActivity() {
                         lifecycleOwner.lifecycle.removeObserver(observer)
                     }
                 }
-
                 MainScreen {
-
                     Box(modifier = Modifier) {
                         Debug(
                             playButtonState,

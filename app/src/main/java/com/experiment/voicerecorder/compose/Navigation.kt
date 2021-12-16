@@ -4,6 +4,7 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -11,6 +12,7 @@ import androidx.navigation.compose.rememberNavController
 import com.experiment.voicerecorder.ViewModel.MainViewModel
 import com.experiment.voicerecorder.data.Voice
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.experiment.voicerecorder.startPlayerActivity
 import com.google.accompanist.navigation.material.rememberBottomSheetNavigator
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import timber.log.Timber
@@ -37,7 +39,7 @@ fun VoiceRecorderNavigation(
     onRecord: () -> Unit,
     onPlay: (Int,Voice) -> Unit,
 ) {
-
+    val context = LocalContext.current
     NavHost(navController = navHost, startDestination = Pages.RecordingPage.route) {
         composable(Pages.RecordingPage.route) {
             RecodingPage(modifier = modifier,
@@ -45,9 +47,10 @@ fun VoiceRecorderNavigation(
                 recordingTime = timer,
                 playlistButtonEnabled,
                 onRecord = { onRecord() }) {
-                navHost.navigate(Pages.PlayListPage.route) {
-                    popUpTo(Pages.RecordingPage.route)
-                }
+                startPlayerActivity(context)
+//                navHost.navigate(Pages.PlayListPage.route) {
+//                    popUpTo(Pages.RecordingPage.route)
+//                }
             }
         }
         composable(Pages.PlayListPage.route) {
