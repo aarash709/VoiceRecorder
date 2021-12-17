@@ -46,7 +46,6 @@ class PlayerActivity : ComponentActivity() {
                     lifecycleOwner.lifecycle.removeObserver(observer)
                 }
             }
-
             MaterialTheme {
                 VoiceRecorderPermissionsHandler {
                     PlaylistScaffold(
@@ -63,10 +62,6 @@ class PlayerActivity : ComponentActivity() {
         }
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-
-    }
 }
 
 @ExperimentalMaterialApi

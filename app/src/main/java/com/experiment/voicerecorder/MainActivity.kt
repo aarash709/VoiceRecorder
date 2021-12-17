@@ -113,11 +113,6 @@ class MainActivity : ComponentActivity() {
                         else -> {}
                     }
                 }
-                LaunchedEffect(key1 = voiceRecorderState, key2 = seekbarPosition) {
-//                        viewModel.updateSeekbarPosition()
-//                    if (voiceRecorderState == VoiceRecorderState.STATE_PLAYING)
-//                    Timber.e("currentpos")
-                }
                 DisposableEffect(key1 = lifecycleOwner) {
                     val observer = LifecycleEventObserver { _, event ->
                         if (event == Lifecycle.Event.ON_CREATE) {
@@ -159,6 +154,7 @@ class MainActivity : ComponentActivity() {
                                 viewModel.onPlay(i, voice)
                                 viewModel.onPlayUpdateListState(i)
                             },
+                            onListPressed = { startPlayerActivity(this@MainActivity)}
                         )
                     }
                 }

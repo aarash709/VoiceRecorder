@@ -38,6 +38,7 @@ fun VoiceRecorderNavigation(
     onStop:()->Unit,
     onRecord: () -> Unit,
     onPlay: (Int,Voice) -> Unit,
+    onListPressed:()->Unit
 ) {
     val context = LocalContext.current
     NavHost(navController = navHost, startDestination = Pages.RecordingPage.route) {
@@ -47,7 +48,7 @@ fun VoiceRecorderNavigation(
                 recordingTime = timer,
                 playlistButtonEnabled,
                 onRecord = { onRecord() }) {
-                startPlayerActivity(context)
+                onListPressed()
 //                navHost.navigate(Pages.PlayListPage.route) {
 //                    popUpTo(Pages.RecordingPage.route)
 //                }
