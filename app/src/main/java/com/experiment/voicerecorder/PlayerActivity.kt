@@ -5,7 +5,11 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.material.Button
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -43,16 +47,18 @@ class PlayerActivity : ComponentActivity() {
                 }
             }
 
-            VoiceRecorderPermissionsHandler {
-                PlaylistScaffold(
-                    voices,
-                    onPlayPause = {},
-                    onStop = {},
-                    onVoiceClicked = { i, voice ->
-                        viewModel.startPlaying()
+            MaterialTheme {
+                VoiceRecorderPermissionsHandler {
+                    PlaylistScaffold(
+                        voices,
+                        onPlayPause = {},
+                        onStop = {},
+                        onVoiceClicked = { i, voice ->
+                            viewModel.startPlaying()
 
-                    }
-                )
+                        }
+                    )
+                }
             }
         }
     }
