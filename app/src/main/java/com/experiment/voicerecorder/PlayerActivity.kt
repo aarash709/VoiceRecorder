@@ -40,7 +40,7 @@ class PlayerActivity : ComponentActivity() {
             isServiceBound = false
         }
     }
-    fun playVoice(voice: String){
+    private fun playVoice(voice: String){
         //start service
         if (!isServiceBound){
             val playerServiceIntent = Intent(this,PlayerService::class.java).apply {
@@ -82,7 +82,6 @@ class PlayerActivity : ComponentActivity() {
                         onVoiceClicked = { i, voice ->
                             playVoice(
                                 voice.path)
-
                         }
                     )
                 }

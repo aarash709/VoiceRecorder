@@ -1,8 +1,10 @@
 package com.experiment.voicerecorder.service.player
 
 import android.app.Service
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.media.AudioAttributes
 import android.media.AudioFocusRequest
 import android.media.AudioManager
@@ -28,13 +30,17 @@ class PlayerService :
     private var mediaPath: String? = null
     private lateinit var audioManager: AudioManager
     private val binder = LocalBinder()
+    private val audioBecomingNoisyReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            pausePlaying()
+            //build notification
+        }
+    }
 
-//    @RequiresApi(Build.VERSION_CODES.O)
-//    private val focusRequest = audioFocusRequestBuilder()
-
-    inner class LocalBinder(): Binder(){
+    inner class LocalBinder() : Binder() {
         fun getService() = this@PlayerService
     }
+
     override fun onBind(intent: Intent?): IBinder = binder
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -123,22 +129,10 @@ class PlayerService :
             }
         }
     }
-
-//    @RequiresApi(Build.VERSION_CODES.O)
-//    private fun audioFocusRequestBuilder(): AudioFocusRequest {
-//        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O)
-//        return AudioFocusRequest
-//            .Builder(AudioManager
-//                .AUDIOFOCUS_GAIN)
-//            .setAudioAttributes(AudioAttributes
-//                .Builder()
-//                .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-//                .setUsage(AudioAttributes.USAGE_MEDIA)
-//                .build())
-//            .build()
-//        return
-//    }
-
+    private fun registerBecomingNoisyReceiver(){
+        val intentFilter = IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY)
+        registerReceiver(audioBecomingNoisyReceiver,intentFilter)
+    }
     private fun requestAudioFocus(): Boolean {
         audioManager = getSystemService(AudioManager::class.java) as AudioManager
         val result = if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O)
