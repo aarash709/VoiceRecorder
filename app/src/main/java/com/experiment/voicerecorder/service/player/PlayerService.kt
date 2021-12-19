@@ -14,7 +14,9 @@ import android.os.Build
 import android.os.IBinder
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
+import com.experiment.voicerecorder.Utils.BROADCAST_PLAY_VOICE
 import com.experiment.voicerecorder.Utils.FILE_PATH
+import com.experiment.voicerecorder.Utils.StorageUtil
 import timber.log.Timber
 import java.lang.Exception
 import java.lang.NullPointerException
@@ -36,13 +38,28 @@ class PlayerService :
             //build notification
         }
     }
+    private val playVoiceReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            mediaPath = StorageUtil(this@PlayerService).loadVoice()
+            if (mediaPath.isNullOrBlank())
+                stopSelf()
+            stopPlaying()
+            initMediaPlayer()
+            //reset mediaPlayer?
+            //build notification
+        }
+    }
 
     inner class LocalBinder() : Binder() {
         fun getService() = this@PlayerService
     }
 
     override fun onBind(intent: Intent?): IBinder = binder
-
+    override fun onCreate() {
+        super.onCreate()
+        registerBecomingNoisyReceiver()
+        registerPlayVoiceReceiver()
+    }
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         mediaPlayer = MediaPlayer()
         getMediaFile(intent)
@@ -61,6 +78,10 @@ class PlayerService :
         }
         mediaPlayer = null
         removeAudioFocus()
+        //remove Notification
+        StorageUtil(this).clearCach()
+        unregisterReceiver(audioBecomingNoisyReceiver)
+        unregisterReceiver(playVoiceReceiver)
         stopSelf()
     }
 
@@ -131,6 +152,10 @@ class PlayerService :
     }
     private fun registerBecomingNoisyReceiver(){
         val intentFilter = IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY)
+        registerReceiver(audioBecomingNoisyReceiver,intentFilter)
+    }
+    private fun registerPlayVoiceReceiver(){
+        val intentFilter = IntentFilter(BROADCAST_PLAY_VOICE)
         registerReceiver(audioBecomingNoisyReceiver,intentFilter)
     }
     private fun requestAudioFocus(): Boolean {

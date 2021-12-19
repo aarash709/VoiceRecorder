@@ -12,10 +12,10 @@ class StorageUtil(val context: Context) {
             .getSharedPreferences(VOICE_STORAGE, Context.MODE_PRIVATE)
             preferences.edit().putString(VOICE,path).apply()
     }
-    fun loadVoice() {
+    fun loadVoice(): String? {
         preferences = context
             .getSharedPreferences(VOICE_STORAGE, Context.MODE_PRIVATE)
-            preferences.getString(VOICE,null)
+        return preferences.getString(VOICE,null)
     }
     fun clearCach(){
         preferences = context

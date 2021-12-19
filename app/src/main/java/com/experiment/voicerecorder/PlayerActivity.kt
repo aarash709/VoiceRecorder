@@ -15,8 +15,10 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.experiment.voicerecorder.Utils.BROADCAST_PLAY_VOICE
 import com.experiment.voicerecorder.Utils.FILE_PATH
 import com.experiment.voicerecorder.Utils.SERVICE_STATE
+import com.experiment.voicerecorder.Utils.StorageUtil
 import com.experiment.voicerecorder.ViewModel.PlayerViewModel
 import com.experiment.voicerecorder.compose.PlaylistScaffold
 import com.experiment.voicerecorder.service.player.PlayerService
@@ -28,6 +30,7 @@ class PlayerActivity : ComponentActivity() {
 
     private var isServiceBound = false
     private lateinit var playerService: PlayerService
+    private lateinit var storage :StorageUtil
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
             val binder = service as PlayerService.LocalBinder
@@ -46,10 +49,17 @@ class PlayerActivity : ComponentActivity() {
             val playerServiceIntent = Intent(this,PlayerService::class.java).apply {
                 putExtra(FILE_PATH,voice)
             }
+            storage = StorageUtil(this)
+            storage.storeVoice(voice)
+
             startService(playerServiceIntent)
             bindService(playerServiceIntent,serviceConnection,Context.BIND_AUTO_CREATE)
         }else {
+            storage = StorageUtil(this)
+            storage.storeVoice(voice)
 
+            val broadcastIntent = Intent(BROADCAST_PLAY_VOICE)
+            sendBroadcast(broadcastIntent)
         }
     }
 
