@@ -177,7 +177,7 @@ class PlayerService :
     }
 
     //player methods
-    fun startPlaying() {
+    private fun startPlaying() {
         mediaPlayer?.apply {
             if (!isPlaying) {
                 start()
@@ -185,7 +185,7 @@ class PlayerService :
         }
     }
 
-    fun stopPlaying() {
+    private fun stopPlaying() {
         mediaPlayer?.apply {
             if (isPlaying) {
                 stop()

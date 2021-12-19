@@ -26,6 +26,7 @@ import coil.compose.rememberImagePainter
 import com.experiment.voicerecorder.ViewModel.MainViewModel
 import com.experiment.voicerecorder.ViewModel.VoiceRecorderState
 import com.experiment.voicerecorder.compose.PlaylistScaffold
+import com.experiment.voicerecorder.compose.RecodingPage
 import com.experiment.voicerecorder.compose.VoiceRecorderNavigation
 import com.experiment.voicerecorder.ui.theme.VoiceRecorderTheme
 import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
@@ -136,26 +137,13 @@ class MainActivity : ComponentActivity() {
                             voiceRecorderState,
                             textSize,
                             seekbarPosition)
-
-                        VoiceRecorderNavigation(
-                            Modifier,
-                            navState,
-                            recordButtonState,
+                        RecodingPage(modifier = Modifier,
+                            recordEnabled = recordButtonState,
+                            recordingTime = timer,
                             playlistButtonEnabled,
-                            isPlaying,
-                            timer,
-                            voices,
-                            onRecord = { viewModel.onRecord() },
-                            onPlayPause = { viewModel.onPlayPause() },
-                            onStop = { viewModel.stopPlayback() },
-                            onPlay = { i, voice ->
-                                voiceIndex = i
-                                Timber.e("on play index: $i")
-                                viewModel.onPlay(i, voice)
-                                viewModel.onPlayUpdateListState(i)
-                            },
-                            onListPressed = { startPlayerActivity(this@MainActivity)}
-                        )
+                            onRecord = { viewModel.onRecord() }) {
+                            startPlayerActivity(this@MainActivity)
+                        }
                     }
                 }
             }

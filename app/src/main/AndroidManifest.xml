@@ -42,7 +42,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".PlayerActivity"
-            android:exported="true"
+            android:exported="false"
             android:label="VoicePlayer">
 
         </activity>
