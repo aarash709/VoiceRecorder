@@ -62,7 +62,7 @@ class PlayerService :
     }
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         mediaPlayer = MediaPlayer()
-        getMediaFile(intent)
+        getMediaFile(this)
         if (!requestAudioFocus())
             stopSelf()
         if (!mediaPath.isNullOrBlank())
@@ -106,9 +106,9 @@ class PlayerService :
         }
     }
 
-    private fun getMediaFile(intent: Intent?) {
+    private fun getMediaFile(context: Context) {
         try {
-            mediaPath = intent?.getStringExtra(FILE_PATH)
+            mediaPath = StorageUtil(context).loadVoice()
         } catch (e: NullPointerException) {
             Timber.e("Media path is null")
             stopSelf()
@@ -156,7 +156,7 @@ class PlayerService :
     }
     private fun registerPlayVoiceReceiver(){
         val intentFilter = IntentFilter(BROADCAST_PLAY_VOICE)
-        registerReceiver(audioBecomingNoisyReceiver,intentFilter)
+        registerReceiver(playVoiceReceiver,intentFilter)
     }
     private fun requestAudioFocus(): Boolean {
         audioManager = getSystemService(AudioManager::class.java) as AudioManager

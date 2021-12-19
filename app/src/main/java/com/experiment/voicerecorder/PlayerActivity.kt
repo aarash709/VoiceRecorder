@@ -46,12 +46,10 @@ class PlayerActivity : ComponentActivity() {
     private fun playVoice(voice: String){
         //start service
         if (!isServiceBound){
-            val playerServiceIntent = Intent(this,PlayerService::class.java).apply {
-                putExtra(FILE_PATH,voice)
-            }
             storage = StorageUtil(this)
             storage.storeVoice(voice)
 
+            val playerServiceIntent = Intent(this,PlayerService::class.java)
             startService(playerServiceIntent)
             bindService(playerServiceIntent,serviceConnection,Context.BIND_AUTO_CREATE)
         }else {
