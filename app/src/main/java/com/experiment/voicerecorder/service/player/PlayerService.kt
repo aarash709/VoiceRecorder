@@ -5,21 +5,33 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.media.AudioAttributes
-import android.media.AudioFocusRequest
-import android.media.AudioManager
-import android.media.MediaPlayer
+import android.media.*
+import android.media.session.MediaController
+import android.media.session.MediaSession
+import android.media.session.MediaSessionManager
 import android.os.Binder
 import android.os.Build
 import android.os.IBinder
+import android.support.v4.media.session.MediaControllerCompat
+import android.support.v4.media.session.MediaSessionCompat
+import android.support.v4.media.session.PlaybackStateCompat
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import com.experiment.voicerecorder.Utils.BROADCAST_PLAY_VOICE
 import com.experiment.voicerecorder.Utils.FILE_PATH
 import com.experiment.voicerecorder.Utils.StorageUtil
+import com.experiment.voicerecorder.notification.PLAYBACK_ID
+import com.experiment.voicerecorder.notification.VoiceRecorderNotificationManager
 import timber.log.Timber
 import java.lang.Exception
 import java.lang.NullPointerException
+
+const val PLAYER_SERVICE_TAG = "voicePlayer"
+
+enum class PlayPauseState {
+    STATE_PLAY,
+    STATE_PAUSE
+}
 
 class PlayerService :
     Service(),
@@ -31,11 +43,16 @@ class PlayerService :
     private var mediaPlayer: MediaPlayer? = null
     private var mediaPath: String? = null
     private lateinit var audioManager: AudioManager
+    private lateinit var mediaSession: MediaSessionCompat
+    private lateinit var mediaSessionManager: MediaSessionManager
+    private lateinit var notification: VoiceRecorderNotificationManager
+    private lateinit var transportControls: MediaControllerCompat.TransportControls
+
     private val binder = LocalBinder()
     private val audioBecomingNoisyReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             pausePlaying()
-            //build notification
+            showNotification(PlayPauseState.STATE_PAUSE)
         }
     }
     private val playVoiceReceiver = object : BroadcastReceiver() {
@@ -47,6 +64,7 @@ class PlayerService :
             initMediaPlayer()
             //reset mediaPlayer?
             //build notification
+            showNotification(PlayPauseState.STATE_PAUSE)
         }
     }
 
@@ -57,9 +75,13 @@ class PlayerService :
     override fun onBind(intent: Intent?): IBinder = binder
     override fun onCreate() {
         super.onCreate()
+
+        notification = VoiceRecorderNotificationManager(
+            this@PlayerService)
         registerBecomingNoisyReceiver()
         registerPlayVoiceReceiver()
     }
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         mediaPlayer = MediaPlayer()
         getMediaFile(this)
@@ -67,6 +89,14 @@ class PlayerService :
             stopSelf()
         if (!mediaPath.isNullOrBlank())
             initMediaPlayer()
+        mediaSessionManager = getSystemService(MEDIA_SESSION_SERVICE) as MediaSessionManager
+        mediaSession = MediaSessionCompat(this, PLAYER_SERVICE_TAG).apply {
+            setFlags(MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS)
+            isActive = true
+            setCallback(mediaSessionCallback)
+            transportControls = controller.transportControls
+        }
+        showNotification(PlayPauseState.STATE_PLAY)
         return START_STICKY
     }
 
@@ -78,12 +108,35 @@ class PlayerService :
         }
         mediaPlayer = null
         removeAudioFocus()
-        //remove Notification
+        removeNotification()
         StorageUtil(this).clearCach()
         unregisterReceiver(audioBecomingNoisyReceiver)
         unregisterReceiver(playVoiceReceiver)
         stopSelf()
     }
+
+    private val mediaSessionCallback =
+        object : MediaSessionCompat.Callback() {
+            override fun onPlay() {
+                super.onPlay()
+                resumePlaying()
+                showNotification(PlayPauseState.STATE_PLAY)
+            }
+
+            override fun onPause() {
+                super.onPause()
+                pausePlaying()
+                showNotification(PlayPauseState.STATE_PAUSE)
+            }
+
+            override fun onStop() {
+                super.onStop()
+                stopPlaying()
+                removeNotification()
+                stopSelf()
+            }
+
+        }
 
     private fun initMediaPlayer() {
         mediaPlayer?.apply {
@@ -104,6 +157,19 @@ class PlayerService :
             Timber.e("media path: $mediaPath")
             prepareAsync()
         }
+    }
+
+    private fun showNotification(playState: PlayPauseState) {
+        notification.showPlayerNotification(
+            this,
+            mediaSession.sessionToken,
+            "Title",
+            "subtitle",
+            playState,
+        )
+    }
+    private fun removeNotification(){
+        notification.removeNotification(this, PLAYBACK_ID)
     }
 
     private fun getMediaFile(context: Context) {
@@ -150,14 +216,17 @@ class PlayerService :
             }
         }
     }
-    private fun registerBecomingNoisyReceiver(){
+
+    private fun registerBecomingNoisyReceiver() {
         val intentFilter = IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY)
-        registerReceiver(audioBecomingNoisyReceiver,intentFilter)
+        registerReceiver(audioBecomingNoisyReceiver, intentFilter)
     }
-    private fun registerPlayVoiceReceiver(){
+
+    private fun registerPlayVoiceReceiver() {
         val intentFilter = IntentFilter(BROADCAST_PLAY_VOICE)
-        registerReceiver(playVoiceReceiver,intentFilter)
+        registerReceiver(playVoiceReceiver, intentFilter)
     }
+
     private fun requestAudioFocus(): Boolean {
         audioManager = getSystemService(AudioManager::class.java) as AudioManager
         val result = if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O)

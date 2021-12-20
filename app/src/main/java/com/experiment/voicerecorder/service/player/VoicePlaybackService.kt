@@ -5,6 +5,7 @@ import android.media.MediaPlayer
 import android.media.session.MediaSession
 import android.os.Bundle
 import android.support.v4.media.MediaBrowserCompat
+import android.support.v4.media.session.MediaSessionCompat
 import androidx.media.MediaBrowserServiceCompat
 import com.experiment.voicerecorder.Utils.PLAYER_ROOT_ID
 import com.experiment.voicerecorder.notification.VoiceRecorderNotificationManager
@@ -15,7 +16,7 @@ class VoicePlaybackService() : MediaBrowserServiceCompat() {
 
     lateinit var mediaPlayer: MediaPlayer
     lateinit var notification: VoiceRecorderNotificationManager
-    lateinit var musicSession: MediaSession
+    lateinit var mediasession: MediaSessionCompat
 
     override fun onCreate() {
         super.onCreate()

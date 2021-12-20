@@ -9,7 +9,6 @@ import android.media.MediaRecorder
 import android.os.Build
 import android.os.Environment
 import android.os.Handler
-import android.os.Looper
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -85,7 +84,7 @@ class MainViewModel(private val app: Application) : AndroidViewModel(app) {
 
     init {
         initializeAppSettings()
-        notification.createNotificationChannel(app)
+        notification.createNotificationChannels(app)
     }
 
     private fun initializeAppSettings() {
