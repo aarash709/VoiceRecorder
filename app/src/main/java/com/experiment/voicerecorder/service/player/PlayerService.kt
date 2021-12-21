@@ -72,13 +72,13 @@ class PlayerService :
         super.onCreate()
         registerBecomingNoisyReceiver()
         registerPlayVoiceReceiver()
-        notification = VoiceRecorderNotificationManager(
-            this)
     }
 
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         mediaPlayer = MediaPlayer()
+        notification = VoiceRecorderNotificationManager(
+            this)
         getMediaFile(this)
         if (!requestAudioFocus())
             stopSelf()
@@ -109,10 +109,11 @@ class PlayerService :
         stopSelf()
     }
     private fun updateMetadata(){
-        val bitmap = BitmapFactory.decodeResource(resources,R.drawable.ic_record)
+        val bitmap = BitmapFactory.decodeResource(resources,R.drawable.cover)
         mediaSession.setMetadata(MediaMetadataCompat.Builder()
             .putString(MediaMetadataCompat.METADATA_KEY_TITLE,"mediaPath")
             .putString(MediaMetadataCompat.METADATA_KEY_ALBUM,"meta Subtitle")
+            .putString(MediaMetadataCompat.METADATA_KEY_ARTIST,"meta artist")
             .putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART,bitmap)
             .build())
     }
@@ -146,7 +147,6 @@ class PlayerService :
                 removeNotification()
                 stopSelf()
             }
-
         }
     private fun handlePlaybackActions(intent: Intent?){
         when(intent?.action){

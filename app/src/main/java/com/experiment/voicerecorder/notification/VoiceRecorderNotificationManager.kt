@@ -5,6 +5,7 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.os.Build
 import android.support.v4.media.session.MediaSessionCompat
 import androidx.core.app.NotificationCompat
@@ -45,7 +46,6 @@ class VoiceRecorderNotificationManager(
                 context,
                 mediaSession,
                 playPauseState,
-                R.drawable.ic_play,
                 title,
                 subTitle,
 //                pendingIntent,
@@ -114,12 +114,14 @@ class VoiceRecorderNotificationManager(
         context: Context,
         mediaSession: MediaSessionCompat,
         playPauseState: PlayPauseState,
-        smallIcon: Int,
         title: String,
         text: String,
 //        pendingIntent: PendingIntent,
         autoCancel: Boolean = true,
     ): NotificationCompat.Builder {
+        val smallIcon = R.drawable.ic_play
+        val largeIcon = BitmapFactory.decodeResource(context.resources,
+            R.drawable.cover)
         var playPauseIcon = R.drawable.ic_pause
         var playPauseAction: PendingIntent? = null
 
@@ -130,20 +132,22 @@ class VoiceRecorderNotificationManager(
             playPauseIcon = R.drawable.ic_play
             playPauseAction = playerAction(context, 1)
         }
-
+        // metadata is set in service using mediaSessions metadata method
+        // getting data using preferences in player service
         return NotificationCompat.Builder(context, PLAYBACK_CHANNEL_ID)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setAutoCancel(autoCancel)
+//            .setContentIntent(pendingIntent)
             .setStyle(MediaStyle()
                 .setMediaSession(mediaSession.sessionToken)
                 .setShowActionsInCompactView(0, 1))
             .setSmallIcon(smallIcon)
+//            .setLargeIcon(largeIcon)
+//            .setContentTitle(title)
+//            .setContentText(text)
             .addAction(playPauseIcon, "play-pause", playPauseAction)
             .addAction(R.drawable.ic_stop, "stop", playerAction(context, 2))
-            .setContentTitle(title)
-            .setContentText(text)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-//            .setContentIntent(pendingIntent)
-            .setAutoCancel(autoCancel)
     }
 
     private fun notificationBuilder(
@@ -171,7 +175,7 @@ class VoiceRecorderNotificationManager(
             val playerChannelName = PLAYER_CHANNEL_NAME
             val recorderChannelId = RECORDING_CHANNEL_ID
             val playerChannelId = PLAYBACK_CHANNEL_ID
-            val importance = NotificationManager.IMPORTANCE_DEFAULT
+            val importance = NotificationManager.IMPORTANCE_HIGH
             val recorderNotificationChannel = NotificationChannel(recorderChannelId, recorderChannelName, importance)
             val playerNotificationChannel = NotificationChannel(playerChannelId, playerChannelName, importance)
             val notificationManager =
