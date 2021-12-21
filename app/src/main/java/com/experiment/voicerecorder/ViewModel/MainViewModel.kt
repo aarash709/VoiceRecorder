@@ -128,6 +128,7 @@ class MainViewModel(private val app: Application) : AndroidViewModel(app) {
                     "Now Recording",
                     pendingIntent
                 )
+
             }
         } else {
             stopRecordingAudio() {

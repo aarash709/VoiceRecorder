@@ -32,28 +32,25 @@ class VoiceRecorderNotificationManager(
 
     fun showPlayerNotification(
         context: Context,
-        mediaSessionToken: MediaSessionCompat.Token,
+        mediaSession: MediaSessionCompat,
         title: String,
         subTitle: String,
         playPauseState: PlayPauseState,
 //        pendingIntent: PendingIntent,
         autoCancel: Boolean = true,
     ) {
-        val notificationManager =
-            context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.notify(
+        NotificationManagerCompat.from(context).notify(
             PLAYBACK_ID,
             mediaStyleBuilder(
                 context,
-                mediaSessionToken,
-                PLAYBACK_CHANNEL_ID,
+                mediaSession,
                 playPauseState,
                 R.drawable.ic_play,
                 title,
                 subTitle,
 //                pendingIntent,
-                autoCancel).build()
-        )
+                autoCancel).build())
+
         Timber.e("show player notification")
     }
 
@@ -115,8 +112,7 @@ class VoiceRecorderNotificationManager(
 
     private fun mediaStyleBuilder(
         context: Context,
-        mediaSessionToken: MediaSessionCompat.Token,
-        channelId: String,
+        mediaSession: MediaSessionCompat,
         playPauseState: PlayPauseState,
         smallIcon: Int,
         title: String,
@@ -128,23 +124,23 @@ class VoiceRecorderNotificationManager(
         var playPauseAction: PendingIntent? = null
 
         if (playPauseState == PlayPauseState.STATE_PLAY) {
-            playPauseIcon = R.drawable.ic_play
+            playPauseIcon = R.drawable.ic_pause
             playPauseAction = playerAction(context, 0)
         } else if (playPauseState == PlayPauseState.STATE_PAUSE) {
-            playPauseIcon = R.drawable.ic_pause
+            playPauseIcon = R.drawable.ic_play
             playPauseAction = playerAction(context, 1)
         }
 
-        return NotificationCompat.Builder(context, channelId)
-//            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+        return NotificationCompat.Builder(context, PLAYBACK_CHANNEL_ID)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setStyle(MediaStyle()
+                .setMediaSession(mediaSession.sessionToken)
+                .setShowActionsInCompactView(0, 1))
             .setSmallIcon(smallIcon)
-            .setContentTitle(title)
-            .setContentText(text)
             .addAction(playPauseIcon, "play-pause", playPauseAction)
             .addAction(R.drawable.ic_stop, "stop", playerAction(context, 2))
-            .setStyle(MediaStyle()
-                .setMediaSession(mediaSessionToken)
-                .setShowActionsInCompactView(1, 2))
+            .setContentTitle(title)
+            .setContentText(text)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
 //            .setContentIntent(pendingIntent)
             .setAutoCancel(autoCancel)
@@ -163,7 +159,7 @@ class VoiceRecorderNotificationManager(
             .setSmallIcon(smallIcon)
             .setContentTitle(title)
             .setContentText(text)
-            .setStyle(MediaStyle())
+            .setStyle(MediaStyle().setShowCancelButton(true))
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setContentIntent(pendingIntent)
             .setAutoCancel(autoCancel)

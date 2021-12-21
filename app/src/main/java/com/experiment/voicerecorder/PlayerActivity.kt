@@ -16,8 +16,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.experiment.voicerecorder.Utils.BROADCAST_PLAY_VOICE
-import com.experiment.voicerecorder.Utils.FILE_PATH
-import com.experiment.voicerecorder.Utils.SERVICE_STATE
 import com.experiment.voicerecorder.Utils.StorageUtil
 import com.experiment.voicerecorder.ViewModel.PlayerViewModel
 import com.experiment.voicerecorder.compose.PlaylistScaffold
