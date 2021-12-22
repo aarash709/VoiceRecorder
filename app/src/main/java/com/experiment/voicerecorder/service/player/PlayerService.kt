@@ -34,6 +34,7 @@ class PlayerService :
     MediaPlayer.OnCompletionListener,
     AudioManager.OnAudioFocusChangeListener {
 
+    private var resumePosition: Int = 0
     private var mediaPlayer: MediaPlayer? = null
     private var mediaPath: String? = null
     private lateinit var audioManager: AudioManager
@@ -90,7 +91,6 @@ class PlayerService :
         showNotification(PlayPauseState.STATE_PLAY)
         handlePlaybackActions(intent)
         return START_STICKY
-
     }
 
     override fun onDestroy() {
@@ -162,6 +162,7 @@ class PlayerService :
         mediaPlayer?.apply {
             setOnPreparedListener(this@PlayerService)
             setOnErrorListener(this@PlayerService)
+            setOnCompletionListener(this@PlayerService)
             reset()
             setAudioAttributes(AudioAttributes.Builder()
                 .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
@@ -305,7 +306,7 @@ class PlayerService :
         mediaPlayer?.apply {
             if (isPlaying) {
                 pause()
-                // TODO: 12/16/2021 save resume position
+                resumePosition = currentPosition
             }
         }
     }
@@ -313,7 +314,7 @@ class PlayerService :
     fun resumePlaying() {
         mediaPlayer?.apply {
             if (isPlaying) {
-                // TODO: 12/16/2021 get resume position
+                seekTo(resumePosition)
                 start()
             }
         }
@@ -323,6 +324,7 @@ class PlayerService :
     override fun onPrepared(mp: MediaPlayer?) {
         mp?.let {
             startPlaying()
+            Timber.e("onprepared")
         }
     }
 
@@ -346,6 +348,7 @@ class PlayerService :
 
     override fun onCompletion(mp: MediaPlayer?) {
         mp?.let {
+            Timber.e("onCompletion")
             stopPlaying()
             removeNotification()
             stopSelf()

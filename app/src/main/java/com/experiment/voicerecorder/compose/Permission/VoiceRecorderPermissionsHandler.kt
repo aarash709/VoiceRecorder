@@ -25,7 +25,7 @@ fun VoiceRecorderPermissionsHandler(
     content: @Composable () -> Unit,
 ) {
     val permissionList: List<String> =
-        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.R) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             listOf(
                 Manifest.permission.MANAGE_EXTERNAL_STORAGE,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE,
