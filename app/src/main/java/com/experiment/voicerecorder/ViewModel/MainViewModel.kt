@@ -58,7 +58,7 @@ class MainViewModel(private val app: Application) : AndroidViewModel(app) {
     val isRecording = mutableStateOf(false)
     val isPlaying = mutableStateOf(false)
     var timer = mutableStateOf(DEFAULT_RECORD_TIMER_VALUE)
-    var allVoices = mutableStateListOf<Voice>()
+    var allVoices = mutableStateOf(listOf<Voice>())
     var voiceDuration = mutableStateOf(0)
     var seekbarCurrentPosition = mutableStateOf(0)
     //end ui states
@@ -97,19 +97,11 @@ class MainViewModel(private val app: Application) : AndroidViewModel(app) {
 
     fun getAllVoices() {
         viewModelScope.launch {
-            val a = File(getStoragePath(),
+            val items = File(getStoragePath(),
                 "/$DIRECTORY_NAME").listFiles()
-                ?.map {
-
-                    allVoices.add(Voice(
-                        it.name,
-                        it.absolutePath,
-                        false,
-                        "",
-                        FileSavedTime().getLastTimeRecorded(it.lastModified())
-                    ))
-
-                }
+//                allVoices.value = items?.map {
+//                        Voice.pa
+//                }
             Timber.e("loading all voices")
         }
     }
@@ -283,14 +275,14 @@ class MainViewModel(private val app: Application) : AndroidViewModel(app) {
 
     fun onPlayUpdateListState(index: Int) {
         Timber.e("update list index: $index")
-        allVoices = allVoices.mapIndexed { i, v ->
+        allVoices.value = allVoices.value.mapIndexed { i, v ->
             if (i == index) {
                 if (isPlaying.value)
                     v.copy(isPlaying = isPlaying.value)
                 else
                     v.copy(isPlaying = isPlaying.value)
             } else v
-        }.toMutableStateList()
+        }
     }
 
 
