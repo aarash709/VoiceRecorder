@@ -68,20 +68,18 @@ class PlayerActivity : ComponentActivity() {
             DisposableEffect(key1 = lifecycleOwner) {
                 val observer = LifecycleEventObserver { _, event ->
                     if (event == Lifecycle.Event.ON_CREATE) {
-                        if (voices.isEmpty())
                             viewModel.getAllVoices()
                     }
                 }
                 lifecycleOwner.lifecycle.addObserver(observer)
                 onDispose {
-                    voices.clear()
                     lifecycleOwner.lifecycle.removeObserver(observer)
                 }
             }
             MaterialTheme {
                 VoiceRecorderPermissionsHandler {
                     PlaylistScaffold(
-                        voices,
+                        voices.value,
                         onPlayPause = {},
                         onStop = {},
                         onVoiceClicked = { i, voice ->

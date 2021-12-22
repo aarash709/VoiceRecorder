@@ -54,7 +54,6 @@ class MainActivity : ComponentActivity() {
                 val duration = viewModel.duration.value
                 val isPlaying = viewModel.isPlaying.value
                 val timer = viewModel.timer.value
-                val voices = viewModel.allVoices
                 val seekbarPosition = viewModel.seekbarCurrentPosition.value
                 val maxPlaybackTime = viewModel.voiceDuration.value
 
@@ -117,14 +116,10 @@ class MainActivity : ComponentActivity() {
                 DisposableEffect(key1 = lifecycleOwner) {
                     val observer = LifecycleEventObserver { _, event ->
                         if (event == Lifecycle.Event.ON_CREATE) {
-                            if (voices.isEmpty())
-                                viewModel.getAllVoices()
                         }
                     }
                     lifecycleOwner.lifecycle.addObserver(observer)
                     onDispose {
-                        if (voiceRecorderState == VoiceRecorderState.STATE_RECORDING)
-                            voices.clear()
                         lifecycleOwner.lifecycle.removeObserver(observer)
                     }
                 }

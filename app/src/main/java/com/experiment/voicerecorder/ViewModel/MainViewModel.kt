@@ -94,14 +94,22 @@ class MainViewModel(private val app: Application) : AndroidViewModel(app) {
         appState.value = VoiceRecorderState.STATE_IDLE
 
     }
-
     fun getAllVoices() {
         viewModelScope.launch {
             val items = File(getStoragePath(),
-                "/$DIRECTORY_NAME").listFiles()
-//                allVoices.value = items?.map {
-//                        Voice.pa
-//                }
+                "/$DIRECTORY_NAME").listFiles()?.map {
+                    Voice(
+                        it.name,
+                        it.absolutePath,
+                        false,
+                        "00:00",
+                        FileSavedTime().getLastTimeRecorded(it.lastModified())
+                    )
+            }
+
+            items?.let {
+                allVoices.value = it
+            }
             Timber.e("loading all voices")
         }
     }
