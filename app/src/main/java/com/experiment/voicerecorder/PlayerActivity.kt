@@ -37,7 +37,6 @@ class PlayerActivity : ComponentActivity() {
         }
 
         override fun onServiceDisconnected(name: ComponentName?) {
-
             isServiceBound = false
         }
     }

@@ -22,12 +22,6 @@ import timber.log.Timber
 class VoiceRecorderNotificationManager(
     context: Context,
 ) {
-    enum class PlaybackState(
-    ) {
-        STATE_PLAY,
-        STATE_PAUSE,
-        STATE_STOP
-    }
     fun showPlayerNotification(
         context: Context,
         mediaSession: MediaSessionCompat,
@@ -118,18 +112,23 @@ class VoiceRecorderNotificationManager(
         var playPauseIcon = R.drawable.ic_pause
         var playPauseAction: PendingIntent? = null
 
-        if (playPauseState == PlayPauseState.STATE_PLAY) {
-            playPauseIcon = R.drawable.ic_pause
-            playPauseAction = playerAction(context, 0)
-        } else if (playPauseState == PlayPauseState.STATE_PAUSE) {
-            playPauseIcon = R.drawable.ic_play
-            playPauseAction = playerAction(context, 1)
+        when (playPauseState) {
+            PlayPauseState.STATE_PLAY -> {
+                playPauseIcon = R.drawable.ic_pause
+                playPauseAction = playerAction(context, 0)
+            }
+            PlayPauseState.STATE_PAUSE -> {
+                playPauseIcon = R.drawable.ic_play
+                playPauseAction = playerAction(context, 1)
+            }
         }
+
         // metadata is set in service using mediaSessions metadata method
         // getting data using preferences in player service
         return NotificationCompat.Builder(context, PLAYBACK_CHANNEL_ID)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setAutoCancel(autoCancel)
+            .setSilent(true)
 //            .setContentIntent(pendingIntent)
             .setStyle(MediaStyle()
                 .setMediaSession(mediaSession.sessionToken)
@@ -169,12 +168,17 @@ class VoiceRecorderNotificationManager(
             val recorderChannelId = RECORDING_CHANNEL_ID
             val playerChannelId = PLAYBACK_CHANNEL_ID
             val importance = NotificationManager.IMPORTANCE_HIGH
-            val recorderNotificationChannel = NotificationChannel(recorderChannelId, recorderChannelName, importance)
-            val playerNotificationChannel = NotificationChannel(playerChannelId, playerChannelName, importance)
+            val recorderNotificationChannel =
+                NotificationChannel(recorderChannelId, recorderChannelName, importance)
+            val playerNotificationChannel =
+                NotificationChannel(playerChannelId, playerChannelName, importance)
             val notificationManager =
                 context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.createNotificationChannel(recorderNotificationChannel)
-            notificationManager.createNotificationChannel(playerNotificationChannel)
+            val channels = listOf(
+                playerNotificationChannel,
+                recorderNotificationChannel
+            )
+            notificationManager.createNotificationChannels(channels)
         }
     }
 }
