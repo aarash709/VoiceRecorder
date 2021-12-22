@@ -71,12 +71,14 @@ class PlayerService :
     override fun onBind(intent: Intent?): IBinder = binder
     override fun onCreate() {
         super.onCreate()
+        Timber.e("On create")
         registerBecomingNoisyReceiver()
         registerPlayVoiceReceiver()
     }
 
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        Timber.e("start Command")
         mediaPlayer = MediaPlayer()
         notification = VoiceRecorderNotificationManager(
             this)
@@ -133,16 +135,19 @@ class PlayerService :
                 super.onPlay()
                 resumePlaying()
                 showNotification(PlayPauseState.STATE_PLAY)
+                Timber.e("onplay")
             }
 
             override fun onPause() {
                 super.onPause()
                 pausePlaying()
                 showNotification(PlayPauseState.STATE_PAUSE)
+                Timber.e("onpause")
             }
 
             override fun onStop() {
                 super.onStop()
+                Timber.e("onstop")
                 stopPlaying()
                 removeNotification()
                 stopSelf()
@@ -169,7 +174,6 @@ class PlayerService :
                 .setUsage(AudioAttributes.USAGE_MEDIA)
                 .build())
             try {
-
                 setDataSource(mediaPath)
             } catch (e: Exception) {
                 e.printStackTrace()
