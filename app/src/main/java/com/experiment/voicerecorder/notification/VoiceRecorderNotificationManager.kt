@@ -22,15 +22,12 @@ import timber.log.Timber
 class VoiceRecorderNotificationManager(
     context: Context,
 ) {
-
-    // TODO: 12/9/2021 make notification to work with the player and the recording
     enum class PlaybackState(
     ) {
         STATE_PLAY,
         STATE_PAUSE,
         STATE_STOP
     }
-
     fun showPlayerNotification(
         context: Context,
         mediaSession: MediaSessionCompat,
@@ -54,17 +51,13 @@ class VoiceRecorderNotificationManager(
         Timber.e("show player notification")
     }
 
-    fun showRecorderNotification() {
-
-    }
-
     fun removeNotification(context: Context, id: Int) {
         NotificationManagerCompat
             .from(context)
             .cancel(id)
     }
 
-    fun showNotification(
+    fun showRecorderNotification(
         context: Context,
         channelId: String,
         smallIcon: Int,
@@ -74,7 +67,7 @@ class VoiceRecorderNotificationManager(
         autoCancel: Boolean = true,
     ) {
         NotificationManagerCompat.from(context).notify(
-            RECORDING_ID, notificationBuilder(
+            RECORDING_ID, recorderNotificationBuilder(
                 context,
                 channelId,
                 smallIcon,
@@ -150,7 +143,7 @@ class VoiceRecorderNotificationManager(
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
     }
 
-    private fun notificationBuilder(
+    private fun recorderNotificationBuilder(
         context: Context,
         channelId: String,
         smallIcon: Int,
