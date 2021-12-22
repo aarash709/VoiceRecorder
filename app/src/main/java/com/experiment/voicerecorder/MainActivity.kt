@@ -108,7 +108,7 @@ class MainActivity : ComponentActivity() {
                 DisposableEffect(key1 = lifecycleOwner) {
                     val observer = LifecycleEventObserver { _, event ->
                         if (event == Lifecycle.Event.ON_CREATE) {
-//                                viewModel.getAllVoices()
+                                viewModel.getAllVoices()
                         }
                     }
                     lifecycleOwner.lifecycle.addObserver(observer)
