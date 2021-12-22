@@ -31,7 +31,7 @@ fun VoiceRecorderNavigation(
     playlistButtonEnabled: Boolean,
     isPlaying: Boolean,
     timer: String,
-    voices: SnapshotStateList<Voice>,
+    voices: List<Voice>,
     onPlayPause:()->Unit,
     onStop:()->Unit,
     onRecord: () -> Unit,

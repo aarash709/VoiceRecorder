@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -25,16 +24,10 @@ import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberImagePainter
 import com.experiment.voicerecorder.ViewModel.MainViewModel
 import com.experiment.voicerecorder.ViewModel.VoiceRecorderState
-import com.experiment.voicerecorder.compose.PlaylistScaffold
 import com.experiment.voicerecorder.compose.VoiceRecorderNavigation
 import com.experiment.voicerecorder.ui.theme.VoiceRecorderTheme
-import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
-import com.google.accompanist.navigation.material.rememberBottomSheetNavigator
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import kotlinx.coroutines.launch
 import timber.log.Timber
-import java.text.SimpleDateFormat
-import java.util.*
 
 @RequiresApi(Build.VERSION_CODES.R)
 @ExperimentalPermissionsApi
@@ -53,7 +46,7 @@ class MainActivity : ComponentActivity() {
                 val duration = viewModel.duration.value
                 val isPlaying = viewModel.isPlaying.value
                 val timer = viewModel.timer.value
-                val voices = viewModel.allVoices
+                val voices = viewModel.voices.value
                 val seekbarPosition = viewModel.seekbarCurrentPosition.value
                 val maxPlaybackTime = viewModel.voiceDuration.value
 
@@ -96,7 +89,6 @@ class MainActivity : ComponentActivity() {
                         VoiceRecorderState.STATE_PLAYING -> {
                             recordButtonState = false
                             Timber.e("voice index $voiceIndex")
-//                            viewModel.onPlayUpdateListState(voiceIndex)
                         }
                         VoiceRecorderState.STATE_NOT_PLAYING -> {
                             recordButtonState = true
@@ -113,22 +105,14 @@ class MainActivity : ComponentActivity() {
                         else -> {}
                     }
                 }
-                LaunchedEffect(key1 = voiceRecorderState, key2 = seekbarPosition) {
-//                        viewModel.updateSeekbarPosition()
-//                    if (voiceRecorderState == VoiceRecorderState.STATE_PLAYING)
-//                    Timber.e("currentpos")
-                }
                 DisposableEffect(key1 = lifecycleOwner) {
                     val observer = LifecycleEventObserver { _, event ->
                         if (event == Lifecycle.Event.ON_CREATE) {
-                            if (voices.isEmpty())
-                                viewModel.getAllVoices()
+//                                viewModel.getAllVoices()
                         }
                     }
                     lifecycleOwner.lifecycle.addObserver(observer)
                     onDispose {
-                        if (voiceRecorderState == VoiceRecorderState.STATE_RECORDING)
-                            voices.clear()
                         lifecycleOwner.lifecycle.removeObserver(observer)
                     }
                 }

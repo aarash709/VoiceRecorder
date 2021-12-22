@@ -32,7 +32,7 @@ import timber.log.Timber
 @ExperimentalMaterialApi
 @Composable
 fun PlaylistScaffold(
-    voices: SnapshotStateList<Voice>,
+    voices: List<Voice>,
     onPlayPause: () -> Unit,
     onStop: () -> Unit,
     onVoiceClicked: (Int, Voice) -> Unit,
@@ -79,7 +79,7 @@ fun PlaylistScaffold(
 
 @Composable
 fun Playlist(
-    voices: SnapshotStateList<Voice>,
+    voices: List<Voice>,
 //    isPlaying: Boolean,
     /*onPlayPause: () -> Unit,
     onStop: () -> Unit,*/

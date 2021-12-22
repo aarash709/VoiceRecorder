@@ -9,11 +9,8 @@ import android.media.MediaRecorder
 import android.os.Build
 import android.os.Environment
 import android.os.Handler
-import android.os.Looper
 import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.experiment.voicerecorder.MainActivity
@@ -59,7 +56,7 @@ class MainViewModel(private val app: Application) : AndroidViewModel(app) {
     val isRecording = mutableStateOf(false)
     val isPlaying = mutableStateOf(false)
     var timer = mutableStateOf(DEFAULT_RECORD_TIMER_VALUE)
-    var allVoices = mutableStateListOf<Voice>()
+    val voices = mutableStateOf(listOf(Voice()))
     var voiceDuration = mutableStateOf(0)
     var seekbarCurrentPosition = mutableStateOf(0)
     //end ui states
@@ -98,19 +95,20 @@ class MainViewModel(private val app: Application) : AndroidViewModel(app) {
 
     fun getAllVoices() {
         viewModelScope.launch {
-            val a = File(getStoragePath(),
+           val items = File(getStoragePath(),
                 "/$DIRECTORY_NAME").listFiles()
                 ?.map {
-
-                    allVoices.add(Voice(
+                    Voice(
                         it.name,
                         it.absolutePath,
                         false,
                         "",
                         FileSavedTime().getLastTimeRecorded(it.lastModified())
-                    ))
-
+                    )
                 }
+            items?.let {
+                voices.value = it
+            }
             Timber.e("loading all voices")
         }
     }
@@ -239,7 +237,7 @@ class MainViewModel(private val app: Application) : AndroidViewModel(app) {
                 }
                 start()
             }
-            if (Build.VERSION.SDK_INT == Build.VERSION_CODES.S) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 mediaRecorder = MediaRecorder(app).apply {
                     setAudioSource(MediaRecorder.AudioSource.MIC)
                     setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
@@ -284,14 +282,14 @@ class MainViewModel(private val app: Application) : AndroidViewModel(app) {
 
     fun onPlayUpdateListState(index: Int) {
         Timber.e("update list index: $index")
-        allVoices = allVoices.mapIndexed { i, v ->
+        voices.value = voices.value.mapIndexed { i, v ->
             if (i == index) {
                 if (isPlaying.value)
                     v.copy(isPlaying = isPlaying.value)
                 else
                     v.copy(isPlaying = isPlaying.value)
             } else v
-        }.toMutableStateList()
+        }
     }
 
 
