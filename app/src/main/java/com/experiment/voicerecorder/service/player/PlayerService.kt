@@ -92,7 +92,7 @@ class PlayerService :
         updateMetadata()
         showNotification(PlayPauseState.STATE_PLAY)
         handlePlaybackActions(intent)
-        return START_STICKY
+        return START_STICKY_COMPATIBILITY
     }
 
     override fun onDestroy() {
