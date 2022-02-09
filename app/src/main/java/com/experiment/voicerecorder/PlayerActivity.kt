@@ -33,31 +33,29 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 @ExperimentalPermissionsApi
 @ExperimentalMaterialApi
 class PlayerActivity : ComponentActivity() {
-
     private var isServiceBound = false
     private lateinit var playerService: PlayerService
-    private lateinit var storage :StorageUtil
+    private lateinit var storage: StorageUtil
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
             val binder = service as PlayerService.LocalBinder
             playerService = binder.getService()
             isServiceBound = true
         }
-
         override fun onServiceDisconnected(name: ComponentName?) {
             isServiceBound = false
         }
     }
-    private fun playVoice(voice: String){
+    private fun playVoice(voice: String) {
         //start service
-        if (!isServiceBound){
+        if (!isServiceBound) {
             storage = StorageUtil(this)
             storage.storeVoice(voice)
 
-            val playerServiceIntent = Intent(this,PlayerService::class.java)
+            val playerServiceIntent = Intent(this, PlayerService::class.java)
             startService(playerServiceIntent)
-            bindService(playerServiceIntent,serviceConnection,Context.BIND_AUTO_CREATE)
-        }else {
+            bindService(playerServiceIntent, serviceConnection, Context.BIND_AUTO_CREATE)
+        } else {
             storage = StorageUtil(this)
             storage.storeVoice(voice)
 
@@ -65,7 +63,6 @@ class PlayerActivity : ComponentActivity() {
             sendBroadcast(broadcastIntent)
         }
     }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -76,7 +73,7 @@ class PlayerActivity : ComponentActivity() {
             DisposableEffect(key1 = lifecycleOwner) {
                 val observer = LifecycleEventObserver { _, event ->
                     if (event == Lifecycle.Event.ON_CREATE) {
-                            viewModel.getAllVoices()
+                        viewModel.getAllVoices()
                     }
                 }
                 lifecycleOwner.lifecycle.addObserver(observer)
@@ -102,7 +99,7 @@ class PlayerActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        if (isServiceBound){
+        if (isServiceBound) {
             unbindService(serviceConnection)
             playerService.stopSelf()
         }

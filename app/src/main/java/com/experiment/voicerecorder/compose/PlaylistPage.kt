@@ -43,37 +43,51 @@ fun PlaylistScaffold(
         mutableStateOf(0)
     }
     LaunchedEffect(key1 = voices){
-        if (!voices[index].isPlaying)
-            bottomSheetState.bottomSheetState.collapse()
+        voices.let {
+            if (!it.isNullOrEmpty())
+                if (!it[index].isPlaying)
+                    bottomSheetState.bottomSheetState.collapse()
+        }
     }
     BottomSheetScaffold(
         sheetContent =
         {
-            MediaControls(
-                voice = (voices[index]),
-                onPlayPause = onPlayPause,
-                onStop = {
-                    onStop()
-                    scope.launch {
-                        bottomSheetState.bottomSheetState.collapse()
+            if (!voices.isNullOrEmpty()) {
+                MediaControls(
+                    voice = (voices[index]),
+                    onPlayPause = onPlayPause,
+                    onStop = {
+                        onStop()
+                        scope.launch {
+                            bottomSheetState.bottomSheetState.collapse()
+                        }
                     }
-                }
-            )
+                )
+            }
         },
         scaffoldState = bottomSheetState,
         sheetShape = RoundedCornerShape(8.dp),
         sheetPeekHeight = 0.dp,
         backgroundColor = MaterialTheme.colors.background
     ) {
-        Playlist(
-            voices = voices,
-        ) { i, v ->
-            index = i
-            onVoiceClicked(i, v)
-            scope.launch {
-                bottomSheetState.bottomSheetState.expand()
+        if (voices.isNullOrEmpty()){
+            Column(modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(text = "You did not record any voice")
+            }
+        }else{
+            Playlist(
+                voices = voices,
+            ) { i, v ->
+                index = i
+                onVoiceClicked(i, v)
+                scope.launch {
+                    bottomSheetState.bottomSheetState.expand()
+                }
             }
         }
+
     }
 }
 
