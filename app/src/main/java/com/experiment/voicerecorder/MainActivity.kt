@@ -13,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.TextUnit
@@ -136,49 +137,49 @@ class MainActivity : ComponentActivity() {
                             recordEnabled = recordButtonState,
                             recordingTime = timer,
                             playlistButtonEnabled,
-                            onRecord = { viewModel.onRecord() }) {
-                            startPlayerActivity(this@MainActivity)
-                        }
+                            onRecord = { viewModel.onRecord() },
+                            onListButtonClick = { startPlayerActivity(this@MainActivity) })
                     }
                 }
             }
         }
     }
+}
 
-    @Composable
-    private fun Debug(
-        playButtonState: Boolean,
-        recordButtonState: Boolean,
-        fileName: String,
-        state: VoiceRecorderState,
-        textSize: TextUnit,
-        pos: Int,
-    ) {
-        Column(modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 12.dp),
-            verticalArrangement = Arrangement.Bottom) {
-            Greeting(name = "Arash")
-            if (fileName.isEmpty())
-                Text(text = "file name is: Press Record Button to appear",
-                    color = MaterialTheme.colors.onSurface,
-                    fontSize = textSize
-                )
-            else Text(text = "file name is: ${fileName}",
+@Composable
+private fun Debug(
+    playButtonState: Boolean,
+    recordButtonState: Boolean,
+    fileName: String,
+    state: VoiceRecorderState,
+    textSize: TextUnit,
+    pos: Int,
+) {
+    Column(modifier = Modifier
+        .fillMaxSize()
+        .padding(horizontal = 12.dp),
+        verticalArrangement = Arrangement.Bottom) {
+        Greeting(name = "Arash")
+        if (fileName.isEmpty())
+            Text(text = "file name is: Press Record Button to appear",
                 color = MaterialTheme.colors.onSurface,
                 fontSize = textSize
             )
-            Text(text = "state: ${state}",
-                color = MaterialTheme.colors.onSurface,
-                fontSize = textSize
-            )
-            Text(text = "pos: ${pos}",
-                color = MaterialTheme.colors.onSurface,
-                fontSize = textSize
-            )
-        }
+        else Text(text = "file name is: ${fileName}",
+            color = MaterialTheme.colors.onSurface,
+            fontSize = textSize
+        )
+        Text(text = "state: ${state}",
+            color = MaterialTheme.colors.onSurface,
+            fontSize = textSize
+        )
+        Text(text = "pos: ${pos}",
+            color = MaterialTheme.colors.onSurface,
+            fontSize = textSize
+        )
     }
 }
+
 
 
 @Composable
