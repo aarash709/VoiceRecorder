@@ -2,7 +2,7 @@
 buildscript {
     ext {
         kotlin_version = "1.5.31"
-        compose_version = '1.1.0-rc03'
+        compose_version = '1.1.0'
         appcompat_version = '1.4.0'
         android_core_version = '1.7.0'
         room_version = '2.4.1'
