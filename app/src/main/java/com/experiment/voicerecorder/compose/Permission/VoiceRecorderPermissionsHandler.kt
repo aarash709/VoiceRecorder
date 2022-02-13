@@ -2,6 +2,7 @@ package com.experiment.voicerecorder
 
 import android.Manifest
 import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,9 +16,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.LifecycleOwner
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionState
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import com.google.accompanist.permissions.rememberPermissionState
 
 @ExperimentalPermissionsApi
 @Composable
@@ -28,7 +31,7 @@ fun VoiceRecorderPermissionsHandler(
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             listOf(
                 Manifest.permission.MANAGE_EXTERNAL_STORAGE,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+//              Manifest.permission.WRITE_EXTERNAL_STORAGE,
                 Manifest.permission.RECORD_AUDIO,
             )
         } else {
@@ -43,7 +46,7 @@ fun VoiceRecorderPermissionsHandler(
         permissions = permissionList)
     DisposableEffect(key1 = lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_START) {
+            if (event == Lifecycle.Event.ON_CREATE) {
                 permissionState.launchMultiplePermissionRequest()
             }
         }
@@ -52,9 +55,8 @@ fun VoiceRecorderPermissionsHandler(
             lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
-
-    permissionState.permissions.forEach { permission ->
-        when (permission.permission) {
+    permissionState.permissions.forEach { state ->
+        when (state.permission) {
 //            Manifest.permission.MANAGE_EXTERNAL_STORAGE ->
 //                when {
 //                    permission.hasPermission -> {
@@ -122,22 +124,22 @@ fun VoiceRecorderPermissionsHandler(
 //                }
             Manifest.permission.RECORD_AUDIO ->
                 when {
-                    permission.hasPermission -> {
+                    state.hasPermission -> {
                         content()
                     }
-                    permission.shouldShowRationale -> {
+                    state.shouldShowRationale -> {
                         Column(modifier = Modifier.fillMaxSize()) {
                             Text(text = "accept record ratianale")
-                            Button(onClick = { permission.launchPermissionRequest() }) {
+                            Button(onClick = { state.launchPermissionRequest() }) {
                                 Text(text = "grant permission")
                             }
                         }
 
                     }
-                    permission.permissionRequested ->
+                    state.permissionRequested ->
                         Text(text = "record permission requested")
 
-                    permission.permanentlyDenied() ->
+                    state.permanentlyDenied() ->
                         Text(text = "Record audio permission was permanently" +
                                 "denied. You can enable it in the app" +
                                 "settings.")
