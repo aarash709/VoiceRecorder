@@ -52,15 +52,29 @@ class PlayerService :
     }
     private val playVoiceReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
-            mediaPath = StorageUtil(this@PlayerService).loadVoice()
-            if (mediaPath.isNullOrBlank())
-                stopSelf()
+            Timber.e("Play voice receiver")
+
             stopPlaying()
             initializeMediaPlayer()
-            updateMetadata()
+            showNotification(PlayPauseState.STATE_PLAY)
+        }
+    }
+    private val pauseVoiceReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            Timber.e("Pause voice receiver")
+            pausePlaying()
             //reset mediaPlayer?
             //build notification
-            showNotification(PlayPauseState.STATE_PLAY)
+            showNotification(PlayPauseState.STATE_PAUSE)
+        }
+    }
+    private val stopVoiceReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            Timber.e("Stop voice receiver")
+            stopPlaying()
+            //reset mediaPlayer?
+            //build notification
+            removeNotification()
         }
     }
 
@@ -74,8 +88,9 @@ class PlayerService :
         Timber.e("On create")
         registerBecomingNoisyReceiver()
         registerPlayVoiceReceiver()
+        registerPauseVoiceReceiver()
+        registerStopVoiceReceiver()
     }
-
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Timber.e("start Command")
@@ -251,7 +266,14 @@ class PlayerService :
         val intentFilter = IntentFilter(BROADCAST_PLAY_VOICE)
         registerReceiver(playVoiceReceiver, intentFilter)
     }
-
+    private fun registerPauseVoiceReceiver() {
+        val intentFilter = IntentFilter(BROADCAST_PAUSE_VOICE)
+        registerReceiver(pauseVoiceReceiver, intentFilter)
+    }
+    private fun registerStopVoiceReceiver() {
+        val intentFilter = IntentFilter(BROADCAST_STOP_VOICE)
+        registerReceiver(stopVoiceReceiver, intentFilter)
+    }
     private fun requestAudioFocus(): Boolean {
         audioManager = getSystemService(AudioManager::class.java) as AudioManager
         val result = if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O)
@@ -327,8 +349,8 @@ class PlayerService :
     //player Listeners
     override fun onPrepared(mp: MediaPlayer?) {
         mp?.let {
+            Timber.e("On Prepared")
             startPlaying()
-            Timber.e("onprepared")
         }
     }
 

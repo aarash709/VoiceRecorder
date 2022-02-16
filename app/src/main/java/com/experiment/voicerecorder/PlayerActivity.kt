@@ -8,27 +8,21 @@ import android.os.Bundle
 import android.os.IBinder
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLifecycleOwner
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.experiment.voicerecorder.Utils.BROADCAST_PLAY_VOICE
+import com.experiment.voicerecorder.Utils.BROADCAST_STOP_VOICE
 import com.experiment.voicerecorder.Utils.StorageUtil
 import com.experiment.voicerecorder.ViewModel.PlayerViewModel
 import com.experiment.voicerecorder.compose.PlaylistScaffold
 import com.experiment.voicerecorder.service.player.PlayerService
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import timber.log.Timber
 
 @ExperimentalPermissionsApi
 @ExperimentalMaterialApi
@@ -63,6 +57,13 @@ class PlayerActivity : ComponentActivity() {
             sendBroadcast(broadcastIntent)
         }
     }
+    private fun stopVoice(){
+        if (isServiceBound){
+            val broadcastIntent =  Intent(BROADCAST_STOP_VOICE)
+            sendBroadcast(broadcastIntent)
+            Timber.e("voice stop broadcast")
+        }
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -86,7 +87,7 @@ class PlayerActivity : ComponentActivity() {
                     PlaylistScaffold(
                         voices.value,
                         onPlayPause = {},
-                        onStop = {},
+                        onStop = {stopVoice()},
                         onVoiceClicked = { i, voice ->
                             playVoice(
                                 voice.path)
