@@ -10,10 +10,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.TextUnit
@@ -26,17 +24,10 @@ import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberImagePainter
 import com.experiment.voicerecorder.ViewModel.MainViewModel
 import com.experiment.voicerecorder.ViewModel.VoiceRecorderState
-import com.experiment.voicerecorder.compose.PlaylistScaffold
 import com.experiment.voicerecorder.compose.RecodingPage
-import com.experiment.voicerecorder.compose.VoiceRecorderNavigation
 import com.experiment.voicerecorder.ui.theme.VoiceRecorderTheme
-import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
-import com.google.accompanist.navigation.material.rememberBottomSheetNavigator
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import kotlinx.coroutines.launch
 import timber.log.Timber
-import java.text.SimpleDateFormat
-import java.util.*
 
 @RequiresApi(Build.VERSION_CODES.R)
 @ExperimentalPermissionsApi

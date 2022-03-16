@@ -9,13 +9,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.experiment.voicerecorder.ViewModel.MainViewModel
 import com.experiment.voicerecorder.data.Voice
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.experiment.voicerecorder.startPlayerActivity
-import com.google.accompanist.navigation.material.rememberBottomSheetNavigator
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import timber.log.Timber
 
 sealed class Pages(val route: String) {
     object RecordingPage : Pages("RecordingPage")
