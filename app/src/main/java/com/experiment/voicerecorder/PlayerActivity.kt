@@ -15,6 +15,7 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.experiment.voicerecorder.Utils.BROADCAST_PAUSE_VOICE
 import com.experiment.voicerecorder.Utils.BROADCAST_PLAY_VOICE
 import com.experiment.voicerecorder.Utils.BROADCAST_STOP_VOICE
 import com.experiment.voicerecorder.Utils.StorageUtil
@@ -57,11 +58,18 @@ class PlayerActivity : ComponentActivity() {
             sendBroadcast(broadcastIntent)
         }
     }
-    private fun stopVoice(){
+    private fun stopVoiceBroadcast(){
         if (isServiceBound){
             val broadcastIntent =  Intent(BROADCAST_STOP_VOICE)
             sendBroadcast(broadcastIntent)
             Timber.e("voice stop broadcast")
+        }
+    }
+    private fun pauseVoiceBroadcast(){
+        if (isServiceBound){
+            val broadcastIntent =  Intent(BROADCAST_PAUSE_VOICE)
+            sendBroadcast(broadcastIntent)
+            Timber.e("voice pause broadcast")
         }
     }
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -86,8 +94,8 @@ class PlayerActivity : ComponentActivity() {
                 VoiceRecorderPermissionsHandler {
                     PlaylistScaffold(
                         voices.value,
-                        onPlayPause = {},
-                        onStop = {stopVoice()},
+                        onPlayPause = {pauseVoiceBroadcast()},
+                        onStop = {stopVoiceBroadcast()},
                         onVoiceClicked = { i, voice ->
                             playVoice(
                                 voice.path)
