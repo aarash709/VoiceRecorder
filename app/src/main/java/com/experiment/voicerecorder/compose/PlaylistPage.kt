@@ -46,6 +46,9 @@ fun PlaylistScaffold(
         if (!voices[index].isPlaying)
             bottomSheetState.bottomSheetState.collapse()
     }
+    LaunchedEffect(key1 = true){
+        //load voices once the page is composed
+    }
     BottomSheetScaffold(
         sheetContent =
         {

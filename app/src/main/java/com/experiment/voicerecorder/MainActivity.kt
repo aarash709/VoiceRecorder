@@ -22,11 +22,13 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberImagePainter
+import com.experiment.voicerecorder.ViewModel.AppSate
 import com.experiment.voicerecorder.ViewModel.MainViewModel
 import com.experiment.voicerecorder.ViewModel.VoiceRecorderState
 import com.experiment.voicerecorder.compose.VoiceRecorderNavigation
 import com.experiment.voicerecorder.ui.theme.VoiceRecorderTheme
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import kotlinx.coroutines.flow.collect
 import timber.log.Timber
 
 @RequiresApi(Build.VERSION_CODES.R)
@@ -72,8 +74,29 @@ class MainActivity : ComponentActivity() {
                     mutableStateOf(12.sp)
                 }
                 LaunchedEffect(key1 = voiceRecorderState, key2 = seekbarPosition, key3 = timer) {
+                    viewModel.state.collect { state ->
+                        when (state) {
+                            is AppSate.OnIdle -> {
+                                playButtonState = true
+                                recordButtonState = true
+                                playlistButtonEnabled = true
+                                viewModel.onPlayUpdateListState(voiceIndex)
+                                viewModel.resetRecordingTimer()
+                                viewModel.resetPlayerValues()
+                            }
+                            is AppSate.OnRecord -> {
+                                playButtonState = false
+                                playlistButtonEnabled = false
+                                viewModel.updateTimerValues()
 
-                    when (voiceRecorderState) {
+                            }
+                            is AppSate.OnPlay -> {
+                                recordButtonState = false
+                                Timber.e("voice index $voiceIndex")
+                            }
+                        }
+                    }
+                    /*when (voiceRecorderState) {
                         VoiceRecorderState.STATE_RECORDING -> {
                             playButtonState = false
                             playlistButtonEnabled = false
@@ -103,12 +126,12 @@ class MainActivity : ComponentActivity() {
                             viewModel.resetPlayerValues()
                         }
                         else -> {}
-                    }
+                    }*/
                 }
                 DisposableEffect(key1 = lifecycleOwner) {
                     val observer = LifecycleEventObserver { _, event ->
                         if (event == Lifecycle.Event.ON_CREATE) {
-                                viewModel.getAllVoices()
+                            viewModel.getAllVoices()
                         }
                     }
                     lifecycleOwner.lifecycle.addObserver(observer)
