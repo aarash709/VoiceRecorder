@@ -9,6 +9,7 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
+import androidx.media.app.NotificationCompat.MediaStyle
 import com.experiment.voicerecorder.R
 
 class VoiceRecorderNotificationManager(context: Context) {
@@ -60,7 +61,7 @@ class VoiceRecorderNotificationManager(context: Context) {
             .setSmallIcon(smallIcon)
             .setContentTitle(title)
             .setContentText(text)
-            .setStyle(androidx.media.app.NotificationCompat.MediaStyle())
+            .setStyle(MediaStyle())
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setContentIntent(pendingIntent)
             .setAutoCancel(autoCancel)
