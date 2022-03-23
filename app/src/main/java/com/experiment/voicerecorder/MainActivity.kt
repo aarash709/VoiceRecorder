@@ -1,5 +1,6 @@
 package com.experiment.voicerecorder
 
+import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -29,9 +30,11 @@ import com.experiment.voicerecorder.compose.VoiceRecorderNavigation
 import com.experiment.voicerecorder.ui.theme.VoiceRecorderTheme
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.last
 import timber.log.Timber
 
-@RequiresApi(Build.VERSION_CODES.R)
+//@RequiresApi(Build.VERSION_CODES.R)
 @ExperimentalPermissionsApi
 @ExperimentalMaterialApi
 class MainActivity : ComponentActivity() {
@@ -42,7 +45,8 @@ class MainActivity : ComponentActivity() {
         setContent {
             VoiceRecorderTheme {
                 val viewModel: MainViewModel = viewModel()
-                val voiceRecorderState = viewModel.appState.value
+//                val voiceRecorderState = viewModel.appState.value
+                val state = viewModel.state.collectAsState(initial = AppSate.OnIdle)
                 val isRecording = viewModel.isRecording.value
                 val fileName = viewModel.fileName.value
                 val duration = viewModel.duration.value
@@ -56,6 +60,10 @@ class MainActivity : ComponentActivity() {
 
                 var playButtonState by remember {
                     mutableStateOf(false)
+
+                }
+                var debugState by remember {
+                    mutableStateOf("noState")
                 }
                 var recordButtonState by remember {
                     mutableStateOf(false)
@@ -73,9 +81,8 @@ class MainActivity : ComponentActivity() {
                 val textSize by remember {
                     mutableStateOf(12.sp)
                 }
-                LaunchedEffect(key1 = voiceRecorderState, key2 = seekbarPosition, key3 = timer) {
-                    viewModel.state.collect { state ->
-                        when (state) {
+                LaunchedEffect(key1 = state.value, key2 = seekbarPosition, key3 = timer) {
+                        when (state.value) {
                             is AppSate.OnIdle -> {
                                 playButtonState = true
                                 recordButtonState = true
@@ -83,19 +90,23 @@ class MainActivity : ComponentActivity() {
                                 viewModel.onPlayUpdateListState(voiceIndex)
                                 viewModel.resetRecordingTimer()
                                 viewModel.resetPlayerValues()
+                                //
+                                debugState = "Idle"
                             }
                             is AppSate.OnRecord -> {
+                                debugState = "Recording"
                                 playButtonState = false
                                 playlistButtonEnabled = false
                                 viewModel.updateTimerValues()
-
+                                //
                             }
                             is AppSate.OnPlay -> {
                                 recordButtonState = false
                                 Timber.e("voice index $voiceIndex")
+                                //
+                                debugState = "Playing"
                             }
                         }
-                    }
                     /*when (voiceRecorderState) {
                         VoiceRecorderState.STATE_RECORDING -> {
                             playButtonState = false
@@ -147,7 +158,7 @@ class MainActivity : ComponentActivity() {
                             playButtonState,
                             recordButtonState,
                             fileName,
-                            voiceRecorderState,
+                            debugState,
                             textSize,
                             seekbarPosition)
 
@@ -180,7 +191,7 @@ class MainActivity : ComponentActivity() {
         playButtonState: Boolean,
         recordButtonState: Boolean,
         fileName: String,
-        state: VoiceRecorderState,
+        state: String,
         textSize: TextUnit,
         pos: Int,
     ) {

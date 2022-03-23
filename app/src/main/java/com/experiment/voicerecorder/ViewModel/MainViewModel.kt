@@ -365,10 +365,6 @@ class MainViewModel(private val app: Application) : AndroidViewModel(app) {
     }
 
     suspend fun updateTimerValues() {
-        if (appState.value == VoiceRecorderState.STATE_IDLE) {
-            sec = 0L
-            min = 0L
-        }
         val timeIntervals = 1000L
         delay(timeIntervals)
         sec += 1000L
