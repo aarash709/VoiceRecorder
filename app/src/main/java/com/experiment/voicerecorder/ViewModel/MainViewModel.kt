@@ -41,13 +41,6 @@ const val APP_NAME = "VoiceRecorderAPP"
 const val FILE_NAME = "VoiceRecorder"
 const val DEFAULT_RECORD_TIMER_VALUE = "00:00"
 
-enum class VoiceRecorderState {
-    STATE_IDLE,
-    STATE_RECORDING,
-    STATE_NOT_RECORDING,
-    STATE_PLAYING,
-    STATE_NOT_PLAYING
-}
 sealed class AppSate {
     object OnIdle: AppSate()
     object OnRecord: AppSate()
@@ -59,8 +52,6 @@ class MainViewModel(private val app: Application) : AndroidViewModel(app) {
 
 
     //ui states
-    val appState = mutableStateOf(VoiceRecorderState.STATE_IDLE)
-
     private var _appState= Channel<AppSate>()
     val state = _appState.receiveAsFlow()
 
@@ -194,7 +185,6 @@ class MainViewModel(private val app: Application) : AndroidViewModel(app) {
                 prepare()
                 start()
                 updateAppState(AppSate.OnPlay)
-//                appState.value = VoiceRecorderState.STATE_PLAYING
                 voiceDuration.value = duration
                 Timber.e(voice.title)
                 Timber.e("playback started")
@@ -215,7 +205,6 @@ class MainViewModel(private val app: Application) : AndroidViewModel(app) {
         mediaPlayer?.apply {
             stop()
             updateAppState(AppSate.OnIdle)
-//            appState.value = VoiceRecorderState.STATE_IDLE
             Timber.e("playback stopped")
         }
         isPlaying.value = false
@@ -226,7 +215,6 @@ class MainViewModel(private val app: Application) : AndroidViewModel(app) {
     private fun pausePlayback() {
         mediaPlayer?.pause()
         updateAppState(AppSate.OnIdle)
-//        appState.value = VoiceRecorderState.STATE_IDLE
         Timber.e("Paused")
         isPlaying.value = false
     }
@@ -238,7 +226,6 @@ class MainViewModel(private val app: Application) : AndroidViewModel(app) {
             this@MainViewModel.isPlaying.value = true
         }
         updateAppState(AppSate.OnPlay)
-//        appState.value = VoiceRecorderState.STATE_PLAYING
     }
 
     private fun startRecordingAudio(onRecord: () -> Unit) {
@@ -295,8 +282,6 @@ class MainViewModel(private val app: Application) : AndroidViewModel(app) {
         }
         mediaRecorder = null
         updateAppState(AppSate.OnIdle)
-//        appState.value = VoiceRecorderState.STATE_NOT_RECORDING
-//        appState.value = VoiceRecorderState.STATE_IDLE
         recordingAllowed.value = true
         isRecording.value = false
         playbackAllowed.value = true

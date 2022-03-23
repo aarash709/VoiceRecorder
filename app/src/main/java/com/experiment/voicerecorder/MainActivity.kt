@@ -25,7 +25,6 @@ import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberImagePainter
 import com.experiment.voicerecorder.ViewModel.AppSate
 import com.experiment.voicerecorder.ViewModel.MainViewModel
-import com.experiment.voicerecorder.ViewModel.VoiceRecorderState
 import com.experiment.voicerecorder.compose.VoiceRecorderNavigation
 import com.experiment.voicerecorder.ui.theme.VoiceRecorderTheme
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -45,7 +44,6 @@ class MainActivity : ComponentActivity() {
         setContent {
             VoiceRecorderTheme {
                 val viewModel: MainViewModel = viewModel()
-//                val voiceRecorderState = viewModel.appState.value
                 val state = viewModel.state.collectAsState(initial = AppSate.OnIdle)
                 val isRecording = viewModel.isRecording.value
                 val fileName = viewModel.fileName.value
@@ -107,37 +105,6 @@ class MainActivity : ComponentActivity() {
                                 debugState = "Playing"
                             }
                         }
-                    /*when (voiceRecorderState) {
-                        VoiceRecorderState.STATE_RECORDING -> {
-                            playButtonState = false
-                            playlistButtonEnabled = false
-                            viewModel.updateTimerValues()
-                        }
-                        VoiceRecorderState.STATE_NOT_RECORDING -> {
-                            playButtonState = true
-                            recordButtonState = true
-                            playlistButtonEnabled = true
-                            viewModel.resetRecordingTimer()
-
-                        }
-                        VoiceRecorderState.STATE_PLAYING -> {
-                            recordButtonState = false
-                            Timber.e("voice index $voiceIndex")
-                        }
-                        VoiceRecorderState.STATE_NOT_PLAYING -> {
-                            recordButtonState = true
-                            playButtonState = true
-                        }
-                        VoiceRecorderState.STATE_IDLE -> {
-                            recordButtonState = true
-                            playButtonState = true
-                            playlistButtonEnabled = true
-                            viewModel.onPlayUpdateListState(voiceIndex)
-                            viewModel.resetRecordingTimer()
-                            viewModel.resetPlayerValues()
-                        }
-                        else -> {}
-                    }*/
                 }
                 DisposableEffect(key1 = lifecycleOwner) {
                     val observer = LifecycleEventObserver { _, event ->
