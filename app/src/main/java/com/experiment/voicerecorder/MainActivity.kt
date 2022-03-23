@@ -119,7 +119,6 @@ class MainActivity : ComponentActivity() {
                 }
 
                 MainScreen {
-
                     Box(modifier = Modifier) {
                         Debug(
                             playButtonState,
