@@ -1,11 +1,8 @@
 package com.experiment.voicerecorder
 
-import android.net.wifi.WifiManager
-import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -28,9 +25,6 @@ import com.experiment.voicerecorder.ViewModel.MainViewModel
 import com.experiment.voicerecorder.compose.VoiceRecorderNavigation
 import com.experiment.voicerecorder.ui.theme.VoiceRecorderTheme
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.last
 import timber.log.Timber
 
 //@RequiresApi(Build.VERSION_CODES.R)
@@ -90,14 +84,14 @@ class MainActivity : ComponentActivity() {
                                 //
                                 debugState = "Idle"
                             }
-                            is AppSate.OnRecord -> {
+                            is AppSate.Recording -> {
                                 debugState = "Recording"
                                 playButtonState = false
                                 playlistButtonEnabled = false
                                 viewModel.updateTimerValues()
                                 //
                             }
-                            is AppSate.OnPlay -> {
+                            is AppSate.Playing -> {
                                 recordButtonState = false
                                 Timber.e("voice index $voiceIndex")
                                 //

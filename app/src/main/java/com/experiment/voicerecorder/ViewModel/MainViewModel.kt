@@ -42,20 +42,18 @@ const val DEFAULT_RECORD_TIMER_VALUE = "00:00"
 
 sealed class AppSate {
     object OnIdle : AppSate()
-    object OnRecord : AppSate()
-    object OnPlay : AppSate()
+    object Recording : AppSate()
+    object Playing : AppSate()
 }
 
 @ExperimentalMaterialApi
 @ExperimentalPermissionsApi
 class MainViewModel(private val app: Application) : AndroidViewModel(app) {
 
-    private var currentVoiceIndex: Int? = null
 
     //ui states
     private var _appState = Channel<AppSate>()
     val state = _appState.receiveAsFlow()
-
     val isRecording = mutableStateOf(false)
     val isPlaying = mutableStateOf(false)
     var timer = mutableStateOf(DEFAULT_RECORD_TIMER_VALUE)
@@ -64,6 +62,7 @@ class MainViewModel(private val app: Application) : AndroidViewModel(app) {
     var seekbarCurrentPosition = mutableStateOf(0)
     //end ui states
 
+    private var previousVoiceIndex: Int? = null
     private val recordingAllowed = mutableStateOf(true)
     private val playbackAllowed = mutableStateOf(true)
     private var mediaRecorder: MediaRecorder? = null
@@ -96,16 +95,14 @@ class MainViewModel(private val app: Application) : AndroidViewModel(app) {
 
     private fun initializeAppSettings() {
         createStorageFolder()
-        val rootPath = getStoragePath()
+        val rootPath = storagePath()
         directoryName = "$rootPath/$DIRECTORY_NAME"
         updateAppState(AppSate.OnIdle)
-        //appState.value = VoiceRecorderState.STATE_IDLE
-
     }
 
     fun getAllVoices() {
         viewModelScope.launch {
-            val items = File(getStoragePath(),
+            val items = File(storagePath(),
                 "/$DIRECTORY_NAME").listFiles()
                 ?.map {
                     Voice(
@@ -124,7 +121,6 @@ class MainViewModel(private val app: Application) : AndroidViewModel(app) {
             Timber.e("loading all voices")
         }
     }
-
 
     fun onRecord() {
         val intent = Intent(app, MainActivity::class.java)
@@ -147,21 +143,18 @@ class MainViewModel(private val app: Application) : AndroidViewModel(app) {
         }
     }
 
-
-    fun onPlay(index: Int, voice: Voice) {
+    fun onPlay(nextVoiceIndex: Int, voice: Voice) {
         voiceToPlay = voice
         voiceToPlay?.let {
             if (!isPlaying.value) {
-                startPlayback(it, index)
-                currentVoiceIndex = index
+                previousVoiceIndex = nextVoiceIndex
+                startPlayback(it, previousVoiceIndex!!)
             } else {
-                stopPlayback(currentVoiceIndex!!)
-                startPlayback(voice, index)
-                currentVoiceIndex = index
+                stopPlayback(previousVoiceIndex!!)
+                startPlayback(it, nextVoiceIndex)
+                previousVoiceIndex = nextVoiceIndex
             }
-//                startPlayback(it)
         }
-
     }
 
     fun onPlayPause() {
@@ -190,7 +183,7 @@ class MainViewModel(private val app: Application) : AndroidViewModel(app) {
                 setDataSource(voice.path)
                 prepare()
                 start()
-                updateAppState(AppSate.OnPlay)
+                updateAppState(AppSate.Playing)
                 voiceDuration.value = duration
                 Timber.e(voice.title)
                 Timber.e("playback started")
@@ -233,7 +226,7 @@ class MainViewModel(private val app: Application) : AndroidViewModel(app) {
             Timber.e("Resumed")
             this@MainViewModel.isPlaying.value = true
         }
-        updateAppState(AppSate.OnPlay)
+        updateAppState(AppSate.Playing)
     }
 
     private fun startRecordingAudio(onRecord: () -> Unit) {
@@ -266,11 +259,9 @@ class MainViewModel(private val app: Application) : AndroidViewModel(app) {
                     }
                     start()
                 }
-            } else {
-
             }
             onRecord()
-            updateAppState(AppSate.OnRecord)
+            updateAppState(AppSate.Recording)
 //            appState.value = VoiceRecorderState.STATE_RECORDING
             recordingAllowed.value = false
             playbackAllowed.value = false
@@ -309,7 +300,7 @@ class MainViewModel(private val app: Application) : AndroidViewModel(app) {
     }
 
 
-    private fun getStoragePath(): String {
+    private fun storagePath(): String {
         //specific path external
 //        val path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC)
         //inside app internal
@@ -329,14 +320,14 @@ class MainViewModel(private val app: Application) : AndroidViewModel(app) {
     }
 
     private fun createStorageFolder() {
-        val rootpath = getStoragePath()
-        // TODO: 11/29/2021 should handle exeptions later on
-        val folderExists = File(rootpath, "/$DIRECTORY_NAME").exists()
+        val rootPath = storagePath()
+        // TODO: 11/29/2021 should handle exceptions later on
+        val folderExists = File(rootPath, "/$DIRECTORY_NAME").exists()
         if (folderExists) {
             Timber.e("$DIRECTORY_NAME exists")
             canAccessAppFolder = true
         } else {
-            if (File(rootpath, "/$DIRECTORY_NAME").mkdirs()) {
+            if (File(rootPath, "/$DIRECTORY_NAME").mkdirs()) {
                 canAccessAppFolder = true
                 Timber.e("file created")
             } else {
