@@ -58,7 +58,6 @@ class MainActivity : ComponentActivity() {
 
                 var playButtonState by remember {
                     mutableStateOf(false)
-
                 }
                 var debugState by remember {
                     mutableStateOf("noState")
@@ -85,7 +84,7 @@ class MainActivity : ComponentActivity() {
                                 playButtonState = true
                                 recordButtonState = true
                                 playlistButtonEnabled = true
-                                viewModel.onPlayUpdateListState(voiceIndex)
+                                //viewModel.onPlayUpdateListState(voiceIndex)
                                 viewModel.resetRecordingTimer()
                                 viewModel.resetPlayerValues()
                                 //
@@ -138,7 +137,7 @@ class MainActivity : ComponentActivity() {
                             voices,
                             onRecord = { viewModel.onRecord() },
                             onPlayPause = { viewModel.onPlayPause() },
-                            onStop = { viewModel.stopPlayback() },
+                            onStop = { viewModel.stopPlayback(voiceIndex) },
                             onPlay = { i, voice ->
                                 voiceIndex = i
                                 Timber.e("on play index: $i")

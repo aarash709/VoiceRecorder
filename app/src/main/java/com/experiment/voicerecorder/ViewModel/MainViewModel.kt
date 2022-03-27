@@ -24,7 +24,6 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -42,17 +41,19 @@ const val FILE_NAME = "VoiceRecorder"
 const val DEFAULT_RECORD_TIMER_VALUE = "00:00"
 
 sealed class AppSate {
-    object OnIdle: AppSate()
-    object OnRecord: AppSate()
-    object OnPlay: AppSate()
+    object OnIdle : AppSate()
+    object OnRecord : AppSate()
+    object OnPlay : AppSate()
 }
+
 @ExperimentalMaterialApi
 @ExperimentalPermissionsApi
 class MainViewModel(private val app: Application) : AndroidViewModel(app) {
 
+    private var currentVoiceIndex: Int? = null
 
     //ui states
-    private var _appState= Channel<AppSate>()
+    private var _appState = Channel<AppSate>()
     val state = _appState.receiveAsFlow()
 
     val isRecording = mutableStateOf(false)
@@ -86,7 +87,8 @@ class MainViewModel(private val app: Application) : AndroidViewModel(app) {
         initializeAppSettings()
         notification.createNotificationChannel(app)
     }
-    private fun updateAppState(state: AppSate){
+
+    private fun updateAppState(state: AppSate) {
         viewModelScope.launch {
             _appState.send(state)
         }
@@ -103,7 +105,7 @@ class MainViewModel(private val app: Application) : AndroidViewModel(app) {
 
     fun getAllVoices() {
         viewModelScope.launch {
-           val items = File(getStoragePath(),
+            val items = File(getStoragePath(),
                 "/$DIRECTORY_NAME").listFiles()
                 ?.map {
                     Voice(
@@ -115,7 +117,9 @@ class MainViewModel(private val app: Application) : AndroidViewModel(app) {
                     )
                 }
             items?.let {
-                voices.value = it
+                voices.value = it.sortedByDescending { voice ->
+                    voice.recordTime
+                }
             }
             Timber.e("loading all voices")
         }
@@ -144,16 +148,18 @@ class MainViewModel(private val app: Application) : AndroidViewModel(app) {
     }
 
 
-    fun onPlay(i: Int, voice: Voice) {
+    fun onPlay(index: Int, voice: Voice) {
         voiceToPlay = voice
         voiceToPlay?.let {
             if (!isPlaying.value) {
-                startPlayback(it)
+                startPlayback(it, index)
+                currentVoiceIndex = index
             } else {
-                stopPlayback()
-//                onPlayUpdateListState(i)
-//                startPlayback(it)
+                stopPlayback(currentVoiceIndex!!)
+                startPlayback(voice, index)
+                currentVoiceIndex = index
             }
+//                startPlayback(it)
         }
 
     }
@@ -176,10 +182,10 @@ class MainViewModel(private val app: Application) : AndroidViewModel(app) {
         }
     }
 
-    private fun startPlayback(voice: Voice) {
+    private fun startPlayback(voice: Voice, index: Int) {
         mediaPlayer = MediaPlayer()
         mediaPlayer?.apply {
-            if (isPlaying) stopPlayback()
+            if (isPlaying) stopPlayback(index)
             try {
                 setDataSource(voice.path)
                 prepare()
@@ -188,26 +194,28 @@ class MainViewModel(private val app: Application) : AndroidViewModel(app) {
                 voiceDuration.value = duration
                 Timber.e(voice.title)
                 Timber.e("playback started")
-                this@MainViewModel.isPlaying.value = true
+                this@MainViewModel.isPlaying.value = isPlaying
             } catch (e: Exception) {
-                this@MainViewModel.isPlaying.value = false
+                this@MainViewModel.isPlaying.value = isPlaying
                 Timber.e("playback failed")
             }
         }
+        onPlayUpdateListState(index)
         playbackAllowed.value = false
         Timber.e("started playback: " + isPlaying.value)
         mediaPlayer?.setOnCompletionListener {
-            stopPlayback()
+            stopPlayback(index)
         }
     }
 
-    fun stopPlayback() {
+    fun stopPlayback(index: Int) {
         mediaPlayer?.apply {
             stop()
             updateAppState(AppSate.OnIdle)
             Timber.e("playback stopped")
+            this@MainViewModel.isPlaying.value = isPlaying
         }
-        isPlaying.value = false
+        onPlayUpdateListState(index)
         playbackAllowed.value = true
         Timber.e("started playback(on stop): " + isPlaying.value)
     }
@@ -291,7 +299,7 @@ class MainViewModel(private val app: Application) : AndroidViewModel(app) {
     fun onPlayUpdateListState(index: Int) {
         Timber.e("update list index: $index")
         voices.value = voices.value.mapIndexed { i, v ->
-            if (i == index) {
+            if (index == i) {
                 if (isPlaying.value)
                     v.copy(isPlaying = isPlaying.value)
                 else
