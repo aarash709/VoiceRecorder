@@ -16,6 +16,7 @@ androidxHiltWork = "1.0.0"
 androidxRoom = "2.5.1"
 androidxSplashScreen = "1.0.1"
 andoidxDatastorePreferences = "1.0.0"
+andoidxMaterial3 = "1.1.0"
 accompanist = "0.30.1"
 hiltNavigationCompose = "1.0.0"
 hiltAndroid = "2.44.2"
@@ -35,6 +36,8 @@ compose-ui-toolingPreview = { group = "androidx.compose.ui", name = "ui-tooling-
 compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling", version.ref = "androidxCompose" }
 compose-runtime = { group = "androidx.compose.runtime", name = "runtime", version.ref = "androidxCompose" }
 compose-runtime-livedata = { group = "androidx.compose.runtime", name = "runtime-livedata", version.ref = "androidxCompose" }
+compose-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "andoidxMaterial3" }
+compose-material3-windowSizeClass = { group = "androidx.compose.material3", name = "material3-window-size-class", version.ref = "andoidxMaterial3" }
 compose-material = { group = "androidx.compose.material", name = "material", version.ref = "androidxCompose" }
 compose-material-iconsExtended = { group = "androidx.compose.material", name = "material-icons-extended", version.ref = "androidxCompose" }
 androidx-CoreKtx = { group = "androidx.core", name = "core-ktx", version.ref = "androidxCore" }
@@ -93,7 +96,9 @@ compose = [
     "compose-runtime",
     "compose-runtime-livedata",
     "compose-material",
-    "compose-material-iconsExtended"]
+    "compose-material-iconsExtended",
+    "compose-material3",
+    "compose-material3-windowSizeClass"]
 ktor = [
     "ktor-core",
     "ktor-kotlinxSerilization",

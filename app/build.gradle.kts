@@ -1,56 +1,56 @@
 plugins {
-    id 'com.android.application'
-    id 'kotlin-android'
-    id 'kotlin-kapt'
-    id 'dagger.hilt.android.plugin'
+    id("com.android.application")
+    id("kotlin-android")
+    id("kotlin-kapt")
+    id("dagger.hilt.android.plugin")
     //id 'com.google.gms.google-services'
 }
 
 android {
     compileSdk = 33
+    namespace = "com.experiment.voicerecorder"
     defaultConfig {
-        applicationId "com.experiment.voicerecorder"
+        applicationId = "com.experiment.voicerecorder"
         minSdk = 26
         targetSdk = 33
-        versionCode 1
+        versionCode = 1
         versionName = "0.1-alpha"
 
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner ="androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
-            useSupportLibrary true
+            useSupportLibrary = true
         }
     }
 
     buildTypes {
         release {
-            minifyEnabled true
-            shrinkResources true
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
         }
         debug {
-            minifyEnabled false
-            shrinkResources false
+            isMinifyEnabled = false
+            isShrinkResources = false
             proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
         jvmTarget = "17"
     }
     buildFeatures {
-        compose true
+        compose = true
 //        dataBinding true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = libs.versions.androidxComposeCompiler.get()
-        kotlinCompilerVersion '1.5.21'
     }
     packagingOptions {
         resources {
-            excludes += '/META-INF/{AL2.0,LGPL2.1}'
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
 }
@@ -61,7 +61,7 @@ dependencies {
     implementation(libs.androidx.splashScreen)
 
 //    //necessary for notification style using agp:7.1.2
-    implementation "androidx.media:media:1.6.0"
+    implementation("androidx.media:media:1.6.0")
 
     implementation(libs.kotlix.coroutinesCore)
     implementation(libs.kotlix.coroutinesAndroid)
@@ -100,5 +100,5 @@ dependencies {
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
     androidTestImplementation("androidx.compose.ui:ui-test-junit4:1.3.3")
 
-    androidTestImplementation "androidx.compose.ui:ui-test-junit4:$libs.versions.androidxCompose"
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4:${libs.versions.androidxCompose}")
 }
