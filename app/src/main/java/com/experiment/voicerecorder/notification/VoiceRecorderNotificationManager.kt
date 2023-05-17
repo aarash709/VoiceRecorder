@@ -25,27 +25,27 @@ class VoiceRecorderNotificationManager(context: Context) {
             .cancel(id)
     }
 
-    fun showNotification(
-        context: Context,
-        channelId: String,
-        smallIcon: Int,
-        title: String,
-        text: String,
-        pendingIntent: PendingIntent,
-        autoCancel: Boolean = true,
-    ) {
-        NotificationManagerCompat.from(context).notify(
-            RECORDING_ID, notificationBuilder(
-                context,
-                channelId,
-                smallIcon,
-                title,
-                text,
-                pendingIntent,
-                autoCancel
-            ).build()
-        )
-    }
+//    fun showNotification(
+//        context: Context,
+//        channelId: String,
+//        smallIcon: Int,
+//        title: String,
+//        text: String,
+//        pendingIntent: PendingIntent,
+//        autoCancel: Boolean = true,
+//    ) {
+//        NotificationManagerCompat.from(context).notify(
+//            RECORDING_ID, notificationBuilder(
+//                context,
+//                channelId,
+//                smallIcon,
+//                title,
+//                text,
+//                pendingIntent,
+//                autoCancel
+//            ).build()
+//        )
+//    }
 
     private fun notificationBuilder(
         context: Context,

@@ -17,7 +17,9 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionState
+import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import com.google.accompanist.permissions.shouldShowRationale
 
 @ExperimentalPermissionsApi
 @Composable
@@ -122,10 +124,10 @@ fun VoiceRecorderPermissionsHandler(
 //                }
             Manifest.permission.RECORD_AUDIO ->
                 when {
-                    permission.hasPermission -> {
+                    permission.status.isGranted-> {
                         content()
                     }
-                    permission.shouldShowRationale -> {
+                    permission.status.shouldShowRationale -> {
                         Column(modifier = Modifier.fillMaxSize()) {
                             Text(text = "accept record ratianale")
                             Button(onClick = { permission.launchPermissionRequest() }) {
@@ -134,8 +136,8 @@ fun VoiceRecorderPermissionsHandler(
                         }
 
                     }
-                    permission.permissionRequested ->
-                        Text(text = "record permission requested")
+//                    permission.permissionRequested ->
+//                        Text(text = "record permission requested")
 
                     permission.permanentlyDenied() ->
                         Text(text = "Record audio permission was permanently" +
@@ -150,5 +152,5 @@ fun VoiceRecorderPermissionsHandler(
 //ext
 @ExperimentalPermissionsApi
 fun PermissionState.permanentlyDenied(): Boolean {
-    return !hasPermission && !shouldShowRationale
+    return !status.isGranted && !status.shouldShowRationale
 }

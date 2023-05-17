@@ -124,17 +124,17 @@ class MainViewModel(private val app: Application) : AndroidViewModel(app) {
 
     fun onRecord() {
         val intent = Intent(app, MainActivity::class.java)
-        val pendingIntent = PendingIntent.getActivity(app, 0, intent, 0)
+        val pendingIntent = PendingIntent.getActivity(app, 0, intent, PendingIntent.FLAG_IMMUTABLE)
         if (recordingAllowed.value) {
             startRecordingAudio() {
-                notification.showNotification(
-                    app,
-                    RECORDING_CHANNEL_ID,
-                    R.drawable.ic_record,
-                    "Voice Recorder",
-                    "Now Recording",
-                    pendingIntent
-                )
+//                notification.showNotification(
+//                    app,
+//                    RECORDING_CHANNEL_ID,
+//                    R.drawable.ic_record,
+//                    "Voice Recorder",
+//                    "Now Recording",
+//                    pendingIntent
+//                )
             }
         } else {
             stopRecordingAudio() {
