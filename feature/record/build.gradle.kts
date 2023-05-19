@@ -48,6 +48,8 @@ dependencies {
     implementation(libs.androidx.coreKtx)
     implementation(libs.appcompat)
 
+    implementation(libs.timberLogger)
+
     testImplementation(libs.junit4)
     testImplementation(libs.kotlix.coroutinesTest)
     androidTestImplementation(libs.kotlix.coroutinesTest)
