@@ -57,6 +57,7 @@ android {
 dependencies {
 
     implementation(project(":feature:record"))
+    implementation(project(":core:designsystem"))
 
     implementation(libs.androidx.coreKtx)
     implementation(libs.androidx.appCompat)
@@ -72,6 +73,7 @@ dependencies {
     implementation(libs.androidx.lifecycleRuntimeKtx)
     implementation("androidx.activity:activity-ktx:1.7.1")
 
+    implementation(platform(libs.compose.bom))
     implementation(libs.bundles.compose)
     implementation(libs.androidx.navigationCompose)
     implementation(libs.androidx.lifecycleViewModelCompose)
