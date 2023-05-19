@@ -7,3 +7,4 @@ dependencyResolutionManagement {
 }
 rootProject.name = "Voice Recorder"
 include(":app")
+include(":feature:record")

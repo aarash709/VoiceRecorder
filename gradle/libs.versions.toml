@@ -26,6 +26,13 @@ moshi = "1.14.0"
 coil = "2.2.2"
 ktor = "2.3.0"
 gradleSecret = "2.0.1"
+agp = "7.4.2"
+org-jetbrains-kotlin-android = "1.8.21"
+junit4 = "4.13.2"
+androidxTestExtJunit = "1.1.5"
+espresso-core = "3.5.1"
+appcompat = "1.6.1"
+material = "1.9.0"
 
 [libraries]
 compose-bom = { group = "androidx.compose", name = "compose_Bom", version.ref = "composeBom" }
@@ -34,6 +41,7 @@ compose-foundation = { group = "androidx.compose.foundation", name = "foundation
 compose-ui = { group = "androidx.compose.ui", name = "ui", version.ref = "androidxCompose" }
 compose-ui-toolingPreview = { group = "androidx.compose.ui", name = "ui-tooling-preview", version.ref = "androidxCompose" }
 compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling", version.ref = "androidxCompose" }
+compose-ui-testJunit = { group = "androidx.compose.ui", name = "ui-test-junit4", version.ref = "androidxCompose" }
 compose-runtime = { group = "androidx.compose.runtime", name = "runtime", version.ref = "androidxCompose" }
 compose-runtime-livedata = { group = "androidx.compose.runtime", name = "runtime-livedata", version.ref = "androidxCompose" }
 compose-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "andoidxMaterial3" }
@@ -84,6 +92,11 @@ ktor-androidClient = { group = "io.ktor", name = "ktor-client-android", version.
 ktor-LoggingClient = { group = "io.ktor", name = "ktor-client-logging", version.ref = "ktor" }
 ktor-ciaoClient = { group = "io.ktor", name = "ktor-client-cio", version.ref = "ktor" }
 ktor-okhttpClient = { group = "io.ktor", name = "ktor-client-okhttp", version.ref = "ktor" }
+junit4 = { group = "junit", name = "junit", version.ref = "junit4" }
+androidx-test-extJunit = { group = "androidx.test.ext", name = "junit", version.ref = "androidxTestExtJunit" }
+espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espresso-core" }
+appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 
 
 [bundles]
@@ -111,3 +124,5 @@ ktor = [
 ]
 [plugins]
 secrets = { id = "com.google.android.libraries.mapsplatform.secrets-gradle-plugin", version.ref = "gradleSecret" }
+com-android-library = { id = "com.android.library", version.ref = "agp" }
+org-jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "org-jetbrains-kotlin-android" }
