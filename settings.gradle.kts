@@ -9,3 +9,4 @@ rootProject.name = "Voice Recorder"
 include(":app")
 include(":feature:record")
 include(":core:designsystem")
+include(":feature:playlist")

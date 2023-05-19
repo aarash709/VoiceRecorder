@@ -1,3 +1,4 @@
+@Suppress("DSL_SCOPE_VIOLATION") // TODO: Remove once KTIJ-19369 is fixed
 plugins {
     id("com.android.library")
     id("kotlin-android")
@@ -6,18 +7,17 @@ plugins {
 }
 
 android {
-    namespace = "com.recorder.feature.record"
+    namespace = "com.recorder.feature.playlist"
     compileSdk = 33
 
     defaultConfig {
         minSdk = 26
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-//        consumerProguardFiles("consumer-rules.pro")
+        consumerProguardFiles("consumer-rules.pro")
     }
 
     buildTypes {
-
     }
     buildFeatures{
         compose =  true
@@ -35,7 +35,6 @@ android {
 }
 
 dependencies {
-
     implementation(libs.bundles.compose)
     implementation(libs.material)
     implementation(libs.coilCompose)
@@ -57,4 +56,5 @@ dependencies {
     androidTestImplementation(libs.androidx.test.extJunit)
     androidTestImplementation(libs.espresso.core)
     androidTestImplementation(libs.compose.ui.testJunit)
+
 }
