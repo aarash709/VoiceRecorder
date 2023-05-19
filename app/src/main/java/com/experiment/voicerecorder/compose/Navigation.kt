@@ -2,18 +2,14 @@ package com.experiment.voicerecorder.compose
 
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.experiment.voicerecorder.ViewModel.MainViewModel
 import com.experiment.voicerecorder.data.Voice
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.recorder.feature.record.Record
-import timber.log.Timber
 
 sealed class Pages(val route: String) {
     object RecordingPage : Pages("RecordingPage")
@@ -52,12 +48,12 @@ fun VoiceRecorderNavigation(
 //            }
         }
         composable(Pages.PlayListPage.route) {
-            PlaylistScaffold(
+            com.recorder.feature.playlist.PlaylistScaffold(
                 voices,
                 onPlayPause = onPlayPause,
                 onStop = onStop,
-                onVoiceClicked = {i,voice->
-                    onPlay(i,voice)
+                onVoiceClicked = { i, voice ->
+                    onPlay(i, voice)
                 })
         }
     }
