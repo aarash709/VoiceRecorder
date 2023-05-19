@@ -12,6 +12,7 @@ import com.experiment.voicerecorder.ViewModel.MainViewModel
 import com.experiment.voicerecorder.data.Voice
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.recorder.feature.record.Record
 import timber.log.Timber
 
 sealed class Pages(val route: String) {
@@ -39,15 +40,16 @@ fun VoiceRecorderNavigation(
 
     NavHost(navController = navHost, startDestination = Pages.RecordingPage.route) {
         composable(Pages.RecordingPage.route) {
-            RecodingPage(modifier = modifier,
-                recordEnabled = recordEnabled,
-                recordingTime = timer,
-                playlistButtonEnabled,
-                onRecord = { onRecord() }) {
-                navHost.navigate(Pages.PlayListPage.route) {
-                    popUpTo(Pages.RecordingPage.route)
-                }
-            }
+            Record()
+//            RecodingPage(modifier = modifier,
+//                recordEnabled = recordEnabled,
+//                recordingTime = timer,
+//                playlistButtonEnabled,
+//                onRecord = { onRecord() }) {
+//                navHost.navigate(Pages.PlayListPage.route) {
+//                    popUpTo(Pages.RecordingPage.route)
+//                }
+//            }
         }
         composable(Pages.PlayListPage.route) {
             PlaylistScaffold(

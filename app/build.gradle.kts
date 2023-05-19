@@ -1,9 +1,8 @@
 plugins {
     id("com.android.application")
     id("kotlin-android")
-    id("kotlin-kapt")
     id("dagger.hilt.android.plugin")
-    //id 'com.google.gms.google-services'
+    id("kotlin-kapt")
 }
 
 android {
@@ -56,6 +55,9 @@ android {
 }
 
 dependencies {
+
+    implementation(project(":feature:record"))
+
     implementation(libs.androidx.coreKtx)
     implementation(libs.androidx.appCompat)
     implementation(libs.androidx.splashScreen)
@@ -66,7 +68,7 @@ dependencies {
     implementation(libs.kotlix.coroutinesCore)
     implementation(libs.kotlix.coroutinesAndroid)
 
-    implementation("com.google.android.material:material:1.9.0")
+    implementation(libs.material)
     implementation(libs.androidx.lifecycleRuntimeKtx)
     implementation("androidx.activity:activity-ktx:1.7.1")
 
@@ -95,10 +97,10 @@ dependencies {
 
     debugImplementation(libs.compose.ui.tooling)
 
-    testImplementation("junit:junit:4.13.2")
-    androidTestImplementation("androidx.test.ext:junit:1.1.5")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
-    androidTestImplementation("androidx.compose.ui:ui-test-junit4:1.3.3")
-
-    androidTestImplementation("androidx.compose.ui:ui-test-junit4:${libs.versions.androidxCompose}")
+    testImplementation(libs.junit4)
+    testImplementation(libs.kotlix.coroutinesTest)
+    androidTestImplementation(libs.kotlix.coroutinesTest)
+    androidTestImplementation(libs.androidx.test.extJunit)
+    androidTestImplementation(libs.espresso.core)
+    androidTestImplementation(libs.compose.ui.testJunit)
 }

@@ -25,11 +25,13 @@ import com.experiment.voicerecorder.ViewModel.MainViewModel
 import com.experiment.voicerecorder.compose.VoiceRecorderNavigation
 import com.experiment.voicerecorder.ui.theme.VoiceRecorderTheme
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 
 //@RequiresApi(Build.VERSION_CODES.R)
 @ExperimentalPermissionsApi
 @ExperimentalMaterialApi
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
