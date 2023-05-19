@@ -1,5 +1,5 @@
 plugins {
-    id("com.android.application")
+    id("com.android.library")
     id("kotlin-android")
     id("dagger.hilt.android.plugin")
     id("kotlin-kapt")
@@ -25,6 +25,12 @@ android {
             )
         }
     }
+    buildFeatures{
+        compose =  true
+    }
+    composeOptions{
+        kotlinCompilerExtensionVersion =  libs.versions.androidxComposeCompiler.get()
+    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -38,10 +44,11 @@ dependencies {
 
     implementation(libs.bundles.compose)
     implementation(libs.material)
-
+    implementation(libs.coilCompose)
     implementation(libs.kotlix.coroutinesCore)
     implementation(libs.kotlix.coroutinesAndroid)
 
+    implementation(libs.hilt.navigationCompose)
     implementation(libs.hilt.android)
     kapt(libs.hilt.kaptCompiler)
 

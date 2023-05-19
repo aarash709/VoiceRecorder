@@ -55,6 +55,9 @@ android {
 }
 
 dependencies {
+
+    implementation(project(":feature:record"))
+
     implementation(libs.androidx.coreKtx)
     implementation(libs.androidx.appCompat)
     implementation(libs.androidx.splashScreen)
