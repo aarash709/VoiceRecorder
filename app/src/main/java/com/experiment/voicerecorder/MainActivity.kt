@@ -23,8 +23,8 @@ import coil.compose.rememberImagePainter
 import com.experiment.voicerecorder.ViewModel.AppSate
 import com.experiment.voicerecorder.ViewModel.MainViewModel
 import com.experiment.voicerecorder.compose.VoiceRecorderNavigation
-import com.experiment.voicerecorder.ui.theme.VoiceRecorderTheme
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.recorder.core.designsystem.theme.VoiceRecorderTheme
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 

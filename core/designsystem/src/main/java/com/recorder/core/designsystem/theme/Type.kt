@@ -1,4 +1,4 @@
-package com.experiment.voicerecorder.ui.theme
+package com.recorder.core.designsystem.theme
 
 import androidx.compose.material.Typography
 import androidx.compose.ui.text.TextStyle

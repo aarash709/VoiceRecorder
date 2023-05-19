@@ -1,6 +1,6 @@
 [versions]
 kotlinPluginVersion = "1.8.10"
-composeBom = "2023.05.00"
+composeBom = "2023.05.01"
 androidxCompose = "1.4.3"
 androidxComposeCompiler = "1.4.7"
 androidxCore = "1.10.1"
@@ -35,19 +35,19 @@ appcompat = "1.6.1"
 material = "1.9.0"
 
 [libraries]
-compose-bom = { group = "androidx.compose", name = "compose_Bom", version.ref = "composeBom" }
-compose-animation = { group = "androidx.compose.animation", name = "animation", version.ref = "androidxCompose" }
-compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "androidxCompose" }
-compose-ui = { group = "androidx.compose.ui", name = "ui", version.ref = "androidxCompose" }
-compose-ui-toolingPreview = { group = "androidx.compose.ui", name = "ui-tooling-preview", version.ref = "androidxCompose" }
-compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling", version.ref = "androidxCompose" }
-compose-ui-testJunit = { group = "androidx.compose.ui", name = "ui-test-junit4", version.ref = "androidxCompose" }
-compose-runtime = { group = "androidx.compose.runtime", name = "runtime", version.ref = "androidxCompose" }
-compose-runtime-livedata = { group = "androidx.compose.runtime", name = "runtime-livedata", version.ref = "androidxCompose" }
+compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
+compose-animation = { group = "androidx.compose.animation", name = "animation" }
+compose-foundation = { group = "androidx.compose.foundation", name = "foundation" }
+compose-ui = { group = "androidx.compose.ui", name = "ui" }
+compose-ui-toolingPreview = { group = "androidx.compose.ui", name = "ui-tooling-preview"}
+compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
+compose-ui-testJunit = { group = "androidx.compose.ui", name = "ui-test-junit4" }
+compose-runtime = { group = "androidx.compose.runtime", name = "runtime" }
+compose-runtime-livedata = { group = "androidx.compose.runtime", name = "runtime-livedata" }
 compose-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "andoidxMaterial3" }
 compose-material3-windowSizeClass = { group = "androidx.compose.material3", name = "material3-window-size-class", version.ref = "andoidxMaterial3" }
-compose-material = { group = "androidx.compose.material", name = "material", version.ref = "androidxCompose" }
-compose-material-iconsExtended = { group = "androidx.compose.material", name = "material-icons-extended", version.ref = "androidxCompose" }
+compose-material = { group = "androidx.compose.material", name = "material" }
+compose-material-iconsExtended = { group = "androidx.compose.material", name = "material-icons-extended" }
 androidx-CoreKtx = { group = "androidx.core", name = "core-ktx", version.ref = "androidxCore" }
 androidx-splashScreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "androidxSplashScreen" }
 androidx-AppCompat = { group = "androidx.core", name = "core-ktx", version.ref = "androidxCore" }
