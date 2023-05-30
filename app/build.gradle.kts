@@ -57,10 +57,12 @@ android {
 dependencies {
 
     implementation(project(":feature:record"))
+    implementation(project(":feature:playlist"))
     implementation(project(":core:designsystem"))
     implementation(project(":core:common"))
 
-    implementation(libs.androidx.coreKtx)
+
+            implementation(libs.androidx.coreKtx)
     implementation(libs.androidx.appCompat)
     implementation(libs.androidx.splashScreen)
 

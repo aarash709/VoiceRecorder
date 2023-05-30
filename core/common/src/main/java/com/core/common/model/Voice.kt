@@ -1,4 +1,4 @@
-package com.experiment.voicerecorder.data
+package com.core.common.model
 
 
 data class Voice(

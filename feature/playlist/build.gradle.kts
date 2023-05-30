@@ -35,6 +35,9 @@ android {
 }
 
 dependencies {
+
+    implementation(project(":core:common"))
+
     implementation(libs.bundles.compose)
     implementation(libs.material)
     implementation(libs.coilCompose)
