@@ -1,17 +1,21 @@
-package com.experiment.voicerecorder.compose
+package com.recorder.feature.playlist
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Stop
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -20,15 +24,10 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.experiment.voicerecorder.R
-import com.experiment.voicerecorder.ViewModel.MainViewModel
-import com.experiment.voicerecorder.data.Voice
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.core.common.model.Voice
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
-@ExperimentalPermissionsApi
 @ExperimentalMaterialApi
 @Composable
 fun PlaylistScaffold(
@@ -42,11 +41,11 @@ fun PlaylistScaffold(
     var index by remember {
         mutableStateOf(0)
     }
-    LaunchedEffect(key1 = voices){
+    LaunchedEffect(key1 = voices) {
         if (!voices[index].isPlaying)
             bottomSheetState.bottomSheetState.collapse()
     }
-    LaunchedEffect(key1 = true){
+    LaunchedEffect(key1 = true) {
         //load voices once the page is composed
     }
     BottomSheetScaffold(
@@ -70,40 +69,48 @@ fun PlaylistScaffold(
     ) {
         Playlist(
             voices = voices,
-        ) { i, v ->
-            index = i
-            onVoiceClicked(i, v)
-            scope.launch {
-                bottomSheetState.bottomSheetState.expand()
-            }
-        }
+            isPlaying = false,
+            onPlayPause = onPlayPause,
+            onStop = onStop,
+            onVoiceClicked = { i, voice ->
+                index = i
+                onVoiceClicked(i, voice)
+                scope.launch {
+                    bottomSheetState.bottomSheetState.expand()
+                }
+            })
     }
 }
 
 @Composable
 fun Playlist(
     voices: List<Voice>,
-//    isPlaying: Boolean,
-    /*onPlayPause: () -> Unit,
-    onStop: () -> Unit,*/
+    isPlaying: Boolean,
+    onPlayPause: () -> Unit,
+    onStop: () -> Unit,
     onVoiceClicked: (Int, Voice) -> Unit,
 ) {
     var voice by remember {
         mutableStateOf(Voice())
     }
-    Column(modifier = Modifier
-        .fillMaxSize()
-        .padding(bottom = 0.dp)) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(bottom = 0.dp)
+    ) {
         LazyColumn {
-//        itemsIndexed(
-//            items = voices,
-//        ){ index, voice ->
-//            PlaylistItem(
-//                voice = voice,
-//                isPlaying = isPlaying,
-//            onVoiceClicked = {onVoiceClicked(it)})
-//        }
-            items(voices.size,
+//            itemsIndexed(
+//                items = voices,
+//            ) { index, voice ->
+//                PlaylistItem(
+//                    voice = voice,
+////                isPlaying = isPlaying,
+//                    onVoiceClicked = { voice ->
+//                        onVoiceClicked(index, voice)
+//                    })
+//            }
+            items(
+                count = voices.size,
                 key = {
                     it
                 }) { voiceIndex ->
@@ -117,29 +124,32 @@ fun Playlist(
         }
 
     }
-//    Column(modifier = Modifier.fillMaxSize(),
-//        verticalArrangement = Arrangement.Bottom) {
-//        MediaControls(Modifier, voice, onPlayPause = { onPlayPause() }, onStop = { onStop() })
-//    }
+    Column(modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Bottom) {
+        MediaControls(Modifier, voice, onPlayPause = { onPlayPause() }, onStop = { onStop() })
+    }
 }
 
 @Composable
 fun PlaylistItem(
+    modifier: Modifier = Modifier,
     voice: Voice,
     onVoiceClicked: (Voice) -> Unit,
 ) {
     val textColor = if (voice.isPlaying) Color.Cyan else MaterialTheme.colors.onSurface
-    Row(modifier = Modifier
-        .fillMaxWidth()
-        .clickable() {
-            onVoiceClicked(Voice(voice.title, voice.path, voice.isPlaying))
-            Timber.e(voice.title)
-            Timber.e("is playing voice: ${voice.isPlaying}")
-        },
-        verticalAlignment = Alignment.CenterVertically) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable() {
+                onVoiceClicked(Voice(voice.title, voice.path, voice.isPlaying))
+                Timber.e(voice.title)
+                Timber.e("is playing voice: ${voice.isPlaying}")
+            },
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         if (voice.isPlaying)
-            Image(
-                painter = painterResource(id = R.drawable.ic_stop),
+            Icon(
+                imageVector = Icons.Default.Stop,
                 contentDescription = "",
                 modifier = Modifier
                     .size(75.dp)
@@ -147,8 +157,8 @@ fun PlaylistItem(
                     .clip(CircleShape)
             )
         else
-            Image(
-                painter = painterResource(id = R.drawable.ic_play),
+            Icon(
+                imageVector = Icons.Default.PlayArrow,
                 contentDescription = "",
                 modifier = Modifier
                     .size(75.dp)
@@ -158,16 +168,22 @@ fun PlaylistItem(
         Column(
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            Text(text = voice.title,
-                color = textColor)
+            Text(
+                text = voice.title,
+                color = textColor
+            )
             Row {
-                Text(text = voice.duration,
+                Text(
+                    text = voice.duration,
                     fontSize = 12.sp,
-                    color = Color.Gray)
+                    color = Color.Gray
+                )
                 Spacer(modifier = Modifier.width(6.dp))
-                Text(text = voice.recordTime,
+                Text(
+                    text = voice.recordTime,
                     fontSize = 12.sp,
-                    color = Color.Gray)
+                    color = Color.Gray
+                )
             }
         }
     }
@@ -183,23 +199,29 @@ fun MediaControls(
     var sliderInt by remember {
         mutableStateOf(0f)
     }
-    Card {
+    Card(modifier = modifier) {
         Column() {
             Text(text = "filename:${voice.title}")
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
                 Button(onClick = { onPlayPause() }) {
                     Timber.e("${voice.isPlaying}")
                     if (voice.isPlaying)
-                        Icon(painter = painterResource(id = R.drawable.ic_pause),
-                            contentDescription = "Play/Pause Button")
+                        Icon(
+                            imageVector = Icons.Default.Pause,
+                            contentDescription = "Play/Pause Button"
+                        )
                     else
-                        Icon(painter = painterResource(id = R.drawable.ic_play),
-                            contentDescription = "Play/Pause Button")
+                        Icon(
+                            imageVector = Icons.Default.PlayArrow,
+                            contentDescription = "Play/Pause Button"
+                        )
                 }
                 Spacer(modifier = Modifier.width(16.dp))
                 Button(onClick = { onStop() }) {
-                    Icon(painter = painterResource(id = R.drawable.ic_stop),
-                        contentDescription = "Stop Button")
+                    Icon(
+                        imageVector = Icons.Default.Stop,
+                        contentDescription = "Stop Button"
+                    )
                 }
             }
             Slider(value = sliderInt, onValueChange = { sliderInt = it })
@@ -210,11 +232,24 @@ fun MediaControls(
 
 @Composable
 @Preview(showBackground = true)
-fun Preview() {
-    MediaControls(modifier = Modifier, Voice(), onPlayPause = {}, onStop = {})
-//    val vm: MainViewModel = viewModel()
-//    PlaylistItem(voice = Voice("titljjjjjjjjjjjjjjjjjjjje", "path", "00:00", "just now")){
-//    PlaylistPage(voices = vm.allVoices){
+fun MediaControlsPreview() {
+    MediaControls(
+        modifier = Modifier,
+        voice = Voice(),
+        onPlayPause = {},
+        onStop = {}
+    )
+    PlaylistItem(
+        voice = Voice(
+            title = "titljjjjjjjjjjjjjjjjjjjje",
+            path = "path",
+            isPlaying = false,
+            duration = "00:00",
+            recordTime = "just now"
+        )
+    ) {
+//        PlaylistPage(voices = vm.allVoices) {
 //
-//    }
+//        }
+    }
 }

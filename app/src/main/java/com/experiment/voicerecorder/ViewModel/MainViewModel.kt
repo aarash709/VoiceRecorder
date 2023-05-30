@@ -14,10 +14,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.experiment.voicerecorder.MainActivity
-import com.experiment.voicerecorder.R
 import com.experiment.voicerecorder.Utils.FileSavedTime
-import com.experiment.voicerecorder.data.Voice
-import com.experiment.voicerecorder.notification.RECORDING_CHANNEL_ID
+import com.core.common.model.Voice
 import com.experiment.voicerecorder.notification.RECORDING_ID
 import com.experiment.voicerecorder.notification.VoiceRecorderNotificationManager
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
