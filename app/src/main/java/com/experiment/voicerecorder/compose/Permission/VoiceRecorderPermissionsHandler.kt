@@ -29,11 +29,12 @@ fun VoiceRecorderPermissionsHandler(
     content: @Composable () -> Unit,
 ) {
     val permissionList: List<String> =
-        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.R) {
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.TIRAMISU) {
             listOf(
                 Manifest.permission.MANAGE_EXTERNAL_STORAGE,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                Manifest.permission.RECORD_AUDIO,
+//                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                Manifest.permission.READ_MEDIA_AUDIO,
+                Manifest.permission.RECORD_AUDIO
             )
         } else {
             listOf(
@@ -48,7 +49,7 @@ fun VoiceRecorderPermissionsHandler(
     DisposableEffect(key1 = lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_START) {
-                permissionState.launchMultiplePermissionRequest()
+                permissionState.allPermissionsGranted
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -59,31 +60,31 @@ fun VoiceRecorderPermissionsHandler(
 
     permissionState.permissions.forEach { permission ->
         when (permission.permission) {
-            Manifest.permission.MANAGE_EXTERNAL_STORAGE ->
-                when {
-                    permission.status.isGranted -> {
-                        content()
-                    }
-                    permission.status.shouldShowRationale -> {
-                        Column(modifier = Modifier.fillMaxSize()) {
-                            Text(text = "accept manage ratianale",
-                                color = MaterialTheme.colors.onSurface)
-                            Button(onClick = { permission.launchPermissionRequest() }) {
-                                Text(text = "grant permission",
-                                    color = MaterialTheme.colors.onSurface)
-                            }
-                        }
-
-                    }
-//                    permission.permissionRequested ->
-//                        Text(text = "read permission requested")
-
-                    permission.permanentlyDenied() ->
-                        Text(text = "manage storage permission was permanently" +
-                                "denied. You can enable it in the app" +
-                                "settings.",
-                            color = MaterialTheme.colors.onSurface)
-                }
+//            Manifest.permission.MANAGE_EXTERNAL_STORAGE ->
+//                when {
+//                    permission.status.isGranted -> {
+//                        content()
+//                    }
+//                    permission.status.shouldShowRationale -> {
+//                        Column(modifier = Modifier.fillMaxSize()) {
+//                            Text(text = "accept manage ratianale",
+//                                color = MaterialTheme.colors.onSurface)
+//                            Button(onClick = { permission.launchPermissionRequest() }) {
+//                                Text(text = "grant permission",
+//                                    color = MaterialTheme.colors.onSurface)
+//                            }
+//                        }
+//
+//                    }
+////                    permission.permissionRequested ->
+////                        Text(text = "read permission requested")
+//
+//                    permission.permanentlyDenied() ->
+//                        Text(text = "manage storage permission was permanently" +
+//                                "denied. You can enable it in the app" +
+//                                "settings.",
+//                            color = MaterialTheme.colors.onSurface)
+//                }
 //            Manifest.permission.READ_EXTERNAL_STORAGE ->
 //                when {
 //                    permission.hasPermission -> {
@@ -106,10 +107,13 @@ fun VoiceRecorderPermissionsHandler(
 //                                "denied. You can enable it in the app" +
 //                                "settings.")
 //                }
-            Manifest.permission.WRITE_EXTERNAL_STORAGE ->
+            Manifest.permission.READ_MEDIA_AUDIO ->
                 when {
                     permission.status.isGranted -> {
                         content()
+                    }
+                    !permission.status.isGranted -> {
+                        Text(text = "no access to audio files")
                     }
                     permission.status.shouldShowRationale -> {
                         Column(modifier = Modifier.fillMaxSize()) {
