@@ -15,7 +15,7 @@ android {
         versionCode = 1
         versionName = "0.1-alpha"
 
-        testInstrumentationRunner ="androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
         }
@@ -42,7 +42,6 @@ android {
     }
     buildFeatures {
         compose = true
-//        dataBinding true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = libs.versions.androidxComposeCompiler.get()
@@ -62,19 +61,19 @@ dependencies {
     implementation(project(":core:common"))
 
 
-            implementation(libs.androidx.coreKtx)
+    implementation(libs.androidx.coreKtx)
     implementation(libs.androidx.appCompat)
     implementation(libs.androidx.splashScreen)
 
 //    //necessary for notification style using agp:7.1.2
-    implementation("androidx.media:media:1.6.0")
+    implementation(libs.androidx.media)
 
     implementation(libs.kotlix.coroutinesCore)
     implementation(libs.kotlix.coroutinesAndroid)
 
     implementation(libs.material)
     implementation(libs.androidx.lifecycleRuntimeKtx)
-    implementation("androidx.activity:activity-ktx:1.7.1")
+    implementation(libs.androidx.activity)
 
     implementation(platform(libs.compose.bom))
     implementation(libs.bundles.compose)
