@@ -17,16 +17,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberImagePainter
-import com.experiment.voicerecorder.ViewModel.AppSate
-import com.experiment.voicerecorder.ViewModel.MainViewModel
+import com.experiment.voicerecorder.compose.MainScreen
 import com.experiment.voicerecorder.compose.VoiceRecorderNavigation
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.recorder.core.designsystem.theme.VoiceRecorderTheme
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 
 //@RequiresApi(Build.VERSION_CODES.R)
 @ExperimentalPermissionsApi

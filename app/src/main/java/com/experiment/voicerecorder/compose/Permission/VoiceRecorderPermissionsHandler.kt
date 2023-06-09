@@ -3,15 +3,12 @@ package com.experiment.voicerecorder
 import android.Manifest
 import android.os.Build
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material.Button
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
@@ -20,7 +17,6 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionState
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
-import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
 
 @ExperimentalPermissionsApi
@@ -32,7 +28,6 @@ fun VoiceRecorderPermissionsHandler(
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.TIRAMISU) {
             listOf(
                 Manifest.permission.MANAGE_EXTERNAL_STORAGE,
-//                Manifest.permission.WRITE_EXTERNAL_STORAGE,
                 Manifest.permission.READ_MEDIA_AUDIO,
                 Manifest.permission.RECORD_AUDIO
             )
