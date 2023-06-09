@@ -17,16 +17,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberImagePainter
-import com.experiment.voicerecorder.ViewModel.AppSate
-import com.experiment.voicerecorder.ViewModel.MainViewModel
+import com.experiment.voicerecorder.compose.MainScreen
 import com.experiment.voicerecorder.compose.VoiceRecorderNavigation
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.recorder.core.designsystem.theme.VoiceRecorderTheme
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 
 //@RequiresApi(Build.VERSION_CODES.R)
 @ExperimentalPermissionsApi
@@ -39,16 +36,16 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             VoiceRecorderTheme {
-                val viewModel: MainViewModel = viewModel()
-                val state = viewModel.state.collectAsState(initial = AppSate.OnIdle)
-                val isRecording = viewModel.isRecording.value
-                val fileName = viewModel.fileName.value
-                val duration = viewModel.duration.value
-                val isPlaying = viewModel.isPlaying.value
-                val timer = viewModel.timer.value
-                val voices = viewModel.voices.value
-                val seekbarPosition = viewModel.seekbarCurrentPosition.value
-                val maxPlaybackTime = viewModel.voiceDuration.value
+//                val viewModel: MainViewModel = viewModel()
+//                val state = viewModel.state.collectAsState(initial = AppSate.OnIdle)
+//                val isRecording = viewModel.isRecording.value
+//                val fileName = viewModel.fileName.value
+//                val duration = viewModel.duration.value
+//                val isPlaying = viewModel.isPlaying.value
+//                val timer = viewModel.timer.value
+//                val voices = viewModel.voices.value
+//                val seekbarPosition = viewModel.seekbarCurrentPosition.value
+//                val maxPlaybackTime = viewModel.voiceDuration.value
 
                 //ui states
 
@@ -74,37 +71,37 @@ class MainActivity : ComponentActivity() {
                 val textSize by remember {
                     mutableStateOf(12.sp)
                 }
-                LaunchedEffect(key1 = state.value, key2 = seekbarPosition, key3 = timer) {
-                        when (state.value) {
-                            is AppSate.OnIdle -> {
-                                playButtonState = true
-                                recordButtonState = true
-                                playlistButtonEnabled = true
-                                //viewModel.onPlayUpdateListState(voiceIndex)
-                                viewModel.resetRecordingTimer()
-                                viewModel.resetPlayerValues()
-                                //
-                                debugState = "Idle"
-                            }
-                            is AppSate.Recording -> {
-                                debugState = "Recording"
-                                playButtonState = false
-                                playlistButtonEnabled = false
-                                viewModel.updateTimerValues()
-                                //
-                            }
-                            is AppSate.Playing -> {
-                                recordButtonState = false
-                                Timber.e("voice index $voiceIndex")
-                                //
-                                debugState = "Playing"
-                            }
-                        }
-                }
+//                LaunchedEffect(key1 = state.value, key2 = seekbarPosition, key3 = timer) {
+//                        when (state.value) {
+//                            is AppSate.OnIdle -> {
+//                                playButtonState = true
+//                                recordButtonState = true
+//                                playlistButtonEnabled = true
+//                                //viewModel.onPlayUpdateListState(voiceIndex)
+//                                viewModel.resetRecordingTimer()
+//                                viewModel.resetPlayerValues()
+//                                //
+//                                debugState = "Idle"
+//                            }
+//                            is AppSate.Recording -> {
+//                                debugState = "Recording"
+//                                playButtonState = false
+//                                playlistButtonEnabled = false
+//                                viewModel.updateTimerValues()
+//                                //
+//                            }
+//                            is AppSate.Playing -> {
+//                                recordButtonState = false
+//                                Timber.e("voice index $voiceIndex")
+//                                //
+//                                debugState = "Playing"
+//                            }
+//                        }
+//                }
                 DisposableEffect(key1 = lifecycleOwner) {
                     val observer = LifecycleEventObserver { _, event ->
                         if (event == Lifecycle.Event.ON_CREATE) {
-                            viewModel.getAllVoices()
+//                            viewModel.getAllVoices()
                         }
                     }
                     lifecycleOwner.lifecycle.addObserver(observer)
@@ -115,31 +112,31 @@ class MainActivity : ComponentActivity() {
 
                 MainScreen {
                     Box(modifier = Modifier) {
-                        Debug(
-                            playButtonState,
-                            recordButtonState,
-                            fileName,
-                            debugState,
-                            textSize,
-                            seekbarPosition)
+//                        Debug(
+//                            playButtonState,
+//                            recordButtonState,
+//                            fileName,
+//                            debugState,
+//                            textSize,
+//                            seekbarPosition)
 
                         VoiceRecorderNavigation(
                             Modifier,
                             navState,
-                            recordButtonState,
-                            playlistButtonEnabled,
-                            isPlaying,
-                            timer,
-                            voices,
-                            onRecord = { viewModel.onRecord() },
-                            onPlayPause = { viewModel.onPlayPause() },
-                            onStop = { viewModel.stopPlayback(voiceIndex) },
-                            onPlay = { i, voice ->
-                                voiceIndex = i
-                                Timber.e("on play index: $i")
-                                viewModel.onPlay(i, voice)
-                                viewModel.onPlayUpdateListState(i)
-                            },
+//                            recordButtonState,
+//                            playlistButtonEnabled,
+//                            isPlaying,
+//                            timer,
+//                            voices,
+//                            onRecord = { viewModel.onRecord() },
+//                            onPlayPause = { viewModel.onPlayPause() },
+//                            onStop = { viewModel.stopPlayback(voiceIndex) },
+//                            onPlay = { i, voice ->
+//                                voiceIndex = i
+//                                Timber.e("on play index: $i")
+//                                viewModel.onPlay(i, voice)
+//                                viewModel.onPlayUpdateListState(i)
+//                            },
                         )
                     }
                 }

@@ -1,11 +1,11 @@
 package com.recorder.feature.record
 
-import android.app.PendingIntent
 import android.content.Context
-import android.content.Intent
 import android.media.MediaRecorder
 import android.os.Build
 import android.os.Environment
+import android.os.Environment.DIRECTORY_RECORDINGS
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,8 +17,9 @@ import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
 
-const val DIRECTORY_NAME = "VoiceRecorder/voices"
+const val DIRECTORY_NAME = "VoiceRecorder"
 
+@RequiresApi(Build.VERSION_CODES.S)
 @HiltViewModel
 class RecordViewModel @Inject constructor() : ViewModel() {
 
@@ -127,32 +128,46 @@ class RecordViewModel @Inject constructor() : ViewModel() {
         return "$date$fileExt"
     }
 
+    @RequiresApi(Build.VERSION_CODES.S)
     private fun createStorageFolder() {
-        val rootPath = storagePath()
+        val path = storagePath()
         // TODO: 11/29/2021 should handle exceptions later on
-        val folderExists = File(rootPath, "/$DIRECTORY_NAME").exists()
-        if (folderExists) {
-            Timber.e("$DIRECTORY_NAME exists")
-            canAccessAppFolder = true
-        } else {
-            if (File(rootPath, "/$DIRECTORY_NAME").mkdirs()) {
-                canAccessAppFolder = true
+        val folderExists = File(path).exists()
+        canAccessAppFolder = when {
+            folderExists -> {
+                Timber.e("$DIRECTORY_NAME exists")
+                true
+            }
+            File(path, "/$DIRECTORY_NAME").mkdirs() -> {
                 Timber.e("file created")
-            } else {
-                canAccessAppFolder = false
+                true
+            }
+            else -> {
                 Timber.e("something went wrong, no folder")
+                false
             }
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.S)
     private fun storagePath(): String {
-        //specific path external
-//        val path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC)
+        val path = when {
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+                Environment.getExternalStoragePublicDirectory(DIRECTORY_RECORDINGS).path
+            }
+            else -> {
+                Environment.getExternalStorageDirectory().path
+            }
+        }
+        Timber.e(Environment.getExternalStorageDirectory().path)
+        return path
+//    Environment.getExternalStorageDirectory().path
         //inside app internal
 //        val contextPath = app.getExternalFilesDir(Environment.DIRECTORY_MUSIC)
         //storage root path
-        return Environment.getExternalStorageDirectory().absolutePath
     }
+
+    @RequiresApi(Build.VERSION_CODES.S)
     private fun initializeAppSettings() {
         createStorageFolder()
         val rootPath = storagePath()

@@ -3,14 +3,12 @@ package com.experiment.voicerecorder
 import android.Manifest
 import android.os.Build
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material.Button
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
@@ -27,11 +25,11 @@ fun VoiceRecorderPermissionsHandler(
     content: @Composable () -> Unit,
 ) {
     val permissionList: List<String> =
-        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.R) {
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.TIRAMISU) {
             listOf(
                 Manifest.permission.MANAGE_EXTERNAL_STORAGE,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                Manifest.permission.RECORD_AUDIO,
+                Manifest.permission.READ_MEDIA_AUDIO,
+                Manifest.permission.RECORD_AUDIO
             )
         } else {
             listOf(
@@ -46,7 +44,7 @@ fun VoiceRecorderPermissionsHandler(
     DisposableEffect(key1 = lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_START) {
-                permissionState.launchMultiplePermissionRequest()
+                permissionState.allPermissionsGranted
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -59,25 +57,28 @@ fun VoiceRecorderPermissionsHandler(
         when (permission.permission) {
 //            Manifest.permission.MANAGE_EXTERNAL_STORAGE ->
 //                when {
-//                    permission.hasPermission -> {
+//                    permission.status.isGranted -> {
 //                        content()
 //                    }
-//                    permission.shouldShowRationale -> {
+//                    permission.status.shouldShowRationale -> {
 //                        Column(modifier = Modifier.fillMaxSize()) {
-//                            Text(text = "accept manage ratianale")
+//                            Text(text = "accept manage ratianale",
+//                                color = MaterialTheme.colors.onSurface)
 //                            Button(onClick = { permission.launchPermissionRequest() }) {
-//                                Text(text = "grant permission")
+//                                Text(text = "grant permission",
+//                                    color = MaterialTheme.colors.onSurface)
 //                            }
 //                        }
 //
 //                    }
-//                    permission.permissionRequested ->
-//                        Text(text = "read permission requested")
+////                    permission.permissionRequested ->
+////                        Text(text = "read permission requested")
 //
 //                    permission.permanentlyDenied() ->
 //                        Text(text = "manage storage permission was permanently" +
 //                                "denied. You can enable it in the app" +
-//                                "settings.")
+//                                "settings.",
+//                            color = MaterialTheme.colors.onSurface)
 //                }
 //            Manifest.permission.READ_EXTERNAL_STORAGE ->
 //                when {
@@ -101,27 +102,33 @@ fun VoiceRecorderPermissionsHandler(
 //                                "denied. You can enable it in the app" +
 //                                "settings.")
 //                }
-//            Manifest.permission.WRITE_EXTERNAL_STORAGE ->
-//                when {
-//                    permission.hasPermission -> {
-//                        content()
-//                    }
-//                    permission.shouldShowRationale -> {
-//                        Column(modifier = Modifier.fillMaxSize()) {
-//                            Text(text = "accept write ratianale")
-//                            Button(onClick = { permission.launchPermissionRequest() }) {
-//                                Text(text = "grant permission")
-//                            }
-//                        }
-//
-//                    }
+            Manifest.permission.READ_MEDIA_AUDIO ->
+                when {
+                    permission.status.isGranted -> {
+                        content()
+                    }
+                    !permission.status.isGranted -> {
+                        Text(text = "no access to audio files")
+                    }
+                    permission.status.shouldShowRationale -> {
+                        Column(modifier = Modifier.fillMaxSize()) {
+                            Text(text = "accept write ratianale",
+                                color = MaterialTheme.colors.onSurface)
+                            Button(onClick = { permission.launchPermissionRequest() }) {
+                                Text(text = "grant permission",
+                                    color = MaterialTheme.colors.onSurface)
+                            }
+                        }
+
+                    }
 //                    permission.permissionRequested ->
 //                        Text(text = "write permission requested")
-//                    permission.permanentlyDenied() ->
-//                        Text(text = "Write permission was permanently" +
-//                                "denied. You can enable it in the app" +
-//                                "settings.")
-//                }
+                    permission.permanentlyDenied() ->
+                        Text(text = "Write permission was permanently" +
+                                "denied. You can enable it in the app" +
+                                "settings.",
+                            color = MaterialTheme.colors.onSurface)
+                }
             Manifest.permission.RECORD_AUDIO ->
                 when {
                     permission.status.isGranted-> {
@@ -129,9 +136,11 @@ fun VoiceRecorderPermissionsHandler(
                     }
                     permission.status.shouldShowRationale -> {
                         Column(modifier = Modifier.fillMaxSize()) {
-                            Text(text = "accept record ratianale")
+                            Text(text = "accept record ratianale",
+                                color = MaterialTheme.colors.onSurface)
                             Button(onClick = { permission.launchPermissionRequest() }) {
-                                Text(text = "grant permission")
+                                Text(text = "grant permission",
+                                    color = MaterialTheme.colors.onSurface)
                             }
                         }
 
@@ -142,7 +151,8 @@ fun VoiceRecorderPermissionsHandler(
                     permission.permanentlyDenied() ->
                         Text(text = "Record audio permission was permanently" +
                                 "denied. You can enable it in the app" +
-                                "settings.")
+                                "settings.",
+                            color = MaterialTheme.colors.onSurface)
                 }
         }
     }
