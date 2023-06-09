@@ -1,23 +1,26 @@
 [versions]
-kotlinPluginVersion = "1.8.10"
+kotlin = "1.8.20"
 composeBom = "2023.05.01"
+androidxActivity = "1.7.1"
 androidxCompose = "1.4.3"
 androidxComposeCompiler = "1.4.7"
 androidxCore = "1.10.1"
 androidxAppcompat = "1.6.1"
-kotlinxSerialization = "1.5.0"
-kotlinxCoroutines = "1.6.4"
-andoidxWindow = "1.0.0"
+andoidxWindow = "1.1.0"
 andoidxWork = "2.8.1"
-andoidxNavigation = "2.6.0-rc01"
+andoidxNavigation = "2.7.0-beta01"
 andoidxLifecycle = "2.6.1"
-androidxActivityCompose = "1.7.1"
+androidxActivityCompose = "1.7.2"
 androidxHiltWork = "1.0.0"
 androidxRoom = "2.5.1"
 androidxSplashScreen = "1.0.1"
 andoidxDatastorePreferences = "1.0.0"
 andoidxMaterial3 = "1.1.0"
+androidxMedia = "1.6.0"
+androidxTestExtJunit = "1.1.5"
 accompanist = "0.30.1"
+kotlinxSerialization = "1.5.0"
+kotlinxCoroutines = "1.7.1"
 hiltNavigationCompose = "1.0.0"
 hiltAndroid = "2.44.2"
 timberLogger = "5.0.1"
@@ -26,10 +29,8 @@ moshi = "1.14.0"
 coil = "2.2.2"
 ktor = "2.3.0"
 gradleSecret = "2.0.1"
-agp = "7.4.2"
-org-jetbrains-kotlin-android = "1.8.21"
+androidGradle = "7.4.2"
 junit4 = "4.13.2"
-androidxTestExtJunit = "1.1.5"
 espresso-core = "3.5.1"
 appcompat = "1.6.1"
 material = "1.9.0"
@@ -39,7 +40,7 @@ compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = 
 compose-animation = { group = "androidx.compose.animation", name = "animation" }
 compose-foundation = { group = "androidx.compose.foundation", name = "foundation" }
 compose-ui = { group = "androidx.compose.ui", name = "ui" }
-compose-ui-toolingPreview = { group = "androidx.compose.ui", name = "ui-tooling-preview"}
+compose-ui-toolingPreview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
 compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
 compose-ui-testJunit = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 compose-runtime = { group = "androidx.compose.runtime", name = "runtime" }
@@ -49,6 +50,7 @@ compose-material3-windowSizeClass = { group = "androidx.compose.material3", name
 compose-material = { group = "androidx.compose.material", name = "material" }
 compose-material-iconsExtended = { group = "androidx.compose.material", name = "material-icons-extended" }
 androidx-CoreKtx = { group = "androidx.core", name = "core-ktx", version.ref = "androidxCore" }
+androidx-Activity = { group = "androidx.activity", name = "activity", version.ref = "androidxActivity" }
 androidx-splashScreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "androidxSplashScreen" }
 androidx-AppCompat = { group = "androidx.core", name = "core-ktx", version.ref = "androidxCore" }
 androidx-Window = { group = "androidx.window", name = "window", version.ref = "andoidxWindow" }
@@ -67,6 +69,7 @@ androidx-roomCommon = { group = "androidx.room", name = "room-common", version.r
 androidx-roomKtx = { group = "androidx.room", name = "room-ktx", version.ref = "androidxRoom" }
 androidx-roomCompiler = { group = "androidx.room", name = "room-compiler", version.ref = "androidxRoom" }
 androidx-roomRuntime = { group = "androidx.room", name = "room-runtime", version.ref = "androidxRoom" }
+androidx-media = { group = "androidx.media", name = "media", version.ref = "androidxMedia" }
 kotlix-Serialization = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 kotlix-CoroutinesCore = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
 kotlix-CoroutinesTest = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinxCoroutines" }
@@ -124,5 +127,8 @@ ktor = [
 ]
 [plugins]
 secrets = { id = "com.google.android.libraries.mapsplatform.secrets-gradle-plugin", version.ref = "gradleSecret" }
-com-android-library = { id = "com.android.library", version.ref = "agp" }
-org-jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "org-jetbrains-kotlin-android" }
+android-application = { id = "com.android.application", version.ref = "androidGradle" }
+android-library = { id = "com.android.library", version.ref = "androidGradle" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+hilt = { id = "com.google.dagger.hilt.android", version.ref = "hiltAndroid" }

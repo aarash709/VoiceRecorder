@@ -5,6 +5,13 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
+pluginManagement{
+    repositories{
+        gradlePluginPortal()
+        google()
+        mavenCentral()
+    }
+}
 rootProject.name = "Voice Recorder"
 include(":app")
 include(":feature:record")
