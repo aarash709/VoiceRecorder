@@ -1,7 +1,7 @@
 [versions]
-kotlin = "1.8.20"
+kotlin = "1.8.21"
 composeBom = "2023.05.01"
-androidxActivity = "1.7.1"
+androidxActivity = "1.7.2"
 androidxCompose = "1.4.3"
 androidxComposeCompiler = "1.4.7"
 androidxCore = "1.10.1"
