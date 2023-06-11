@@ -36,9 +36,12 @@ android {
 
 dependencies {
 
+    implementation(libs.compose.bom)
     implementation(libs.bundles.compose)
     implementation(libs.material)
+
     implementation(libs.coilCompose)
+    
     implementation(libs.kotlix.coroutinesCore)
     implementation(libs.kotlix.coroutinesAndroid)
 

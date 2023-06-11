@@ -81,7 +81,6 @@ dependencies {
     implementation(libs.androidx.lifecycleViewModelCompose)
     implementation(libs.androidx.activityCompose)
     implementation(libs.androidx.navigationCompose)
-    implementation(libs.bundles.compose)
 
 //    implementation "com.google.accompanist:accompanist-drawablepainter:$accompanist_version"
     implementation(libs.accompanist.navigationAnimation)
