@@ -5,10 +5,15 @@ import android.media.MediaRecorder
 import android.os.Build
 import android.os.Environment
 import android.os.Environment.DIRECTORY_RECORDINGS
-import androidx.annotation.RequiresApi
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.io.File
 import java.lang.Exception
@@ -26,24 +31,43 @@ class RecordViewModel @Inject constructor() : ViewModel() {
     private var fileName = mutableStateOf("")
     private var canAccessAppFolder = false
     private val recordingAllowed = mutableStateOf(true)
-    val isRecording = mutableStateOf(false)
+    private var isRecording = false
     private var directoryName = ""
+
+    private var _recordTime = MutableStateFlow(0)
+    val recordTime = _recordTime.asStateFlow()
 
     init {
         initializeAppSettings()
     }
 
     fun onRecord(context: Context) {
-        if (recordingAllowed.value) {
+        if (isRecording) {
             startRecordingAudio(
                 context = context,
                 onRecord = {
+                    isRecording = true
+                    startTimer()
                 }
             )
         } else {
             stopRecordingAudio(
                 onStopRecording = {
+                    isRecording = false
+                    stopTimer()
                 })
+        }
+    }
+
+    private fun startTimer() {
+        viewModelScope.launch {
+            delay(100L)
+            _recordTime.update { it + 1 }
+        }
+    }
+    private fun stopTimer(){
+        viewModelScope.launch {
+            _recordTime.update { 0 }
         }
     }
 
@@ -118,10 +142,12 @@ class RecordViewModel @Inject constructor() : ViewModel() {
                 Timber.e("$DIRECTORY_NAME exists")
                 true
             }
+
             File(path, "/$DIRECTORY_NAME").mkdirs() -> {
                 Timber.e("file created")
                 true
             }
+
             else -> {
                 Timber.e("something went wrong, no folder")
                 false
@@ -134,6 +160,7 @@ class RecordViewModel @Inject constructor() : ViewModel() {
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
                 Environment.getExternalStoragePublicDirectory(DIRECTORY_RECORDINGS).path
             }
+
             else -> {
                 Environment.getExternalStorageDirectory().path
             }

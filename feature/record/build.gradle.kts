@@ -41,7 +41,9 @@ dependencies {
     implementation(libs.material)
 
     implementation(libs.coilCompose)
-    
+
+    implementation(libs.androidx.lifecycleComposeRuntime)
+
     implementation(libs.kotlix.coroutinesCore)
     implementation(libs.kotlix.coroutinesAndroid)
 
