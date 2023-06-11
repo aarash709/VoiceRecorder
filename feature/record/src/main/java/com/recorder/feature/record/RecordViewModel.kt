@@ -19,7 +19,6 @@ import javax.inject.Inject
 
 const val DIRECTORY_NAME = "VoiceRecorder"
 
-@RequiresApi(Build.VERSION_CODES.S)
 @HiltViewModel
 class RecordViewModel @Inject constructor() : ViewModel() {
 
@@ -32,30 +31,18 @@ class RecordViewModel @Inject constructor() : ViewModel() {
 
     init {
         initializeAppSettings()
-//      notification.createNotificationChannel(app)
     }
 
     fun onRecord(context: Context) {
-//        val intent = Intent(context, MainActivity::class.java)
-//        val pendingIntent = PendingIntent.getActivity(app, 0, intent, PendingIntent.FLAG_IMMUTABLE)
         if (recordingAllowed.value) {
             startRecordingAudio(
                 context = context,
                 onRecord = {
-//                notification.showNotification(
-//                    app,
-//                    RECORDING_CHANNEL_ID,
-//                    R.drawable.ic_record,
-//                    "Voice Recorder",
-//                    "Now Recording",
-//                    pendingIntent
-//                )
                 }
             )
         } else {
             stopRecordingAudio(
                 onStopRecording = {
-//                notification.removeNotification(app, RECORDING_ID)
                 })
         }
     }
@@ -110,12 +97,7 @@ class RecordViewModel @Inject constructor() : ViewModel() {
             release()
             onStopRecording()
         }
-//        mediaRecorder = null
-//        updateAppState(AppSate.OnIdle)
-//        recordingAllowed.value = true
-//        isRecording.value = false
-//        playbackAllowed.value = true
-        Timber.e("is recording: " + isRecording.value)
+//        Timber.e("is recording: " + isRecording.value)
     }
 
     private fun generateFileName(
@@ -128,10 +110,8 @@ class RecordViewModel @Inject constructor() : ViewModel() {
         return "$date$fileExt"
     }
 
-    @RequiresApi(Build.VERSION_CODES.S)
     private fun createStorageFolder() {
         val path = storagePath()
-        // TODO: 11/29/2021 should handle exceptions later on
         val folderExists = File(path).exists()
         canAccessAppFolder = when {
             folderExists -> {
@@ -149,7 +129,6 @@ class RecordViewModel @Inject constructor() : ViewModel() {
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.S)
     private fun storagePath(): String {
         val path = when {
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
@@ -161,17 +140,11 @@ class RecordViewModel @Inject constructor() : ViewModel() {
         }
         Timber.e(Environment.getExternalStorageDirectory().path)
         return path
-//    Environment.getExternalStorageDirectory().path
-        //inside app internal
-//        val contextPath = app.getExternalFilesDir(Environment.DIRECTORY_MUSIC)
-        //storage root path
     }
 
-    @RequiresApi(Build.VERSION_CODES.S)
     private fun initializeAppSettings() {
         createStorageFolder()
         val rootPath = storagePath()
         directoryName = "$rootPath/$DIRECTORY_NAME"
-//        updateAppState(AppSate.OnIdle)
     }
 }
