@@ -47,9 +47,8 @@ class RecordViewModel @Inject constructor() : ViewModel() {
     private var directoryName = ""
     private var _timerMillis = MutableStateFlow(0L)
 
-    val timePattern = DateTimeFormatter.ofPattern("mm:ss")
+    private val timePattern= DateTimeFormatter.ofPattern("mm:ss")
 
-    private val _formattedTimer = MutableStateFlow("")
     val formattedTimer = _timerMillis.map { elapsedTime ->
         LocalTime.ofNanoOfDay(elapsedTime*1000000).format(timePattern)
 
@@ -58,7 +57,6 @@ class RecordViewModel @Inject constructor() : ViewModel() {
         started = SharingStarted.WhileSubscribed(1000L),
         initialValue = "00:00:00"
     )
-
 
     init {
         initializeAppSettings()
@@ -143,19 +141,12 @@ class RecordViewModel @Inject constructor() : ViewModel() {
                 }
             }
             onRecord()
-//            updateAppState(AppSate.Recording)
-//            appState.value = VoiceRecorderState.STATE_RECORDING
-//            recordingAllowed.value = false
-//            playbackAllowed.value = false
-//            isRecording.value = true
-//            Timber.e("is recording: " + isRecording.value)
         } else {
             Timber.e("cannot access app dir")
         }
     }
 
     private fun stopRecordingAudio(onStopRecording: () -> Unit) {
-//        timer.value = DEFAULT_RECORD_TIMER_VALUE
         mediaRecorder.apply {
             stop()
             release()
