@@ -28,16 +28,18 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 
 @Composable
 fun Record() {
     val recordViewModel : RecordViewModel = hiltViewModel()
+    val recordTime = recordViewModel.formattedTimer.collectAsStateWithLifecycle().value
     val context = LocalContext.current.applicationContext
     RecordContent(
         modifier = Modifier,
         recordEnabled = true,
-        recordingTime = "",
+        recordingTime = recordTime.toString(),
         navigateToPlaylistEnabled = false,
         onRecord = { recordViewModel.onRecord(context) },
         onListButtonClick = { })
