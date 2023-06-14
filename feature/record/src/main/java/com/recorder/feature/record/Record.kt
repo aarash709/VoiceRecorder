@@ -34,7 +34,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 @Composable
 fun Record() {
     val recordViewModel : RecordViewModel = hiltViewModel()
-    val recordTime = recordViewModel.recordTime.collectAsStateWithLifecycle().value
+    val recordTime = recordViewModel.formattedTimer.collectAsStateWithLifecycle().value
     val context = LocalContext.current.applicationContext
     RecordContent(
         modifier = Modifier,

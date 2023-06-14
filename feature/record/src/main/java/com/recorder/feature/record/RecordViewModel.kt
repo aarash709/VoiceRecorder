@@ -9,66 +9,105 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.io.File
 import java.lang.Exception
 import java.text.SimpleDateFormat
+import java.time.Duration
+import java.time.Instant
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
 
 const val DIRECTORY_NAME = "VoiceRecorder"
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class RecordViewModel @Inject constructor() : ViewModel() {
 
     private lateinit var mediaRecorder: MediaRecorder
     private var fileName = mutableStateOf("")
     private var canAccessAppFolder = false
-    private val recordingAllowed = mutableStateOf(true)
-    private var isRecording = false
+    private var _isRecording = MutableStateFlow(false)
     private var directoryName = ""
+    private var _timerMillis = MutableStateFlow(0L)
 
-    private var _recordTime = MutableStateFlow(0)
-    val recordTime = _recordTime.asStateFlow()
+    val timePattern = DateTimeFormatter.ofPattern("mm:ss")
+
+    private val _formattedTimer = MutableStateFlow("")
+    val formattedTimer = _timerMillis.map { elapsedTime ->
+        LocalTime.ofNanoOfDay(elapsedTime*1000000).format(timePattern)
+
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(1000L),
+        initialValue = "00:00:00"
+    )
+
 
     init {
         initializeAppSettings()
+        _isRecording.flatMapLatest {
+            startTimer(it)
+        }.onEach { time ->
+            _timerMillis.update { it + time }
+            Timber.e(_timerMillis.value.toString())
+        }.launchIn(viewModelScope)
     }
 
     fun onRecord(context: Context) {
-        if (isRecording) {
+        if (_isRecording.value) {
             stopRecordingAudio(
                 onStopRecording = {
-                    isRecording = false
-                    stopTimer()
+                    _isRecording.update { false }
+                    _timerMillis.update { 0 }
+                    Timber.e(_isRecording.value.toString())
                 })
         } else {
             startRecordingAudio(
                 context = context,
                 onRecord = {
-                    isRecording = true
-                    startTimer()
+                    _isRecording.update { true }
+                    Timber.e(_isRecording.value.toString())
                 }
             )
         }
     }
 
-    private fun startTimer() {
-        viewModelScope.launch {
+    private fun startTimer(isRecording: Boolean): Flow<Long> = flow {
+        var startMillis = System.currentTimeMillis()
+        Timber.e(isRecording.toString())
+        while (isRecording) {
+            val currentMillis = System.currentTimeMillis()
+            val elapsedTimeSinceStart =
+                if (currentMillis > startMillis)
+                    currentMillis - startMillis
+                else
+                    0L
+            emit(elapsedTimeSinceStart)
+            startMillis = System.currentTimeMillis()
             delay(100L)
-            _recordTime.update { it + 1 }
         }
     }
 
-    private fun stopTimer() {
+    private fun resetTimer() {
         viewModelScope.launch {
-            _recordTime.update { 0 }
+            _timerMillis.update { 0 }
         }
     }
 
@@ -121,8 +160,8 @@ class RecordViewModel @Inject constructor() : ViewModel() {
             stop()
             release()
             onStopRecording()
+            Timber.e("is recording: stop")
         }
-//        Timber.e("is recording: " + isRecording.value)
     }
 
     private fun generateFileName(
