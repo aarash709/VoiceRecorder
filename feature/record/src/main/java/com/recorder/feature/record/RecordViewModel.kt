@@ -43,6 +43,12 @@ class RecordViewModel @Inject constructor() : ViewModel() {
 
     fun onRecord(context: Context) {
         if (isRecording) {
+            stopRecordingAudio(
+                onStopRecording = {
+                    isRecording = false
+                    stopTimer()
+                })
+        } else {
             startRecordingAudio(
                 context = context,
                 onRecord = {
@@ -50,12 +56,6 @@ class RecordViewModel @Inject constructor() : ViewModel() {
                     startTimer()
                 }
             )
-        } else {
-            stopRecordingAudio(
-                onStopRecording = {
-                    isRecording = false
-                    stopTimer()
-                })
         }
     }
 
@@ -65,7 +65,8 @@ class RecordViewModel @Inject constructor() : ViewModel() {
             _recordTime.update { it + 1 }
         }
     }
-    private fun stopTimer(){
+
+    private fun stopTimer() {
         viewModelScope.launch {
             _recordTime.update { 0 }
         }
