@@ -1,11 +1,20 @@
 package com.recorder.feature.playlist
 
 import android.media.MediaPlayer
+import android.os.Build
+import android.os.Environment
+import android.os.Environment.DIRECTORY_RECORDINGS
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import com.core.common.model.Voice
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import timber.log.Timber
+import java.io.File
 import java.lang.Exception
 import javax.inject.Inject
 
@@ -17,6 +26,15 @@ class PlaylistViewModel @Inject constructor() : ViewModel() {
     private var previousVoiceIndex: Int? = null
     private var voiceToPlay: Voice? = null
     val isPlaying = mutableStateOf(false)
+
+    val _voices = MutableStateFlow(List(5) { Voice("title$it") })
+    val voices = _voices.asStateFlow()
+
+    init {
+        getVoices().map {
+            _voices.value = it
+        }
+    }
 
     fun onPlay(nextVoiceIndex: Int, voice: Voice) {
         voiceToPlay = voice
@@ -92,6 +110,24 @@ class PlaylistViewModel @Inject constructor() : ViewModel() {
 //            this@MainViewModel.isPlaying.value = true
         }
 //        updateAppState(AppSate.Playing)
+    }
+
+    private fun getVoices(): Flow<List<Voice>> = flow {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val voicePath = Environment.getExternalStoragePublicDirectory(DIRECTORY_RECORDINGS).path
+            val voiceList = File(voicePath).listFiles()?.map {
+                Voice(
+                    title = it.name,
+                    path = it.path,
+                )
+            }?.let {
+                emit(it)
+            }
+        }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+//            val voicePath = Environment.getExternalStorageDirectory().path
+            emit(emptyList())
+        }
     }
 
 }

@@ -44,7 +44,6 @@ fun VoiceRecorderNavigation(
         }
         composable(Pages.PlayListPage.route) {
             PlaylistScaffold(
-                voices = emptyList(),
                 onPlayPause = {  },
                 onStop = {  },
                 onVoiceClicked = { i, voice ->

@@ -44,6 +44,8 @@ dependencies {
     implementation(libs.kotlix.coroutinesCore)
     implementation(libs.kotlix.coroutinesAndroid)
 
+    implementation(libs.androidx.lifecycleComposeRuntime)
+
     implementation(libs.hilt.navigationCompose)
     implementation(libs.hilt.android)
     kapt(libs.hilt.kaptCompiler)

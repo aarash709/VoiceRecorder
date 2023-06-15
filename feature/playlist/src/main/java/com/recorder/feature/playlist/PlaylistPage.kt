@@ -24,6 +24,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.core.common.model.Voice
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -31,11 +33,14 @@ import timber.log.Timber
 @ExperimentalMaterialApi
 @Composable
 fun PlaylistScaffold(
-    voices: List<Voice>,
     onPlayPause: () -> Unit,
     onStop: () -> Unit,
     onVoiceClicked: (Int, Voice) -> Unit,
 ) {
+
+    val viewModel = hiltViewModel<PlaylistViewModel>()
+    val voices = viewModel.voices.collectAsStateWithLifecycle().value
+
     val bottomSheetState = rememberBottomSheetScaffoldState()
     val scope = rememberCoroutineScope()
     var index by remember {
