@@ -32,18 +32,20 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 
 @Composable
-fun Record() {
-    val recordViewModel : RecordViewModel = hiltViewModel()
+fun Record(
+    onListButtonClick: () -> Unit
+) {
+    val recordViewModel: RecordViewModel = hiltViewModel()
     val recordTime = recordViewModel.formattedTimer.collectAsStateWithLifecycle().value
     val context = LocalContext.current.applicationContext
     RecordContent(
         modifier = Modifier,
         recordEnabled = true,
         recordingTime = recordTime.toString(),
-        navigateToPlaylistEnabled = false,
+        navigateToPlaylistEnabled = true,
         onRecord = { recordViewModel.onRecord(context) },
-        onListButtonClick = { })
-
+        onListButtonClick = { onListButtonClick() }
+    )
 }
 
 @Composable
@@ -89,7 +91,7 @@ fun RecordingTimer(
     modifier: Modifier = Modifier,
     time: String,
 ) {
-    Column (
+    Column(
         modifier = modifier.padding(bottom = 32.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally

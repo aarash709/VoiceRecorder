@@ -38,7 +38,9 @@ fun VoiceRecorderNavigation(
         startDestination = Pages.RecordingPage.route
     ) {
         composable(Pages.RecordingPage.route) {
-            Record()
+            Record(onListButtonClick = {
+                navHost.navigate(Pages.PlayListPage.route)
+            })
         }
         composable(Pages.PlayListPage.route) {
             PlaylistScaffold(
