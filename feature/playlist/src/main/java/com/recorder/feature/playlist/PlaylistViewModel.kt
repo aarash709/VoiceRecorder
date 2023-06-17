@@ -11,6 +11,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import timber.log.Timber
@@ -25,15 +26,13 @@ class PlaylistViewModel @Inject constructor() : ViewModel() {
     private lateinit var mediaPlayer: MediaPlayer
     private var previousVoiceIndex: Int? = null
     private var voiceToPlay: Voice? = null
-    val isPlaying = mutableStateOf(false)
+    private val isPlaying = mutableStateOf(false)
 
-    val _voices = MutableStateFlow(List(5) { Voice("title$it") })
+    private val _voices = MutableStateFlow(emptyList<Voice>())
     val voices = _voices.asStateFlow()
 
     init {
-        getVoices().map {
-            _voices.value = it
-        }
+        getVoices()
     }
 
     fun onPlay(nextVoiceIndex: Int, voice: Voice) {
@@ -112,22 +111,27 @@ class PlaylistViewModel @Inject constructor() : ViewModel() {
 //        updateAppState(AppSate.Playing)
     }
 
-    private fun getVoices(): Flow<List<Voice>> = flow {
+    private fun getVoices() {
+        val DIRECTORY_NAME = "VoiceRecorder"
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             val voicePath = Environment.getExternalStoragePublicDirectory(DIRECTORY_RECORDINGS).path
-            val voiceList = File(voicePath).listFiles()?.map {
+            File(
+                voicePath,
+                DIRECTORY_NAME).listFiles()?.map {
                 Voice(
                     title = it.name,
                     path = it.path,
                 )
-            }?.let {
-                emit(it)
+            }?.let { voices ->
+                _voices.value = voices
+                Timber.e("recordings:$voices")
             }
         }
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
 //            val voicePath = Environment.getExternalStorageDirectory().path
-            emit(emptyList())
+            _voices.value = emptyList()
         }
     }
 
 }
+

@@ -1,10 +1,8 @@
 package com.recorder.feature.playlist
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
@@ -20,7 +18,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -32,7 +29,7 @@ import timber.log.Timber
 
 @ExperimentalMaterialApi
 @Composable
-fun PlaylistScaffold(
+fun Playlist(
     onPlayPause: () -> Unit,
     onStop: () -> Unit,
     onVoiceClicked: (Int, Voice) -> Unit,
@@ -72,7 +69,7 @@ fun PlaylistScaffold(
         sheetPeekHeight = 0.dp,
         backgroundColor = MaterialTheme.colors.background
     ) {
-        Playlist(
+        PlaylistContent(
             voices = voices,
             isPlaying = false,
             onPlayPause = onPlayPause,
@@ -88,7 +85,7 @@ fun PlaylistScaffold(
 }
 
 @Composable
-fun Playlist(
+fun PlaylistContent(
     voices: List<Voice>,
     isPlaying: Boolean,
     onPlayPause: () -> Unit,
@@ -129,8 +126,10 @@ fun Playlist(
         }
 
     }
-    Column(modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Bottom) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Bottom
+    ) {
         MediaControls(Modifier, voice, onPlayPause = { onPlayPause() }, onStop = { onStop() })
     }
 }
@@ -246,15 +245,12 @@ fun MediaControlsPreview() {
     )
     PlaylistItem(
         voice = Voice(
-            title = "titljjjjjjjjjjjjjjjjjjjje",
+            title = "title prview",
             path = "path",
             isPlaying = false,
-            duration = "00:00",
+            duration = "00:12",
             recordTime = "just now"
         )
-    ) {
-//        PlaylistPage(voices = vm.allVoices) {
-//
-//        }
-    }
+        , onVoiceClicked = {}
+    )
 }
