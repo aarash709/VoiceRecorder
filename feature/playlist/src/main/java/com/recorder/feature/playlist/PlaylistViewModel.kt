@@ -8,12 +8,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import com.core.common.model.Voice
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
 import timber.log.Timber
 import java.io.File
 import java.lang.Exception
@@ -24,7 +20,7 @@ class PlaylistViewModel @Inject constructor() : ViewModel() {
 
 
     private lateinit var mediaPlayer: MediaPlayer
-    private var previousVoiceIndex: Int? = null
+    private var currentVoiceIndex: Int? = null
     private var voiceToPlay: Voice? = null
     private val isPlaying = mutableStateOf(false)
 
@@ -36,17 +32,22 @@ class PlaylistViewModel @Inject constructor() : ViewModel() {
     }
 
     fun onPlay(nextVoiceIndex: Int, voice: Voice) {
-        voiceToPlay = voice
+        Timber.e(voice.path)
+        voiceToPlay = voice.copy(isPlaying = true)
         voiceToPlay?.let {
             if (!isPlaying.value) {
-                previousVoiceIndex = nextVoiceIndex
-                startPlayback(it, previousVoiceIndex!!)
+                currentVoiceIndex = nextVoiceIndex
+                startPlayback(it, currentVoiceIndex!!)
             } else {
-                stopPlayback(previousVoiceIndex!!)
-                startPlayback(it, nextVoiceIndex)
-                previousVoiceIndex = nextVoiceIndex
+                stopPlayback(currentVoiceIndex!!)
+//                startPlayback(it, nextVoiceIndex)
+                currentVoiceIndex = nextVoiceIndex
             }
         }
+    }
+
+    fun onStop() {
+        stopPlayback(0)
     }
 
     fun onPlayPause() {
@@ -59,7 +60,7 @@ class PlaylistViewModel @Inject constructor() : ViewModel() {
 
     private fun startPlayback(voice: Voice, index: Int) {
         mediaPlayer = MediaPlayer()
-        mediaPlayer?.apply {
+        mediaPlayer.apply {
             if (isPlaying) stopPlayback(index)
             try {
                 setDataSource(voice.path)
@@ -78,13 +79,13 @@ class PlaylistViewModel @Inject constructor() : ViewModel() {
 //        onPlayUpdateListState(index)
 //        playbackAllowed.value = false
         Timber.e("started playback: " + isPlaying.value)
-        mediaPlayer?.setOnCompletionListener {
+        mediaPlayer.setOnCompletionListener {
             stopPlayback(index)
         }
     }
 
     fun stopPlayback(index: Int) {
-        mediaPlayer?.apply {
+        mediaPlayer.apply {
             stop()
 //            updateAppState(AppSate.OnIdle)
             Timber.e("playback stopped")
@@ -117,7 +118,8 @@ class PlaylistViewModel @Inject constructor() : ViewModel() {
             val voicePath = Environment.getExternalStoragePublicDirectory(DIRECTORY_RECORDINGS).path
             File(
                 voicePath,
-                DIRECTORY_NAME).listFiles()?.map {
+                DIRECTORY_NAME
+            ).listFiles()?.map {
                 Voice(
                     title = it.name,
                     path = it.path,

@@ -55,9 +55,10 @@ fun Playlist(
         {
             MediaControls(
                 voice = (voices[index]),
-                onPlayPause = onPlayPause,
+                onPlayPause = { voice->
+                    viewModel.onPlay(index, voice) },
                 onStop = {
-                    onStop()
+                    viewModel.onStop()
                     scope.launch {
                         bottomSheetState.bottomSheetState.collapse()
                     }
@@ -72,11 +73,11 @@ fun Playlist(
         PlaylistContent(
             voices = voices,
             isPlaying = false,
-            onPlayPause = onPlayPause,
-            onStop = onStop,
+            onPlayPause = { },
+            onStop = { },
             onVoiceClicked = { i, voice ->
                 index = i
-                onVoiceClicked(i, voice)
+                viewModel.onPlay(0,voice)
                 scope.launch {
                     bottomSheetState.bottomSheetState.expand()
                 }
@@ -197,7 +198,7 @@ fun PlaylistItem(
 fun MediaControls(
     modifier: Modifier = Modifier,
     voice: Voice,
-    onPlayPause: () -> Unit,
+    onPlayPause: (Voice) -> Unit,
     onStop: () -> Unit,
 ) {
     var sliderInt by remember {
@@ -207,7 +208,7 @@ fun MediaControls(
         Column() {
             Text(text = "filename:${voice.title}")
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                Button(onClick = { onPlayPause() }) {
+                Button(onClick = { onPlayPause(voice) }) {
                     Timber.e("${voice.isPlaying}")
                     if (voice.isPlaying)
                         Icon(
@@ -250,7 +251,6 @@ fun MediaControlsPreview() {
             isPlaying = false,
             duration = "00:12",
             recordTime = "just now"
-        )
-        , onVoiceClicked = {}
+        ), onVoiceClicked = {}
     )
 }
