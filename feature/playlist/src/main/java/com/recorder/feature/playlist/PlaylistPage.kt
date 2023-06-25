@@ -1,5 +1,7 @@
 package com.recorder.feature.playlist
 
+import android.content.res.Configuration.UI_MODE_NIGHT_NO
+import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -24,6 +26,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.core.common.model.Voice
+import com.recorder.core.designsystem.theme.VoiceRecorderTheme
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -235,8 +238,28 @@ fun MediaControls(
     }
 }
 
+@Preview(showBackground = true, uiMode = UI_MODE_NIGHT_NO)
+@Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
 @Composable
-@Preview(showBackground = true)
+fun PlaylistItemPreview() {
+    VoiceRecorderTheme{
+        Surface {
+            PlaylistItem(
+                voice = Voice(
+                    title = "title prview",
+                    path = "path",
+                    isPlaying = false,
+                    duration = "00:12",
+                    recordTime = "just now"
+                ), onVoiceClicked = {}
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true, uiMode = UI_MODE_NIGHT_NO)
+@Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
+@Composable
 fun MediaControlsPreview() {
     MediaControls(
         modifier = Modifier,
@@ -246,7 +269,7 @@ fun MediaControlsPreview() {
     )
     PlaylistItem(
         voice = Voice(
-            title = "title prview",
+            title = "title preview",
             path = "path",
             isPlaying = false,
             duration = "00:12",
