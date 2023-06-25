@@ -11,7 +11,10 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.PlayCircle
+import androidx.compose.material.icons.filled.PlayCircleOutline
 import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material.icons.filled.StopCircle
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
@@ -130,12 +133,6 @@ fun PlaylistContent(
         }
 
     }
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Bottom
-    ) {
-        MediaControls(Modifier, voice, onPlayPause = { onPlayPause() }, onStop = { onStop() })
-    }
 }
 
 @Composable
@@ -144,56 +141,63 @@ fun PlaylistItem(
     voice: Voice,
     onVoiceClicked: (Voice) -> Unit,
 ) {
-    val textColor = if (voice.isPlaying) Color.Cyan else MaterialTheme.colors.onSurface
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable() {
-                onVoiceClicked(Voice(voice.title, voice.path, voice.isPlaying))
-                Timber.e(voice.title)
-                Timber.e("is playing voice: ${voice.isPlaying}")
-            },
-        verticalAlignment = Alignment.CenterVertically
+    val textColor = if (voice.isPlaying) MaterialTheme.colors.primary
+     else MaterialTheme.colors.onSurface
+    Surface(
+        modifier = Modifier,
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colors.surface,
     ) {
-        if (voice.isPlaying)
-            Icon(
-                imageVector = Icons.Default.Stop,
-                contentDescription = "",
-                modifier = Modifier
-                    .size(75.dp)
-                    .padding(all = 8.dp)
-                    .clip(CircleShape)
-            )
-        else
-            Icon(
-                imageVector = Icons.Default.PlayArrow,
-                contentDescription = "",
-                modifier = Modifier
-                    .size(75.dp)
-                    .padding(all = 8.dp)
-                    .clip(CircleShape)
-            )
-        Column(
-            verticalArrangement = Arrangement.spacedBy(4.dp),
+        Row(
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(8.dp)
+                .clickable() {
+                    onVoiceClicked(Voice(voice.title, voice.path, voice.isPlaying))
+                    Timber.e(voice.title)
+                    Timber.e("is playing voice: ${voice.isPlaying}")
+                },
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = voice.title,
-                color = textColor
-            )
-            Row {
-                Text(
-                    text = voice.duration,
-                    fontSize = 12.sp,
-                    color = Color.Gray
+            if (voice.isPlaying)
+                Icon(
+                    imageVector = Icons.Default.StopCircle,
+                    contentDescription = "",
+                    modifier = Modifier
+                        .size(60.dp)
+                        .padding(all = 8.dp)
                 )
-                Spacer(modifier = Modifier.width(6.dp))
-                Text(
-                    text = voice.recordTime,
-                    fontSize = 12.sp,
-                    color = Color.Gray
+            else
+                Icon(
+                    imageVector = Icons.Default.PlayCircle,
+                    contentDescription = "",
+                    modifier = Modifier
+                        .size(60.dp)
+                        .padding(all = 8.dp)
                 )
+            Column(
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Text(
+                    text = voice.title,
+                    color = textColor
+                )
+                Row {
+                    Text(
+                        text = voice.duration,
+                        fontSize = 12.sp,
+                        color = Color.Gray
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = voice.recordTime,
+                        fontSize = 12.sp,
+                        color = Color.Gray
+                    )
+                }
             }
         }
+
     }
 }
 
@@ -237,7 +241,29 @@ fun MediaControls(
 
     }
 }
-
+@Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
+@Preview(showBackground = true, uiMode = UI_MODE_NIGHT_NO)
+@Composable
+fun PlaylistPagePreview(){
+    VoiceRecorderTheme {
+        Surface() {
+            PlaylistContent(
+                listOf(
+                    Voice("title", "", isPlaying = false, "00:01",),
+                    Voice("title2", "", isPlaying = true, "00:10",),
+                    Voice("title3", "", isPlaying = false, "02:21",),
+                    Voice("title4", "", isPlaying = false, "05:01",),
+                    Voice("title5", "", isPlaying = false, "00:41",)
+                ),
+                isPlaying = false,
+                onPlayPause = {},
+                onStop = {},
+                onVoiceClicked = { i, voice ->
+                }
+            )
+        }
+    }
+}
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_NO)
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
 @Composable
@@ -261,19 +287,12 @@ fun PlaylistItemPreview() {
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
 @Composable
 fun MediaControlsPreview() {
-    MediaControls(
-        modifier = Modifier,
-        voice = Voice(),
-        onPlayPause = {},
-        onStop = {}
-    )
-    PlaylistItem(
-        voice = Voice(
-            title = "title preview",
-            path = "path",
-            isPlaying = false,
-            duration = "00:12",
-            recordTime = "just now"
-        ), onVoiceClicked = {}
-    )
+    VoiceRecorderTheme{
+        MediaControls(
+            modifier = Modifier,
+            voice = Voice(),
+            onPlayPause = {},
+            onStop = {}
+        )
+    }
 }

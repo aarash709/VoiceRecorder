@@ -117,8 +117,7 @@ class PlaylistViewModel @Inject constructor() : ViewModel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             val voicePath = Environment.getExternalStoragePublicDirectory(DIRECTORY_RECORDINGS).path
             File(
-                voicePath,
-                DIRECTORY_NAME
+                voicePath
             ).listFiles()?.map {
                 Voice(
                     title = it.name,
