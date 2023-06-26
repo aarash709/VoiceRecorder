@@ -37,12 +37,15 @@ android {
 dependencies {
 
     implementation(project(":core:common"))
+    implementation(project(":core:designsystem"))
 
     implementation(libs.bundles.compose)
     implementation(libs.material)
     implementation(libs.coilCompose)
     implementation(libs.kotlix.coroutinesCore)
     implementation(libs.kotlix.coroutinesAndroid)
+
+    implementation(libs.androidx.lifecycleComposeRuntime)
 
     implementation(libs.hilt.navigationCompose)
     implementation(libs.hilt.android)

@@ -8,7 +8,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.recorder.feature.playlist.PlaylistScaffold
+import com.recorder.feature.playlist.Playlist
 import com.recorder.feature.record.Record
 
 sealed class Pages(val route: String) {
@@ -38,11 +38,12 @@ fun VoiceRecorderNavigation(
         startDestination = Pages.RecordingPage.route
     ) {
         composable(Pages.RecordingPage.route) {
-            Record()
+            Record(onListButtonClick = {
+                navHost.navigate(Pages.PlayListPage.route)
+            })
         }
         composable(Pages.PlayListPage.route) {
-            PlaylistScaffold(
-                voices = emptyList(),
+            Playlist(
                 onPlayPause = {  },
                 onStop = {  },
                 onVoiceClicked = { i, voice ->

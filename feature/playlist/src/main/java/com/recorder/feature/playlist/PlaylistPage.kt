@@ -1,89 +1,59 @@
 package com.recorder.feature.playlist
 
-import androidx.compose.foundation.Image
+import android.content.res.Configuration.UI_MODE_NIGHT_NO
+import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material.icons.filled.StopCircle
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.core.common.model.Voice
-import kotlinx.coroutines.launch
+import com.recorder.core.designsystem.theme.VoiceRecorderTheme
 import timber.log.Timber
 
 @ExperimentalMaterialApi
 @Composable
-fun PlaylistScaffold(
-    voices: List<Voice>,
+fun Playlist(
     onPlayPause: () -> Unit,
     onStop: () -> Unit,
     onVoiceClicked: (Int, Voice) -> Unit,
 ) {
-    val bottomSheetState = rememberBottomSheetScaffoldState()
-    val scope = rememberCoroutineScope()
-    var index by remember {
+    val viewModel = hiltViewModel<PlaylistViewModel>()
+    val voices = viewModel.voices.collectAsStateWithLifecycle().value
+    var playingVoiceIndex by remember {
         mutableStateOf(0)
     }
-    LaunchedEffect(key1 = voices) {
-        if (!voices[index].isPlaying)
-            bottomSheetState.bottomSheetState.collapse()
-    }
-    LaunchedEffect(key1 = true) {
-        //load voices once the page is composed
-    }
-    BottomSheetScaffold(
-        sheetContent =
-        {
-            MediaControls(
-                voice = (voices[index]),
-                onPlayPause = onPlayPause,
-                onStop = {
-                    onStop()
-                    scope.launch {
-                        bottomSheetState.bottomSheetState.collapse()
-                    }
-                }
-            )
-        },
-        scaffoldState = bottomSheetState,
-        sheetShape = RoundedCornerShape(8.dp),
-        sheetPeekHeight = 0.dp,
-        backgroundColor = MaterialTheme.colors.background
-    ) {
-        Playlist(
-            voices = voices,
-            isPlaying = false,
-            onPlayPause = onPlayPause,
-            onStop = onStop,
-            onVoiceClicked = { i, voice ->
-                index = i
-                onVoiceClicked(i, voice)
-                scope.launch {
-                    bottomSheetState.bottomSheetState.expand()
-                }
-            })
-    }
+    PlaylistContent(
+        voices = voices,
+        isPlaying = false,
+        onPlayPause = { },
+        onStop = { },
+        onVoiceClicked = { voiceIndex, voice ->
+            playingVoiceIndex = voiceIndex
+            viewModel.onPlay(voiceIndex,voice)
+        })
 }
 
 @Composable
-fun Playlist(
+fun PlaylistContent(
     voices: List<Voice>,
     isPlaying: Boolean,
     onPlayPause: () -> Unit,
@@ -124,10 +94,6 @@ fun Playlist(
         }
 
     }
-    Column(modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Bottom) {
-        MediaControls(Modifier, voice, onPlayPause = { onPlayPause() }, onStop = { onStop() })
-    }
 }
 
 @Composable
@@ -136,56 +102,65 @@ fun PlaylistItem(
     voice: Voice,
     onVoiceClicked: (Voice) -> Unit,
 ) {
-    val textColor = if (voice.isPlaying) Color.Cyan else MaterialTheme.colors.onSurface
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable() {
-                onVoiceClicked(Voice(voice.title, voice.path, voice.isPlaying))
-                Timber.e(voice.title)
-                Timber.e("is playing voice: ${voice.isPlaying}")
-            },
-        verticalAlignment = Alignment.CenterVertically
+    val textColor = if (voice.isPlaying) MaterialTheme.colors.primary
+    else MaterialTheme.colors.onSurface
+    LaunchedEffect(key1 = Unit){
+        Timber.e("is playing voice: ${voice.isPlaying}")
+    }
+    Surface(
+        modifier = Modifier,
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colors.surface,
     ) {
-        if (voice.isPlaying)
-            Icon(
-                imageVector = Icons.Default.Stop,
-                contentDescription = "",
-                modifier = Modifier
-                    .size(75.dp)
-                    .padding(all = 8.dp)
-                    .clip(CircleShape)
-            )
-        else
-            Icon(
-                imageVector = Icons.Default.PlayArrow,
-                contentDescription = "",
-                modifier = Modifier
-                    .size(75.dp)
-                    .padding(all = 8.dp)
-                    .clip(CircleShape)
-            )
-        Column(
-            verticalArrangement = Arrangement.spacedBy(4.dp),
+        Row(
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(8.dp)
+                .clickable() {
+                    onVoiceClicked(Voice(voice.title, voice.path))
+                    Timber.e("ui item: ${voice.title}")
+                },
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = voice.title,
-                color = textColor
-            )
-            Row {
-                Text(
-                    text = voice.duration,
-                    fontSize = 12.sp,
-                    color = Color.Gray
+            if (voice.isPlaying)
+                Icon(
+                    imageVector = Icons.Default.StopCircle,
+                    contentDescription = "",
+                    modifier = Modifier
+                        .size(60.dp)
+                        .padding(all = 8.dp)
                 )
-                Spacer(modifier = Modifier.width(6.dp))
-                Text(
-                    text = voice.recordTime,
-                    fontSize = 12.sp,
-                    color = Color.Gray
+            else
+                Icon(
+                    imageVector = Icons.Default.PlayCircle,
+                    contentDescription = "",
+                    modifier = Modifier
+                        .size(60.dp)
+                        .padding(all = 8.dp)
                 )
+            Column(
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Text(
+                    text = voice.title,
+                    color = textColor
+                )
+                Row {
+                    Text(
+                        text = voice.duration,
+                        fontSize = 12.sp,
+                        color = Color.Gray
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = voice.recordTime,
+                        fontSize = 12.sp,
+                        color = Color.Gray
+                    )
+                }
             }
         }
+
     }
 }
 
@@ -193,7 +168,7 @@ fun PlaylistItem(
 fun MediaControls(
     modifier: Modifier = Modifier,
     voice: Voice,
-    onPlayPause: () -> Unit,
+    onPlayPause: (Voice) -> Unit,
     onStop: () -> Unit,
 ) {
     var sliderInt by remember {
@@ -203,7 +178,7 @@ fun MediaControls(
         Column() {
             Text(text = "filename:${voice.title}")
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                Button(onClick = { onPlayPause() }) {
+                Button(onClick = { onPlayPause(voice) }) {
                     Timber.e("${voice.isPlaying}")
                     if (voice.isPlaying)
                         Icon(
@@ -230,26 +205,59 @@ fun MediaControls(
     }
 }
 
+@Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
+@Preview(showBackground = true, uiMode = UI_MODE_NIGHT_NO)
 @Composable
-@Preview(showBackground = true)
+fun PlaylistPagePreview() {
+    VoiceRecorderTheme {
+        Surface() {
+            PlaylistContent(
+                listOf(
+                    Voice("title", "", isPlaying = false, "00:01"),
+                    Voice("title2", "", isPlaying = true, "00:10"),
+                    Voice("title3", "", isPlaying = false, "02:21"),
+                    Voice("title4", "", isPlaying = false, "05:01"),
+                    Voice("title5", "", isPlaying = false, "00:41")
+                ),
+                isPlaying = false,
+                onPlayPause = {},
+                onStop = {},
+                onVoiceClicked = { i, voice ->
+                }
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true, uiMode = UI_MODE_NIGHT_NO)
+@Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
+@Composable
+fun PlaylistItemPreview() {
+    VoiceRecorderTheme {
+        Surface {
+            PlaylistItem(
+                voice = Voice(
+                    title = "title prview",
+                    path = "path",
+                    isPlaying = false,
+                    duration = "00:12",
+                    recordTime = "just now"
+                ), onVoiceClicked = {}
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true, uiMode = UI_MODE_NIGHT_NO)
+@Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
+@Composable
 fun MediaControlsPreview() {
-    MediaControls(
-        modifier = Modifier,
-        voice = Voice(),
-        onPlayPause = {},
-        onStop = {}
-    )
-    PlaylistItem(
-        voice = Voice(
-            title = "titljjjjjjjjjjjjjjjjjjjje",
-            path = "path",
-            isPlaying = false,
-            duration = "00:00",
-            recordTime = "just now"
+    VoiceRecorderTheme {
+        MediaControls(
+            modifier = Modifier,
+            voice = Voice(),
+            onPlayPause = {},
+            onStop = {}
         )
-    ) {
-//        PlaylistPage(voices = vm.allVoices) {
-//
-//        }
     }
 }
