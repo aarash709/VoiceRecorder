@@ -38,7 +38,7 @@ fun Playlist(
 ) {
     val viewModel = hiltViewModel<PlaylistViewModel>()
     val voices = viewModel.voices.collectAsStateWithLifecycle().value
-    var currentVoiceIndex by remember {
+    var playingVoiceIndex by remember {
         mutableStateOf(0)
     }
     PlaylistContent(
@@ -47,8 +47,8 @@ fun Playlist(
         onPlayPause = { },
         onStop = { },
         onVoiceClicked = { voiceIndex, voice ->
-            currentVoiceIndex = voiceIndex
-            viewModel.onPlay(0, voice)
+            playingVoiceIndex = voiceIndex
+            viewModel.onPlay(voiceIndex,voice)
         })
 }
 
@@ -104,6 +104,9 @@ fun PlaylistItem(
 ) {
     val textColor = if (voice.isPlaying) MaterialTheme.colors.primary
     else MaterialTheme.colors.onSurface
+    LaunchedEffect(key1 = Unit){
+        Timber.e("is playing voice: ${voice.isPlaying}")
+    }
     Surface(
         modifier = Modifier,
         shape = RoundedCornerShape(16.dp),
@@ -114,9 +117,8 @@ fun PlaylistItem(
                 .fillMaxWidth()
                 .padding(8.dp)
                 .clickable() {
-                    onVoiceClicked(Voice(voice.title, voice.path, voice.isPlaying))
-                    Timber.e(voice.title)
-                    Timber.e("is playing voice: ${voice.isPlaying}")
+                    onVoiceClicked(Voice(voice.title, voice.path))
+                    Timber.e("ui item: ${voice.title}")
                 },
             verticalAlignment = Alignment.CenterVertically
         ) {
