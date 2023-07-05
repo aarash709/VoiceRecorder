@@ -36,6 +36,8 @@ android {
 
 dependencies {
 
+    implementation(project(":core:common"))
+
     implementation(libs.compose.bom)
     implementation(libs.bundles.compose)
     implementation(libs.material)
