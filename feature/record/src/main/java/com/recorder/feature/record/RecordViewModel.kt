@@ -30,37 +30,30 @@ import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
 
-const val DIRECTORY_NAME = "VoiceRecorder"
-
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class RecordViewModel @Inject constructor() : ViewModel() {
 
     private lateinit var mediaRecorder: MediaRecorder
-    private var fileName = mutableStateOf("")
-    private var canAccessAppFolder = false
     private var _isRecording = MutableStateFlow(false)
-    private var directoryName = ""
     private var _timerMillis = MutableStateFlow(0L)
 
     private val timePattern= DateTimeFormatter.ofPattern("mm:ss")
 
     val formattedTimer = _timerMillis.map { elapsedTime ->
-        LocalTime.ofNanoOfDay(elapsedTime*1000000).format(timePattern)
+        LocalTime.ofNanoOfDay(elapsedTime*1_000_000).format(timePattern)
 
     }.stateIn(
         scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(1000L),
+        started = SharingStarted.WhileSubscribed(1_000L),
         initialValue = "00:00:00"
     )
 
     init {
-//        initializeAppSettings()
         _isRecording.flatMapLatest {
             startTimer(it)
         }.onEach { time ->
             _timerMillis.update { it + time }
-            Timber.e(_timerMillis.value.toString())
         }.launchIn(viewModelScope)
     }
 
@@ -70,14 +63,14 @@ class RecordViewModel @Inject constructor() : ViewModel() {
                 onStopRecording = {
                     _isRecording.update { false }
                     _timerMillis.update { 0 }
-                    Timber.e(_isRecording.value.toString())
+                    Timber.e("onrecord:${_isRecording.value}")
                 })
         } else {
             startRecordingAudio(
                 context = context,
                 onRecord = {
                     _isRecording.update { true }
-                    Timber.e(_isRecording.value.toString())
+                    Timber.e("onrecord:${_isRecording.value}")
                 }
             )
         }
@@ -110,7 +103,6 @@ class RecordViewModel @Inject constructor() : ViewModel() {
         val fileName = generateFileName()
         if (/*canAccessAppFolder*/true) {
             val file = File(path, fileName)
-            this.fileName.value = file.path
             mediaRecorder = MediaRecorder().apply {
                 setAudioSource(MediaRecorder.AudioSource.MIC)
                 setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
@@ -128,7 +120,7 @@ class RecordViewModel @Inject constructor() : ViewModel() {
                     setAudioSource(MediaRecorder.AudioSource.MIC)
                     setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
                     setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
-                    setOutputFile(this@RecordViewModel.fileName.value)
+                    setOutputFile(file.path)
                     try {
                         prepare()
                     } catch (e: Exception) {
@@ -161,47 +153,7 @@ class RecordViewModel @Inject constructor() : ViewModel() {
         val date = sdf.format(Date())
         return "$date$fileExt"
     }
-
-//    private fun createStorageFolder() {
-//        val path = storagePath()
-//        val folderExists = File(path).exists()
-//        canAccessAppFolder = when {
-//            folderExists -> {
-//                Timber.e("$DIRECTORY_NAME exists")
-//                true
-//            }
-//
-//            File(path, "/$DIRECTORY_NAME").mkdirs() -> {
-//                Timber.e("file created")
-//                true
-//            }
-//
-//            else -> {
-//                Timber.e("something went wrong, no folder")
-//                false
-//            }
-//        }
-//    }
-
     private fun storagePath(context: Context): String? {
-        val path = context.getExternalFilesDir(null)?.path
-//
-//        val path = when {
-//            Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-//                Environment.getExternalStoragePublicDirectory(DIRECTORY_RECORDINGS).path
-//            }
-//
-//            else -> {
-//                Environment.getExternalStorageDirectory().path
-//            }
-//        }
-//        Timber.e(Environment.getExternalStorageDirectory().path)
-        return path
-    }
-
-    private fun initializeAppSettings() {
-//        createStorageFolder()
-//        val rootPath = storagePath()
-//        directoryName = "$rootPath/$DIRECTORY_NAME"
+        return context.getExternalFilesDir(null)?.path
     }
 }
