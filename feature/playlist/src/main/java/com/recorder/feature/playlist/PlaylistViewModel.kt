@@ -1,11 +1,13 @@
 package com.recorder.feature.playlist
 
+import android.content.Context
 import android.media.MediaPlayer
 import android.os.Build
 import android.os.Environment
 import android.os.Environment.DIRECTORY_RECORDINGS
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.core.common.Storage
 import com.core.common.model.Voice
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,12 +28,13 @@ class PlaylistViewModel @Inject constructor() : ViewModel() {
     private var currentVoiceIndex: Int? = null
     private var currentPlayingVoice: Voice? = null
     private val _isPlaying = MutableStateFlow(false)
+    private val storage : Storage = Storage()
 
     private val _voices = MutableStateFlow(emptyList<Voice>())
     val voices = _voices.asStateFlow()
 
     init {
-        getVoices()
+
     }
 
     fun onPlay(nextVoiceIndex: Int, newVoice: Voice) {
@@ -135,27 +138,8 @@ class PlaylistViewModel @Inject constructor() : ViewModel() {
         }
     }
 
-    private fun getVoices() {
-        val DIRECTORY_NAME = "VoiceRecorder"
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            val voicePath = Environment.getExternalStoragePublicDirectory(DIRECTORY_RECORDINGS).path
-            File(
-                voicePath,
-                DIRECTORY_NAME
-            ).listFiles()?.map {
-                Voice(
-                    title = it.name,
-                    path = it.path,
-                )
-            }?.let { voices ->
-                _voices.value = voices
-                Timber.e("recordings:$voices")
-            }
-        }
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
-//            val voicePath = Environment.getExternalStorageDirectory().path
-            _voices.value = emptyList()
-        }
+    fun getVoices(context: Context) {
+        _voices.update { storage.getVoices(context) ?: listOf() }
     }
 
 }
