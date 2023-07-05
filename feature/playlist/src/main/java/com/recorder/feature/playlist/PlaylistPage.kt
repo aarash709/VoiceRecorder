@@ -20,6 +20,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -38,8 +39,12 @@ fun Playlist(
 ) {
     val viewModel = hiltViewModel<PlaylistViewModel>()
     val voices = viewModel.voices.collectAsStateWithLifecycle().value
+    val context = LocalContext.current
     var playingVoiceIndex by remember {
         mutableStateOf(0)
+    }
+    LaunchedEffect(key1 = Unit){
+        viewModel.getVoices(context)
     }
     PlaylistContent(
         voices = voices,
