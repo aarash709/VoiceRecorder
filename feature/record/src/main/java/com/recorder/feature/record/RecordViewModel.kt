@@ -6,6 +6,7 @@ import android.os.Build
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.core.common.Storage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
@@ -35,13 +36,14 @@ import javax.inject.Inject
 class RecordViewModel @Inject constructor() : ViewModel() {
 
     private lateinit var mediaRecorder: MediaRecorder
+    private val storage: Storage = Storage()
     private var _isRecording = MutableStateFlow(false)
     private var _timerMillis = MutableStateFlow(0L)
 
-    private val timePattern= DateTimeFormatter.ofPattern("mm:ss")
+    private val timePattern = DateTimeFormatter.ofPattern("mm:ss")
 
     val formattedTimer = _timerMillis.map { elapsedTime ->
-        LocalTime.ofNanoOfDay(elapsedTime*1_000_000).format(timePattern)
+        LocalTime.ofNanoOfDay(elapsedTime * 1_000_000).format(timePattern)
 
     }.stateIn(
         scope = viewModelScope,
@@ -99,10 +101,23 @@ class RecordViewModel @Inject constructor() : ViewModel() {
     }
 
     private fun startRecordingAudio(context: Context, onRecord: () -> Unit) {
-        val path = storagePath(context)
+        val path = storage.getPath(context)
         val fileName = generateFileName()
-        if (/*canAccessAppFolder*/true) {
-            val file = File(path, fileName)
+        val file = File(path, fileName)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+            mediaRecorder = MediaRecorder(context).apply {
+                setAudioSource(MediaRecorder.AudioSource.MIC)
+                setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
+                setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+                setOutputFile(file.path)
+                try {
+                    prepare()
+                } catch (e: Exception) {
+                    Timber.e("recorder on android(S) can`t be prepared")
+                }
+                start()
+            }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S)
             mediaRecorder = MediaRecorder().apply {
                 setAudioSource(MediaRecorder.AudioSource.MIC)
                 setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
@@ -115,24 +130,7 @@ class RecordViewModel @Inject constructor() : ViewModel() {
                 }
                 start()
             }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                mediaRecorder = MediaRecorder(context).apply {
-                    setAudioSource(MediaRecorder.AudioSource.MIC)
-                    setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
-                    setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
-                    setOutputFile(file.path)
-                    try {
-                        prepare()
-                    } catch (e: Exception) {
-                        Timber.e("recorder on android(S) can`t be prepared")
-                    }
-                    start()
-                }
-            }
-            onRecord()
-        } else {
-            Timber.e("cannot access app dir")
-        }
+        onRecord()
     }
 
     private fun stopRecordingAudio(onStopRecording: () -> Unit) {
@@ -153,7 +151,5 @@ class RecordViewModel @Inject constructor() : ViewModel() {
         val date = sdf.format(Date())
         return "$date$fileExt"
     }
-    private fun storagePath(context: Context): String? {
-        return context.getExternalFilesDir(null)?.path
-    }
+
 }
