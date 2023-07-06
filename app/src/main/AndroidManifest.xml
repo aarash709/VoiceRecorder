@@ -35,7 +35,6 @@
         </activity>
         <service
             android:name="com.recorder.service.RecorderService"
-            android:description="Service for running voice recording functionality in the background."
             android:exported="false"
             android:foregroundServiceType="microphone" />
     </application>
