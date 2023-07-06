@@ -59,6 +59,7 @@ dependencies {
     implementation(project(":feature:playlist"))
     implementation(project(":core:designsystem"))
     implementation(project(":core:common"))
+    implementation(project(":core:service"))
 
 
     implementation(libs.androidx.coreKtx)
