@@ -37,6 +37,7 @@ android {
 dependencies {
 
     implementation(project(":core:common"))
+    implementation(project(":core:service"))
 
     implementation(libs.compose.bom)
     implementation(libs.bundles.compose)
