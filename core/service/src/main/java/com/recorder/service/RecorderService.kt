@@ -7,6 +7,12 @@ import android.media.MediaRecorder
 import android.os.Build
 import android.os.IBinder
 import com.core.common.Storage
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import timber.log.Timber
 import java.io.File
 import java.lang.Exception
 import java.text.SimpleDateFormat
@@ -17,6 +23,8 @@ class RecorderService : Service() {
 
     private lateinit var recorder: MediaRecorder
     private lateinit var storage: Storage
+    private val job = Job()
+    private val serviceScope = CoroutineScope(Dispatchers.IO + job)
 
     override fun onCreate() {
         super.onCreate()
@@ -24,6 +32,7 @@ class RecorderService : Service() {
             MediaRecorder(this)
         else
             MediaRecorder()
+        storage = Storage()
     }
 
     override fun onBind(intent: Intent?): IBinder? {
@@ -31,30 +40,89 @@ class RecorderService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        startRecording(context = this)
+        when (intent?.action) {
+            "record" -> {
+                startRecording(this)
+                Timber.e("record")
+            }
+            "stop" -> {
+                stopRecordingAudio(onStopRecording = {
 
-        return super.onStartCommand(intent, flags, startId)
+                })
+                Timber.e("stop")
+            }
+            "pause" -> {
+                pauseRecording()
+                Timber.e("pause")
+            }
+            "resume" -> {
+                resumeRecording()
+                Timber.e("resume")
+            }
+        }
+
+        return START_STICKY
     }
 
-    private fun onRecord(){
+    private fun pauseRecording() {
+        serviceScope.launch {
+            recorder.apply {
+                pause()
+            }
+        }
+    }
 
+    private fun resumeRecording() {
+        serviceScope.launch {
+            recorder.apply {
+                resume()
+            }
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        releaseResources()
+        Timber.e("recorder service destroyed")
     }
 
     private fun startRecording(context: Context) {
-        val path = storage.getPath(context)
-        val fileName = generateFileName()
-        val file = File(path, fileName)
-        recorder.apply {
-            setAudioSource(MediaRecorder.AudioSource.MIC)
-            setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
-            setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
-            setOutputFile(file.path)
-            try {
-                prepare()
-            } catch (e: Exception) {
-//                Timber.e("recorder on android(S) can`t be prepared")
+        serviceScope.launch {
+            val path = storage.getPath(context)
+            val fileName = generateFileName()
+            val file = File(path, fileName)
+            recorder.apply {
+                setAudioSource(MediaRecorder.AudioSource.MIC)
+                setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
+                setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+                setOutputFile(file.path)
+                try {
+                    prepare()
+                } catch (e: Exception) {
+                Timber.e("recorder on android(S) can`t be prepared")
+                }
+                start()
             }
-            start()
+        }
+    }
+
+    private fun stopRecordingAudio(onStopRecording: () -> Unit) {
+        serviceScope.launch {
+            recorder.apply {
+                stop()
+                reset()
+                onStopRecording()
+                Timber.e("stopped recording")
+            }
+        }
+    }
+
+    private fun releaseResources() {
+        serviceScope.launch {
+            recorder.apply {
+                release()
+            }
+            job.cancel()
         }
     }
 

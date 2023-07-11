@@ -40,6 +40,8 @@ dependencies {
     implementation(libs.androidx.lifecycleRuntimeKtx)
 //    implementation(libs.appcompat)
 
+    implementation(libs.timberLogger)
+
     testImplementation(libs.junit4)
     androidTestImplementation(libs.androidx.test.extJunit)
     androidTestImplementation(libs.espresso.core)

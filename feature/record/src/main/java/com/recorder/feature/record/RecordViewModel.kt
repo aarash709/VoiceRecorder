@@ -1,12 +1,12 @@
 package com.recorder.feature.record
 
 import android.content.Context
+import android.content.Intent
 import android.media.MediaRecorder
-import android.os.Build
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.core.common.Storage
+import com.recorder.service.RecorderService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
@@ -22,21 +22,14 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import java.io.File
-import java.lang.Exception
-import java.text.SimpleDateFormat
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
-import java.util.Date
-import java.util.Locale
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class RecordViewModel @Inject constructor() : ViewModel() {
 
-    private lateinit var mediaRecorder: MediaRecorder
-    private val storage: Storage = Storage()
     private var _isRecording = MutableStateFlow(false)
     private var _timerMillis = MutableStateFlow(0L)
 
@@ -60,26 +53,42 @@ class RecordViewModel @Inject constructor() : ViewModel() {
     }
 
     fun onRecord(context: Context) {
-        if (_isRecording.value) {
-            stopRecordingAudio(
-                onStopRecording = {
-                    _isRecording.update { false }
-                    _timerMillis.update { 0 }
-                    Timber.e("onrecord:${_isRecording.value}")
-                })
+        if (_isRecording.value.not()) {
+            Intent(context, RecorderService::class.java).also {
+                it.action = "record"
+                context.startService(it)
+                _isRecording.update { true }
+            }
         } else {
-            startRecordingAudio(
-                context = context,
-                onRecord = {
-                    _isRecording.update { true }
-                    Timber.e("onrecord:${_isRecording.value}")
-                }
-            )
+            Intent(context, RecorderService::class.java).also {
+                it.action = "stop"
+                context.startService(it)
+                _isRecording.update { false }
+                resetTimer()
+            }
         }
     }
 
-    private fun startTimer(isRecording: Boolean): Flow<Long> = flow {
-        var startMillis = System.currentTimeMillis()
+    fun onPause(context: Context) {
+        if (_isRecording.value) {
+            Intent(context, RecorderService::class.java).also {
+                it.action = "pause"
+                context.startService(it)
+            }
+            _isRecording.update { false }
+            _timerMillis.update { it }
+        } else {
+            Intent(context, RecorderService::class.java).also {
+                it.action = "resume"
+                context.startService(it)
+                _isRecording.update { true }
+                startTimer(_isRecording.value, _timerMillis.value)
+            }
+        }
+    }
+
+    private fun startTimer(isRecording: Boolean, currentTime:Long? = null): Flow<Long> = flow {
+        var startMillis = currentTime ?: System.currentTimeMillis()
         Timber.e(isRecording.toString())
         while (isRecording) {
             val currentMillis = System.currentTimeMillis()
@@ -98,58 +107,6 @@ class RecordViewModel @Inject constructor() : ViewModel() {
         viewModelScope.launch {
             _timerMillis.update { 0 }
         }
-    }
-
-    private fun startRecordingAudio(context: Context, onRecord: () -> Unit) {
-        val path = storage.getPath(context)
-        val fileName = generateFileName()
-        val file = File(path, fileName)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
-            mediaRecorder = MediaRecorder(context).apply {
-                setAudioSource(MediaRecorder.AudioSource.MIC)
-                setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
-                setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
-                setOutputFile(file.path)
-                try {
-                    prepare()
-                } catch (e: Exception) {
-                    Timber.e("recorder on android(S) can`t be prepared")
-                }
-                start()
-            }
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S)
-            mediaRecorder = MediaRecorder().apply {
-                setAudioSource(MediaRecorder.AudioSource.MIC)
-                setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
-                setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
-                setOutputFile(file.path)
-                try {
-                    prepare()
-                } catch (e: Exception) {
-                    Timber.e("recorder can`t be prepared")
-                }
-                start()
-            }
-        onRecord()
-    }
-
-    private fun stopRecordingAudio(onStopRecording: () -> Unit) {
-        mediaRecorder.apply {
-            stop()
-            release()
-            onStopRecording()
-            Timber.e("is recording: stop")
-        }
-    }
-
-    private fun generateFileName(
-        pattern: String = "yyMMdd_HHmmss",
-        fileExt: String = ".m4a",
-        local: Locale = Locale.getDefault(),
-    ): String {
-        val sdf = SimpleDateFormat(pattern, local)
-        val date = sdf.format(Date())
-        return "$date$fileExt"
     }
 
 }
