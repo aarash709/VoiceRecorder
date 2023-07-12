@@ -1,11 +1,14 @@
 package com.recorder.service
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.media.MediaRecorder
 import android.os.Build
 import android.os.IBinder
+import androidx.core.app.NotificationCompat
 import com.core.common.Storage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -23,6 +26,7 @@ class RecorderService : Service() {
 
     private lateinit var recorder: MediaRecorder
     private lateinit var storage: Storage
+    private lateinit var notificationManager: NotificationManager
     private val job = Job()
     private val serviceScope = CoroutineScope(Dispatchers.IO + job)
 
@@ -33,6 +37,15 @@ class RecorderService : Service() {
         else
             MediaRecorder()
         storage = Storage()
+        notificationManager =
+            getSystemService(NotificationManager::class.java) as NotificationManager
+        NotificationChannel(
+            "recorder_channel",
+            "Recorder",
+            NotificationManager.IMPORTANCE_HIGH
+        ).let {
+            notificationManager.createNotificationChannel(it)
+        }
     }
 
     override fun onBind(intent: Intent?): IBinder? {
@@ -45,22 +58,24 @@ class RecorderService : Service() {
                 startRecording(this)
                 Timber.e("record")
             }
+
             "stop" -> {
                 stopRecordingAudio(onStopRecording = {
 
                 })
                 Timber.e("stop")
             }
+
             "pause" -> {
                 pauseRecording()
                 Timber.e("pause")
             }
+
             "resume" -> {
                 resumeRecording()
                 Timber.e("resume")
             }
         }
-
         return START_STICKY
     }
 
@@ -99,11 +114,17 @@ class RecorderService : Service() {
                 try {
                     prepare()
                 } catch (e: Exception) {
-                Timber.e("recorder on android(S) can`t be prepared")
+                    Timber.e("recorder on android(S) can`t be prepared")
                 }
                 start()
             }
         }
+        val notification = NotificationCompat.Builder(this, "recorder_channel")
+            .setColorized(true)
+            .setContentTitle("Voice Recorder")
+            .setContentText("Recording...")
+            .build()
+        startForeground(1, notification)
     }
 
     private fun stopRecordingAudio(onStopRecording: () -> Unit) {
@@ -115,6 +136,7 @@ class RecorderService : Service() {
                 Timber.e("stopped recording")
             }
         }
+        stopForeground(STOP_FOREGROUND_REMOVE)
     }
 
     private fun releaseResources() {
