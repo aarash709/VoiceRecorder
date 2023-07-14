@@ -2,6 +2,8 @@
 plugins {
     id(libs.plugins.android.library.get().pluginId)
     id(libs.plugins.kotlin.android.get().pluginId)
+    id(libs.plugins.hilt.get().pluginId)
+    id("kotlin-kapt")
 }
 
 android {
@@ -38,7 +40,9 @@ dependencies {
 
     implementation(libs.androidx.coreKtx)
     implementation(libs.androidx.lifecycleRuntimeKtx)
-//    implementation(libs.appcompat)
+
+    implementation(libs.hilt.android)
+    kapt(libs.hilt.kaptCompiler)
 
     implementation(libs.timberLogger)
 

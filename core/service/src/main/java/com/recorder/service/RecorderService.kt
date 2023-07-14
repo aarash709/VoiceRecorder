@@ -10,6 +10,7 @@ import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import com.core.common.Storage
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -21,28 +22,26 @@ import java.lang.Exception
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class RecorderService : Service() {
 
-    private lateinit var recorder: MediaRecorder
-    private lateinit var storage: Storage
-    private lateinit var notificationManager: NotificationManager
+    @Inject
+    lateinit var recorder: MediaRecorder
+    @Inject
+    lateinit var storage: Storage
+    @Inject
+    lateinit var notificationManager: NotificationManager
     private val job = Job()
     private val serviceScope = CoroutineScope(Dispatchers.IO + job)
 
     override fun onCreate() {
         super.onCreate()
-        recorder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
-            MediaRecorder(this)
-        else
-            MediaRecorder()
-        storage = Storage()
-        notificationManager =
-            getSystemService(NotificationManager::class.java) as NotificationManager
         NotificationChannel(
             "recorder_channel",
             "Recorder",
-            NotificationManager.IMPORTANCE_HIGH
+            NotificationManager.IMPORTANCE_DEFAULT
         ).let {
             notificationManager.createNotificationChannel(it)
         }
