@@ -1,3 +1,4 @@
+@Suppress("DSL_SCOPE_VIOLATION") // TODO: Remove once KTIJ-19369 is fixed
 plugins {
     id(libs.plugins.android.library.get().pluginId)
     id(libs.plugins.kotlin.android.get().pluginId)
@@ -6,7 +7,7 @@ plugins {
 }
 
 android {
-    namespace = "com.recorder.feature.record"
+    namespace = "com.recorder.service"
     compileSdk = 33
 
     defaultConfig {
@@ -17,13 +18,13 @@ android {
     }
 
     buildTypes {
-
-    }
-    buildFeatures{
-        compose =  true
-    }
-    composeOptions{
-        kotlinCompilerExtensionVersion =  libs.versions.androidxComposeCompiler.get()
+//        release {
+//            isMinifyEnabled = false
+//            proguardFiles(
+//                getDefaultProguardFile("proguard-android-optimize.txt"),
+//                "proguard-rules.pro"
+//            )
+//        }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -35,34 +36,17 @@ android {
 }
 
 dependencies {
-
     implementation(project(":core:common"))
-    implementation(project(":core:service"))
-
-    implementation(libs.compose.bom)
-    implementation(libs.bundles.compose)
-    implementation(libs.material)
-
-    implementation(libs.coilCompose)
-
-    implementation(libs.androidx.lifecycleComposeRuntime)
-
-    implementation(libs.kotlix.coroutinesCore)
-    implementation(libs.kotlix.coroutinesAndroid)
-
-    implementation(libs.hilt.navigationCompose)
-    implementation(libs.hilt.android)
-    kapt(libs.hilt.kaptCompiler)
 
     implementation(libs.androidx.coreKtx)
-    implementation(libs.appcompat)
+    implementation(libs.androidx.lifecycleRuntimeKtx)
+
+    implementation(libs.hilt.android)
+    kapt(libs.hilt.kaptCompiler)
 
     implementation(libs.timberLogger)
 
     testImplementation(libs.junit4)
-    testImplementation(libs.kotlix.coroutinesTest)
-    androidTestImplementation(libs.kotlix.coroutinesTest)
     androidTestImplementation(libs.androidx.test.extJunit)
     androidTestImplementation(libs.espresso.core)
-    androidTestImplementation(libs.compose.ui.testJunit)
 }
