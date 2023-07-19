@@ -39,7 +39,11 @@ dependencies {
     implementation(project(":core:common"))
     implementation(project(":core:designsystem"))
 
+    implementation(platform(libs.compose.bom))
+    androidTestImplementation(platform(libs.compose.bom))
     implementation(libs.bundles.compose)
+    debugImplementation(libs.compose.ui.tooling)
+
     implementation(libs.material)
     implementation(libs.coilCompose)
     implementation(libs.kotlix.coroutinesCore)

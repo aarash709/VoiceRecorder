@@ -29,7 +29,7 @@ moshi = "1.14.0"
 coil = "2.2.2"
 ktor = "2.3.0"
 gradleSecret = "2.0.1"
-androidGradle = "7.4.2"
+androidGradle = "8.0.2"
 junit4 = "4.13.2"
 espresso-core = "3.5.1"
 appcompat = "1.6.1"
@@ -108,7 +108,6 @@ compose = [
     "compose-foundation",
     "compose-ui",
     "compose-ui-toolingPreview",
-    "compose-ui-tooling",
     "compose-runtime",
     "compose-runtime-livedata",
     "compose-material",
