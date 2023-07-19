@@ -6,12 +6,12 @@ plugins {
 }
 
 android {
-    compileSdk = 33
+    compileSdk = 34
     namespace = "com.experiment.voicerecorder"
     defaultConfig {
         applicationId = "com.experiment.voicerecorder"
         minSdk = 26
-        targetSdk = 33
+        targetSdk = 34
         versionCode = 1
         versionName = "0.1-alpha"
 
