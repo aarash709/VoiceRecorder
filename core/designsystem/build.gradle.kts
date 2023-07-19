@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace = "com.example.designsystem"
-    compileSdk = 33
+    compileSdk = 34
 
     defaultConfig {
         minSdk = 26
@@ -33,7 +33,9 @@ android {
 
 dependencies {
     implementation(platform(libs.compose.bom))
+    androidTestImplementation(platform(libs.compose.bom))
     implementation(libs.bundles.compose)
+    debugImplementation(libs.compose.ui.tooling)
 
     testImplementation(libs.junit4)
     testImplementation(libs.kotlix.coroutinesTest)

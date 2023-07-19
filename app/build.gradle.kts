@@ -1,17 +1,17 @@
 plugins {
-    id("com.android.application")
-    id("kotlin-android")
-    id("dagger.hilt.android.plugin")
+    id(libs.plugins.android.application.get().pluginId)
+    id(libs.plugins.kotlin.android.get().pluginId)
+    id(libs.plugins.hilt.get().pluginId)
     id("kotlin-kapt")
 }
 
 android {
-    compileSdk = 33
+    compileSdk = 34
     namespace = "com.experiment.voicerecorder"
     defaultConfig {
         applicationId = "com.experiment.voicerecorder"
         minSdk = 26
-        targetSdk = 33
+        targetSdk = 34
         versionCode = 1
         versionName = "0.1-alpha"
 
@@ -46,7 +46,7 @@ android {
     composeOptions {
         kotlinCompilerExtensionVersion = libs.versions.androidxComposeCompiler.get()
     }
-    packagingOptions {
+    packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
@@ -77,7 +77,10 @@ dependencies {
     implementation(libs.androidx.activity)
 
     implementation(platform(libs.compose.bom))
+    androidTestImplementation(platform(libs.compose.bom))
     implementation(libs.bundles.compose)
+    debugImplementation(libs.compose.ui.tooling)
+
     implementation(libs.androidx.navigationCompose)
     implementation(libs.androidx.lifecycleViewModelCompose)
     implementation(libs.androidx.activityCompose)
