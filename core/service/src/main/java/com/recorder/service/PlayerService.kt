@@ -15,6 +15,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
 import timber.log.Timber
 import java.lang.Exception
 import javax.inject.Inject
@@ -23,7 +25,7 @@ import javax.inject.Inject
 class PlayerService() : Service() {
 
     @Inject
-    private lateinit var storage: Storage
+    lateinit var storage: Storage
     private lateinit var player: MediaPlayer
 
     private val binder = LocalBinder()
@@ -39,11 +41,33 @@ class PlayerService() : Service() {
 
     override fun onCreate() {
         super.onCreate()
+        Timber.e("player service created")
         player = MediaPlayer()
     }
 
     override fun onBind(intent: Intent?): IBinder {
         return binder
+    }
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        when (intent?.action) {
+            "play" -> {
+                val voice =
+                    Json.decodeFromString<Voice>(intent.extras?.getString("voice").toString())
+                Timber.e(intent.extras?.getString("voice").toString())
+                play(voice)
+            }
+
+            "stop" -> {
+                stop()
+            }
+        }
+        return START_STICKY
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        Timber.e("player service destroyed")
     }
 
     fun play(voice: Voice) {
@@ -57,6 +81,7 @@ class PlayerService() : Service() {
                     Timber.e(voice.title)
                     Timber.e("playback started")
                 } catch (e: Exception) {
+                    Timber.e(e.message)
                     Timber.e("playback failed")
                 }
                 _isPlaying.update { isPlaying }
@@ -73,6 +98,7 @@ class PlayerService() : Service() {
         serviceScope.launch {
             player.apply {
                 stop()
+                reset()
                 _isPlaying.update { isPlaying }
             }
             if (!_isPlaying.value)

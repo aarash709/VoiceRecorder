@@ -53,7 +53,7 @@ fun Playlist(
         onStop = { },
         onVoiceClicked = { voiceIndex, voice ->
             playingVoiceIndex = voiceIndex
-            viewModel.onPlay(voiceIndex,voice)
+            viewModel.onPlay(context,voiceIndex,voice)
         })
 }
 

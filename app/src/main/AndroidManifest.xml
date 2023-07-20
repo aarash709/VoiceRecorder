@@ -38,6 +38,9 @@
             android:name="com.recorder.service.RecorderService"
             android:exported="false"
             android:foregroundServiceType="microphone" />
+        <service android:name="com.recorder.service.PlayerService"
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback"/>
     </application>
 
 </manifest>

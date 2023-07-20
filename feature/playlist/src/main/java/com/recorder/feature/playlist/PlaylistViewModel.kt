@@ -1,6 +1,7 @@
 package com.recorder.feature.playlist
 
 import android.content.Context
+import android.content.Intent
 import android.media.MediaPlayer
 import android.os.Build
 import android.os.Environment
@@ -9,12 +10,16 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.core.common.Storage
 import com.core.common.model.Voice
+import com.recorder.service.PlayerService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.encodeToStream
 import timber.log.Timber
 import java.io.File
 import java.lang.Exception
@@ -28,7 +33,7 @@ class PlaylistViewModel @Inject constructor() : ViewModel() {
     private var currentVoiceIndex: Int? = null
     private var currentPlayingVoice: Voice? = null
     private val _isPlaying = MutableStateFlow(false)
-    private val storage : Storage = Storage()
+    private val storage: Storage = Storage()
 
     private val _voices = MutableStateFlow(emptyList<Voice>())
     val voices = _voices.asStateFlow()
@@ -37,17 +42,26 @@ class PlaylistViewModel @Inject constructor() : ViewModel() {
 
     }
 
-    fun onPlay(nextVoiceIndex: Int, newVoice: Voice) {
+    fun onPlay(context: Context, nextVoiceIndex: Int, newVoice: Voice) {
         viewModelScope.launch {
-            Timber.e(newVoice.path)
+            Timber.e("path:${newVoice.path}")
             currentPlayingVoice = newVoice
             currentVoiceIndex = nextVoiceIndex
             currentPlayingVoice?.let { currentVoice ->
+                val voice = Json.encodeToString(currentVoice)
                 if (!_isPlaying.value) {
-                    startPlayback(currentVoice)
+                    Intent(context, PlayerService::class.java).also {
+                        it.action = "play"
+                        it.putExtra("voice",voice)
+                        context.startService(it)
+                        _isPlaying.update { true }
+                    }
                 } else {
-                    stopPlayback()
-                    startPlayback(newVoice)
+                    Intent(context, PlayerService::class.java).also {
+                        it.action = "stop"
+                        context.startService(it)
+                        _isPlaying.update { false }
+                    }
                 }
             }
         }

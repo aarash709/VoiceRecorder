@@ -1,6 +1,8 @@
 package com.core.common.model
 
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class Voice(
     val title: String="",
     val path: String="",
