@@ -13,6 +13,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.decodeFromString
@@ -32,7 +33,9 @@ class PlayerService() : Service() {
     private val job = Job()
     private val serviceScope = CoroutineScope(Dispatchers.IO + job)
 
-    private val _isPlaying = MutableStateFlow(false)
+    private var _isPlaying = MutableStateFlow(false)
+    val isPlaying = _isPlaying.asStateFlow()
+
     private val _voices = MutableStateFlow(listOf<Voice>())
 
     inner class LocalBinder() : Binder() {
@@ -101,10 +104,10 @@ class PlayerService() : Service() {
                 reset()
                 _isPlaying.update { isPlaying }
             }
-            if (!_isPlaying.value)
+            if (!isPlaying.value)
                 Timber.e("playback stopped")
 //            updateVoiceList()
-            Timber.e("is playing(on stop): " + _isPlaying.value)
+            Timber.e("is playing(on stop): " + isPlaying.value)
         }
     }
 

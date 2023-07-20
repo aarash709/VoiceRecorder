@@ -1,6 +1,11 @@
 package com.experiment.voicerecorder
 
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.content.ServiceConnection
 import android.os.Bundle
+import android.os.IBinder
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
@@ -23,6 +28,7 @@ import com.experiment.voicerecorder.compose.MainScreen
 import com.experiment.voicerecorder.compose.VoiceRecorderNavigation
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.recorder.core.designsystem.theme.VoiceRecorderTheme
+import com.recorder.service.PlayerService
 import dagger.hilt.android.AndroidEntryPoint
 
 //@RequiresApi(Build.VERSION_CODES.R)
@@ -31,73 +37,31 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
+    private lateinit var playerService : PlayerService
+    private var isPlayerServiceBound = false
+
+    private val _isPlaying = playerService.isPlaying.value
+
+    private val serviceConnectin = object : ServiceConnection{
+        override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+            val binder = service as PlayerService.LocalBinder
+            playerService = service.getBinder()
+        }
+
+        override fun onServiceDisconnected(name: ComponentName?) {
+            TODO("Not yet implemented")
+        }
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         setContent {
             VoiceRecorderTheme {
-//                val viewModel: MainViewModel = viewModel()
-//                val state = viewModel.state.collectAsState(initial = AppSate.OnIdle)
-//                val isRecording = viewModel.isRecording.value
-//                val fileName = viewModel.fileName.value
-//                val duration = viewModel.duration.value
-//                val isPlaying = viewModel.isPlaying.value
-//                val timer = viewModel.timer.value
-//                val voices = viewModel.voices.value
-//                val seekbarPosition = viewModel.seekbarCurrentPosition.value
-//                val maxPlaybackTime = viewModel.voiceDuration.value
-
-                //ui states
-
-                var playButtonState by remember {
-                    mutableStateOf(false)
-                }
-                var debugState by remember {
-                    mutableStateOf("noState")
-                }
-                var recordButtonState by remember {
-                    mutableStateOf(false)
-                }
-                var playlistButtonEnabled by remember {
-                    mutableStateOf(false)
-                }
-                var voiceIndex by remember {
-                    mutableStateOf(0)
-                }
                 val navState = rememberNavController()
                 //end ui state
-
                 val lifecycleOwner = LocalLifecycleOwner.current
                 val textSize by remember {
                     mutableStateOf(12.sp)
                 }
-//                LaunchedEffect(key1 = state.value, key2 = seekbarPosition, key3 = timer) {
-//                        when (state.value) {
-//                            is AppSate.OnIdle -> {
-//                                playButtonState = true
-//                                recordButtonState = true
-//                                playlistButtonEnabled = true
-//                                //viewModel.onPlayUpdateListState(voiceIndex)
-//                                viewModel.resetRecordingTimer()
-//                                viewModel.resetPlayerValues()
-//                                //
-//                                debugState = "Idle"
-//                            }
-//                            is AppSate.Recording -> {
-//                                debugState = "Recording"
-//                                playButtonState = false
-//                                playlistButtonEnabled = false
-//                                viewModel.updateTimerValues()
-//                                //
-//                            }
-//                            is AppSate.Playing -> {
-//                                recordButtonState = false
-//                                Timber.e("voice index $voiceIndex")
-//                                //
-//                                debugState = "Playing"
-//                            }
-//                        }
-//                }
                 DisposableEffect(key1 = lifecycleOwner) {
                     val observer = LifecycleEventObserver { _, event ->
                         if (event == Lifecycle.Event.ON_CREATE) {
@@ -109,39 +73,28 @@ class MainActivity : ComponentActivity() {
                         lifecycleOwner.lifecycle.removeObserver(observer)
                     }
                 }
-
                 MainScreen {
                     Box(modifier = Modifier) {
-//                        Debug(
-//                            playButtonState,
-//                            recordButtonState,
-//                            fileName,
-//                            debugState,
-//                            textSize,
-//                            seekbarPosition)
-
                         VoiceRecorderNavigation(
                             Modifier,
                             navState,
-//                            recordButtonState,
-//                            playlistButtonEnabled,
-//                            isPlaying,
-//                            timer,
-//                            voices,
-//                            onRecord = { viewModel.onRecord() },
-//                            onPlayPause = { viewModel.onPlayPause() },
-//                            onStop = { viewModel.stopPlayback(voiceIndex) },
-//                            onPlay = { i, voice ->
-//                                voiceIndex = i
-//                                Timber.e("on play index: $i")
-//                                viewModel.onPlay(i, voice)
-//                                viewModel.onPlayUpdateListState(i)
-//                            },
                         )
                     }
                 }
             }
         }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        Intent(this,PlayerService::class.java).also {
+            bindService(it,serviceConnectin, Context.BIND_AUTO_CREATE)
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        unbindService(serviceConnectin)
     }
 
     @Composable
