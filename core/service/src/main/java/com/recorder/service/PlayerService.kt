@@ -38,8 +38,8 @@ class PlayerService() : Service() {
 
     private val _voices = MutableStateFlow(listOf<Voice>())
 
-    inner class LocalBinder() : Binder() {
-        fun getBinder() = this@PlayerService
+    inner class LocalBinder : Binder() {
+        fun getService() = this@PlayerService
     }
 
     override fun onCreate() {
@@ -49,7 +49,13 @@ class PlayerService() : Service() {
     }
 
     override fun onBind(intent: Intent?): IBinder {
+        Timber.e("${this.javaClass.simpleName} binded")
         return binder
+    }
+
+    override fun onUnbind(intent: Intent?): Boolean {
+        Timber.e("${this.javaClass.simpleName} unbinded")
+        return super.onUnbind(intent)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
