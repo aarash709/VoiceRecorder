@@ -38,10 +38,6 @@ class PlaylistViewModel @Inject constructor() : ViewModel() {
     private val _voices = MutableStateFlow(emptyList<Voice>())
     val voices = _voices.asStateFlow()
 
-    init {
-
-    }
-
     fun onPlay(context: Context, nextVoiceIndex: Int, newVoice: Voice) {
         viewModelScope.launch {
             Timber.e("path:${newVoice.path}")
@@ -66,7 +62,6 @@ class PlaylistViewModel @Inject constructor() : ViewModel() {
             }
         }
     }
-
     private fun updateVoiceList() {
         viewModelScope.launch {
             _voices.update { voices ->
@@ -87,19 +82,6 @@ class PlaylistViewModel @Inject constructor() : ViewModel() {
             }
         }
     }
-
-    fun onStop() {
-        stopPlayback()
-    }
-
-    fun onPlayPause() {
-        if (_isPlaying.value) {
-            pausePlayback()
-        } else {
-            resumePlayback()
-        }
-    }
-
     private fun startPlayback(voice: Voice) {
         viewModelScope.launch {
             mediaPlayer = MediaPlayer()
@@ -135,20 +117,6 @@ class PlaylistViewModel @Inject constructor() : ViewModel() {
                 Timber.e("playback stopped")
             updateVoiceList()
             Timber.e("is playing(on stop): " + _isPlaying.value)
-        }
-    }
-
-    private fun pausePlayback() {
-        mediaPlayer?.pause()
-//        updateAppState(AppSate.OnIdle)
-        Timber.e("Paused")
-        _isPlaying.value = false
-    }
-
-    private fun resumePlayback() {
-        mediaPlayer.apply {
-            start()
-            Timber.e("Resumed")
         }
     }
 

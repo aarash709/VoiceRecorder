@@ -32,11 +32,14 @@ class PlayerService() : Service() {
     private val binder = LocalBinder()
     private val job = Job()
     private val serviceScope = CoroutineScope(Dispatchers.IO + job)
+    private var currentVoiceIndex: Int? = null
+    private var currentVoice: Voice? = null
 
     private var _isPlaying = MutableStateFlow(false)
     val isPlaying = _isPlaying.asStateFlow()
 
     private val _voices = MutableStateFlow(listOf<Voice>())
+    val voices = _voices.asStateFlow()
 
     inner class LocalBinder : Binder() {
         fun getService() = this@PlayerService
@@ -45,6 +48,7 @@ class PlayerService() : Service() {
     override fun onCreate() {
         super.onCreate()
         Timber.e("player service created")
+        getVoices(this)
         player = MediaPlayer()
     }
 
@@ -59,18 +63,18 @@ class PlayerService() : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        when (intent?.action) {
-            "play" -> {
-                val voice =
-                    Json.decodeFromString<Voice>(intent.extras?.getString("voice").toString())
-                Timber.e(intent.extras?.getString("voice").toString())
-                play(voice)
-            }
-
-            "stop" -> {
-                stop()
-            }
-        }
+//        when (intent?.action) {
+//            "play" -> {
+//                val voice =
+//                    Json.decodeFromString<Voice>(intent.extras?.getString("voice").toString())
+//                Timber.e(intent.extras?.getString("voice").toString())
+//                play(voice,1)
+//            }
+//
+//            "stop" -> {
+//                stop()
+//            }
+//        }
         return START_STICKY
     }
 
@@ -79,8 +83,22 @@ class PlayerService() : Service() {
         Timber.e("player service destroyed")
     }
 
-    fun play(voice: Voice) {
+    fun onPlay(voice: Voice, index: Int) {
+        if (voice != currentVoice && isPlaying.value) {
+            stop()
+            play(voice, index)
+        }
+        if (voice == currentVoice && isPlaying.value) {
+            stop()
+        } else {
+            play(voice = voice, nextVoiceIndex = index)
+            currentVoice = voice
+        }
+    }
+
+    fun play(voice: Voice, nextVoiceIndex: Int) {
         serviceScope.launch {
+            currentVoiceIndex = nextVoiceIndex
             player.apply {
                 try {
                     setDataSource(voice.path)
@@ -99,7 +117,7 @@ class PlayerService() : Service() {
                 stop()
                 Timber.e("on completion")
             }
-//            updateVoiceList()
+            updateVoiceList()
         }
     }
 
@@ -112,7 +130,7 @@ class PlayerService() : Service() {
             }
             if (!isPlaying.value)
                 Timber.e("playback stopped")
-//            updateVoiceList()
+            updateVoiceList()
             Timber.e("is playing(on stop): " + isPlaying.value)
         }
     }
@@ -133,8 +151,29 @@ class PlayerService() : Service() {
         }
     }
 
-    fun getVoices(context: Context) {
+    private fun getVoices(context: Context) {
         _voices.update { storage.getVoices(context) ?: listOf() }
+    }
+
+    private fun updateVoiceList() {
+        serviceScope.launch {
+            _voices.update { voices ->
+                voices.mapIndexed { index, voice ->
+                    when {
+                        index == currentVoiceIndex && _isPlaying.value -> {
+                            voice.copy(isPlaying = _isPlaying.value)
+                        }
+
+                        index == currentVoiceIndex && !_isPlaying.value -> {
+                            voice.copy(isPlaying = _isPlaying.value)
+                        }
+
+                        else -> voice.copy(isPlaying = false)
+                    }
+
+                }
+            }
+        }
     }
 
 }

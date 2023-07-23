@@ -1,7 +1,7 @@
 plugins {
-    id("com.android.application")
-    id("kotlin-android")
-    id("dagger.hilt.android.plugin")
+    id(libs.plugins.android.application.get().pluginId)
+    id(libs.plugins.kotlin.android.get().pluginId)
+    id(libs.plugins.kotlin.serialization.get().pluginId)
     id("kotlin-kapt")
 }
 
@@ -74,10 +74,12 @@ dependencies {
 
     implementation(libs.material)
     implementation(libs.androidx.lifecycleRuntimeKtx)
+    implementation(libs.androidx.lifecycleComposeRuntime)
     implementation(libs.androidx.activity)
 
     implementation(platform(libs.compose.bom))
     implementation(libs.bundles.compose)
+
     implementation(libs.androidx.navigationCompose)
     implementation(libs.androidx.lifecycleViewModelCompose)
     implementation(libs.androidx.activityCompose)
