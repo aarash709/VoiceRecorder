@@ -2,18 +2,22 @@ package com.recorder.feature.playlist
 
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.StopCircle
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Surface
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
@@ -21,13 +25,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Color.Companion.White
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.core.common.model.Voice
 import com.recorder.core.designsystem.theme.VoiceRecorderTheme
 import timber.log.Timber
@@ -40,13 +42,19 @@ fun Playlist(
     voices: List<Voice>,
     isPlaying: Boolean,
     onVoiceClicked: (Int, Voice) -> Unit,
+    onBackPressed: () -> Unit = {},
 ) {
     val viewModel = hiltViewModel<PlaylistViewModel>()
     val context = LocalContext.current
     var playingVoiceIndex by remember {
         mutableStateOf(0)
     }
-    Column(modifier = Modifier.fillMaxSize()) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp)
+            .background(MaterialTheme.colors.background)
+    ) {
         PlaylistContent(
             voices = voices,
             isPlaying = isPlaying,
@@ -55,10 +63,12 @@ fun Playlist(
             onVoiceClicked = { voiceIndex, voice ->
                 playingVoiceIndex = voiceIndex
                 onVoiceClicked(voiceIndex, voice)
-            })
+            },
+            onBackPressed = { onBackPressed() })
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlaylistContent(
     voices: List<Voice>,
@@ -66,6 +76,7 @@ fun PlaylistContent(
     onPlayPause: () -> Unit,
     onStop: () -> Unit,
     onVoiceClicked: (Int, Voice) -> Unit,
+    onBackPressed: () -> Unit,
 ) {
     var voice by remember {
         mutableStateOf(Voice())
@@ -75,13 +86,38 @@ fun PlaylistContent(
             .fillMaxSize()
             .padding(bottom = 0.dp)
     ) {
-        LazyColumn {
+        CenterAlignedTopAppBar(
+            title = {
+                Text(
+                    text = "Recordings",
+                    color = MaterialTheme.colors.onBackground
+                )
+            },
+            navigationIcon = {
+                IconButton(onClick = { onBackPressed() }) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowBack,
+                        tint = MaterialTheme.colors.onBackground,
+                        contentDescription = "back icon"
+                    )
+                }
+            },
+            colors = TopAppBarDefaults
+                .centerAlignedTopAppBarColors(
+                    containerColor = MaterialTheme.colors.background
+                )
+        )
+        LazyColumn(
+            modifier = Modifier,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
             items(
                 count = voices.size,
                 key = {
                     it
                 }) { voiceIndex ->
                 PlaylistItem(
+                    modifier = Modifier,
                     voice = voices[voiceIndex]
                 ) { clickedVoice ->
                     onVoiceClicked(voiceIndex, clickedVoice)
@@ -103,34 +139,35 @@ fun PlaylistItem(
     else MaterialTheme.colors.onSurface
     Surface(
         modifier = Modifier,
+        onClick = {
+            onVoiceClicked(Voice(voice.title, voice.path))
+            Timber.e("ui item: ${voice.title}") },
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colors.surface,
     ) {
         Row(
             modifier = modifier
                 .fillMaxWidth()
-                .padding(8.dp)
-                .clickable() {
-                    onVoiceClicked(Voice(voice.title, voice.path))
-                    Timber.e("ui item: ${voice.title}")
-                },
+                .padding(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             if (voice.isPlaying)
                 Icon(
                     imageVector = Icons.Default.StopCircle,
-                    contentDescription = "",
+                    tint = MaterialTheme.colors.onSurface,
                     modifier = Modifier
                         .size(60.dp)
-                        .padding(all = 8.dp)
+                        .padding(all = 8.dp),
+                    contentDescription = ""
                 )
             else
                 Icon(
                     imageVector = Icons.Default.PlayCircle,
-                    contentDescription = "",
+                    tint = MaterialTheme.colors.onSurface,
                     modifier = Modifier
                         .size(60.dp)
-                        .padding(all = 8.dp)
+                        .padding(all = 8.dp),
+                    contentDescription = ""
                 )
             Column(
                 verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -217,7 +254,8 @@ fun PlaylistPagePreview() {
                 onPlayPause = {},
                 onStop = {},
                 onVoiceClicked = { i, voice ->
-                }
+                },
+                onBackPressed = {}
             )
         }
     }
