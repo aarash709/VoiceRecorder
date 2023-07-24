@@ -47,9 +47,6 @@ fun Playlist(
         mutableStateOf(0)
     }
     Column(modifier = Modifier.fillMaxSize()) {
-        AnimatedVisibility(visible = isPlaying) {
-            Text(text = "$isPlaying", color = White)
-        }
         PlaylistContent(
             voices = voices,
             isPlaying = isPlaying,
