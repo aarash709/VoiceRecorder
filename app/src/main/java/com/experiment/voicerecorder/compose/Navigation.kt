@@ -27,13 +27,7 @@ fun VoiceRecorderNavigation(
     isPlaying: Boolean,
     onPlay: (Int, Voice) -> Unit,
 //    onStop:()->Unit,
-//    viewModel: MainViewModel = viewModel(),
-//    recordEnabled: Boolean,
-//    playlistButtonEnabled: Boolean,
-//    timer: String,
-//    voices: List<Voice>,
 //    onPlayPause:()->Unit,
-//    onRecord: () -> Unit,
 ) {
     NavHost(
         navController = navHost,

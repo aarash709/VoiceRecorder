@@ -63,7 +63,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Intent(this, PlayerService::class.java).also {
-//            startService(it)
             bindService(it, serviceConnection, Context.BIND_AUTO_CREATE)
         }
         setContent {
@@ -77,8 +76,7 @@ class MainActivity : ComponentActivity() {
                     playerService.voices.collectAsState().value
                 else
                     listOf()
-                //end ui state
-                val lifecycleOwner = LocalLifecycleOwner.current
+
                 MainScreen {
                     Box(modifier = Modifier) {
                         VoiceRecorderNavigation(
@@ -96,10 +94,6 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-    }
-
-    override fun onStart() {
-        super.onStart()
     }
 
     override fun onDestroy() {

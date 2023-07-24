@@ -63,18 +63,6 @@ class PlayerService() : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-//        when (intent?.action) {
-//            "play" -> {
-//                val voice =
-//                    Json.decodeFromString<Voice>(intent.extras?.getString("voice").toString())
-//                Timber.e(intent.extras?.getString("voice").toString())
-//                play(voice,1)
-//            }
-//
-//            "stop" -> {
-//                stop()
-//            }
-//        }
         return START_STICKY
     }
 
@@ -96,7 +84,7 @@ class PlayerService() : Service() {
         }
     }
 
-    fun play(voice: Voice, nextVoiceIndex: Int) {
+    private fun play(voice: Voice, nextVoiceIndex: Int) {
         serviceScope.launch {
             currentVoiceIndex = nextVoiceIndex
             player.apply {
@@ -121,7 +109,7 @@ class PlayerService() : Service() {
         }
     }
 
-    fun stop() {
+    private fun stop() {
         serviceScope.launch {
             player.apply {
                 stop()
@@ -146,7 +134,7 @@ class PlayerService() : Service() {
     fun resume() {
         serviceScope.launch {
             player.apply {
-                resume()
+                start()
             }
         }
     }
@@ -175,5 +163,4 @@ class PlayerService() : Service() {
             }
         }
     }
-
 }

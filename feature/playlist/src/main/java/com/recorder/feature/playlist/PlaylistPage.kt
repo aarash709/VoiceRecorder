@@ -42,13 +42,9 @@ fun Playlist(
     onVoiceClicked: (Int, Voice) -> Unit,
 ) {
     val viewModel = hiltViewModel<PlaylistViewModel>()
-//    val voices = viewModel.voices.collectAsStateWithLifecycle().value
     val context = LocalContext.current
     var playingVoiceIndex by remember {
         mutableStateOf(0)
-    }
-    LaunchedEffect(key1 = Unit){
-        viewModel.getVoices(context)
     }
     Column(modifier = Modifier.fillMaxSize()) {
         AnimatedVisibility(visible = isPlaying) {
@@ -83,16 +79,6 @@ fun PlaylistContent(
             .padding(bottom = 0.dp)
     ) {
         LazyColumn {
-//            itemsIndexed(
-//                items = voices,
-//            ) { index, voice ->
-//                PlaylistItem(
-//                    voice = voice,
-////                isPlaying = isPlaying,
-//                    onVoiceClicked = { voice ->
-//                        onVoiceClicked(index, voice)
-//                    })
-//            }
             items(
                 count = voices.size,
                 key = {
@@ -118,9 +104,6 @@ fun PlaylistItem(
 ) {
     val textColor = if (voice.isPlaying) MaterialTheme.colors.primary
     else MaterialTheme.colors.onSurface
-    LaunchedEffect(key1 = Unit){
-//        Timber.e("is playing voice: ${voice.isPlaying}")
-    }
     Surface(
         modifier = Modifier,
         shape = RoundedCornerShape(16.dp),
