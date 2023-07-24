@@ -1,6 +1,7 @@
 plugins {
     id(libs.plugins.android.application.get().pluginId)
     id(libs.plugins.kotlin.android.get().pluginId)
+    id(libs.plugins.kotlin.serialization.get().pluginId)
     id(libs.plugins.hilt.get().pluginId)
     id("kotlin-kapt")
 }
@@ -74,12 +75,14 @@ dependencies {
 
     implementation(libs.material)
     implementation(libs.androidx.lifecycleRuntimeKtx)
+    implementation(libs.androidx.lifecycleComposeRuntime)
     implementation(libs.androidx.activity)
 
     implementation(platform(libs.compose.bom))
     androidTestImplementation(platform(libs.compose.bom))
     implementation(libs.bundles.compose)
     debugImplementation(libs.compose.ui.tooling)
+
 
     implementation(libs.androidx.navigationCompose)
     implementation(libs.androidx.lifecycleViewModelCompose)

@@ -7,6 +7,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.core.common.model.Voice
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.recorder.feature.playlist.Playlist
 import com.recorder.feature.record.Record
@@ -22,16 +23,11 @@ sealed class Pages(val route: String) {
 fun VoiceRecorderNavigation(
     modifier: Modifier = Modifier,
     navHost: NavHostController = rememberNavController(),
-//    viewModel: MainViewModel = viewModel(),
-//    recordEnabled: Boolean,
-//    playlistButtonEnabled: Boolean,
-//    isPlaying: Boolean,
-//    timer: String,
-//    voices: List<Voice>,
-//    onPlayPause:()->Unit,
+    voices : List<Voice>,
+    isPlaying: Boolean,
+    onPlay: (Int, Voice) -> Unit,
 //    onStop:()->Unit,
-//    onRecord: () -> Unit,
-//    onPlay: (Int, Voice) -> Unit,
+//    onPlayPause:()->Unit,
 ) {
     NavHost(
         navController = navHost,
@@ -44,10 +40,12 @@ fun VoiceRecorderNavigation(
         }
         composable(Pages.PlayListPage.route) {
             Playlist(
-                onPlayPause = {  },
-                onStop = {  },
+                isPlaying = isPlaying,
+                voices = voices,
+                onPlayPause = { },
+                onStop = { },
                 onVoiceClicked = { i, voice ->
-//                    onPlay(i, voice)
+                    onPlay(i, voice)
                 })
         }
     }

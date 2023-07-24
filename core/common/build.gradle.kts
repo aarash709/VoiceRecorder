@@ -1,6 +1,7 @@
 plugins {
     id(libs.plugins.android.library.get().pluginId)
     id(libs.plugins.kotlin.android.get().pluginId)
+    id(libs.plugins.kotlin.serialization.get().pluginId)
 }
 
 android {
@@ -30,9 +31,12 @@ dependencies {
 
     implementation(project(":core:designsystem"))
 
+    api(libs.kotlix.serialization)
+
     implementation(libs.androidx.coreKtx)
     implementation(libs.appcompat)
     implementation(libs.material)
+
     testImplementation(libs.junit4)
     androidTestImplementation(libs.androidx.test.extJunit)
     androidTestImplementation(libs.espresso.core)
