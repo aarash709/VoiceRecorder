@@ -42,7 +42,6 @@ fun Playlist(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 16.dp)
             .background(MaterialTheme.colorScheme.background)
     ) {
         PlaylistContent(
@@ -76,7 +75,7 @@ fun PlaylistContent(
             .fillMaxSize()
             .padding(bottom = 0.dp)
     ) {
-        CenterAlignedTopAppBar(
+        MediumTopAppBar(
             title = {
                 Text(
                     text = "Recordings",
@@ -94,11 +93,11 @@ fun PlaylistContent(
             colors = TopAppBarDefaults
                 .centerAlignedTopAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background
-                )
+                ),
         )
         LazyColumn(
-            modifier = Modifier,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            modifier = Modifier.padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(
                 count = voices.size,

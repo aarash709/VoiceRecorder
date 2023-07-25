@@ -50,6 +50,8 @@ dependencies {
     implementation(libs.kotlix.coroutinesCore)
     implementation(libs.kotlix.coroutinesAndroid)
 
+    implementation(libs.androidx.navigationCompose)
+
     implementation(libs.androidx.lifecycleComposeRuntime)
 
     implementation(libs.hilt.navigationCompose)
