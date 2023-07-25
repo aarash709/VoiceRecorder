@@ -6,18 +6,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.PlayCircle
-import androidx.compose.material.icons.filled.Stop
-import androidx.compose.material.icons.filled.StopCircle
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Surface
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
@@ -34,7 +25,6 @@ import com.core.common.model.Voice
 import com.recorder.core.designsystem.theme.VoiceRecorderTheme
 import timber.log.Timber
 
-@ExperimentalMaterialApi
 @Composable
 fun Playlist(
     onPlayPause: () -> Unit,
@@ -53,7 +43,7 @@ fun Playlist(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 16.dp)
-            .background(MaterialTheme.colors.background)
+            .background(MaterialTheme.colorScheme.background)
     ) {
         PlaylistContent(
             voices = voices,
@@ -90,21 +80,20 @@ fun PlaylistContent(
             title = {
                 Text(
                     text = "Recordings",
-                    color = MaterialTheme.colors.onBackground
                 )
             },
             navigationIcon = {
                 IconButton(onClick = { onBackPressed() }) {
                     Icon(
                         imageVector = Icons.Default.ArrowBack,
-                        tint = MaterialTheme.colors.onBackground,
+                        tint = MaterialTheme.colorScheme.onBackground,
                         contentDescription = "back icon"
                     )
                 }
             },
             colors = TopAppBarDefaults
                 .centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colors.background
+                    containerColor = MaterialTheme.colorScheme.background
                 )
         )
         LazyColumn(
@@ -135,16 +124,16 @@ fun PlaylistItem(
     voice: Voice,
     onVoiceClicked: (Voice) -> Unit,
 ) {
-    val textColor = if (voice.isPlaying) MaterialTheme.colors.primary
-    else MaterialTheme.colors.onSurface
     Surface(
         modifier = Modifier,
         onClick = {
             onVoiceClicked(Voice(voice.title, voice.path))
             Timber.e("ui item: ${voice.title}") },
         shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colors.surface,
+        color = MaterialTheme.colorScheme.surface,
     ) {
+        val textColor = if (voice.isPlaying) MaterialTheme.colorScheme.primary
+        else LocalContentColor.current
         Row(
             modifier = modifier
                 .fillMaxWidth()
@@ -154,7 +143,7 @@ fun PlaylistItem(
             if (voice.isPlaying)
                 Icon(
                     imageVector = Icons.Default.StopCircle,
-                    tint = MaterialTheme.colors.onSurface,
+                    tint = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier
                         .size(60.dp)
                         .padding(all = 8.dp),
@@ -163,7 +152,7 @@ fun PlaylistItem(
             else
                 Icon(
                     imageVector = Icons.Default.PlayCircle,
-                    tint = MaterialTheme.colors.onSurface,
+                    tint = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier
                         .size(60.dp)
                         .padding(all = 8.dp),
@@ -180,13 +169,13 @@ fun PlaylistItem(
                     Text(
                         text = voice.duration,
                         fontSize = 12.sp,
-                        color = Color.Gray
+                        color = textColor.copy(alpha = 0.7f)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = voice.recordTime,
                         fontSize = 12.sp,
-                        color = Color.Gray
+                        color = textColor.copy(alpha = 0.7f)
                     )
                 }
             }
@@ -241,7 +230,7 @@ fun MediaControls(
 @Composable
 fun PlaylistPagePreview() {
     VoiceRecorderTheme {
-        Surface() {
+        Surface(color = MaterialTheme.colorScheme.background) {
             PlaylistContent(
                 listOf(
                     Voice("title", "", isPlaying = false, "00:01"),
@@ -266,7 +255,7 @@ fun PlaylistPagePreview() {
 @Composable
 fun PlaylistItemPreview() {
     VoiceRecorderTheme {
-        Surface {
+    Surface(color = MaterialTheme.colorScheme.background) {
             PlaylistItem(
                 voice = Voice(
                     title = "title prview",
@@ -285,11 +274,8 @@ fun PlaylistItemPreview() {
 @Composable
 fun MediaControlsPreview() {
     VoiceRecorderTheme {
-        MediaControls(
-            modifier = Modifier,
-            voice = Voice(),
-            onPlayPause = {},
-            onStop = {}
-        )
+        Surface(color = MaterialTheme.colorScheme.background) {
+
+        }
     }
 }
