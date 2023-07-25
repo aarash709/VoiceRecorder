@@ -5,23 +5,11 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.Button
-import androidx.compose.material.Card
-import androidx.compose.material.Icon
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
-import androidx.compose.material.darkColors
+import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayCircleOutline
-import androidx.compose.material.lightColors
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,45 +17,62 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
-private val DarkColorPalette = darkColors(
-    primary = Purple200,
-    primaryVariant = Purple700,
-    secondary = Teal200,
-    background = dark90,
-    onBackground = Color.LightGray,
+//private val DarkColorPalette = darkColors(
+//    primary = Purple200,
+//    primaryVariant = Purple700,
+//    secondary = Teal200,
+//    background = dark90,
+//    onBackground = Color.LightGray,
+//    surface = darkGraySurface,
+//    onPrimary = Color.White,
+//    onSecondary = Color.Black,
+//    onSurface = gray10,
+//)
+//
+//private val LightColorPalette = lightColors(
+//    primary = Purple500,
+//    primaryVariant = Purple700,
+//    secondary = Teal200,
+//    background = white,
+//    onBackground = Color.Black,
+//    surface = lightGraySurface,
+//    onPrimary = Color.White,
+//    onSecondary = Color.Black,
+//    onSurface = Color.Black,
+//)
+
+private val darkColorScheme = darkColorScheme(
+    primary = Color.Blue,
     surface = darkGraySurface,
+    background = dark90,
     onPrimary = Color.White,
-    onSecondary = Color.Black,
-    onSurface = gray10,
+    onBackground = Color.White,
+    onSurface = Color.White
 )
 
-private val LightColorPalette = lightColors(
-    primary = Purple500,
-    primaryVariant = Purple700,
-    secondary = Teal200,
-    background = white,
-    onBackground = Color.Black,
+private val lightColorScheme = lightColorScheme(
+    primary = Color.Blue,
     surface = lightGraySurface,
+    background = Color.White,
     onPrimary = Color.White,
-    onSecondary = Color.Black,
+    onBackground = Color.Black,
     onSurface = Color.Black,
 )
 
 @Composable
 fun VoiceRecorderTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    content: @Composable() () -> Unit,
+    content: @Composable () -> Unit,
 ) {
-    val colors = if (darkTheme) {
-        DarkColorPalette
-    } else {
-        LightColorPalette
+//    val dynamicColor = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+    val colorScheme = when {
+//        dynamicColor && darkTheme -> dynamicDarkColorScheme(LocalContext.current)
+//        dynamicColor && !darkTheme -> dynamicLightColorScheme(LocalContext.current)
+        darkTheme -> darkColorScheme
+        else -> lightColorScheme
     }
-
     MaterialTheme(
-        colors = colors,
-        typography = Typography,
-        shapes = Shapes,
+        colorScheme = colorScheme,
         content = content
     )
 }

@@ -2,7 +2,6 @@ package com.recorder.feature.record
 
 import android.content.res.Configuration
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Row
@@ -11,11 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.Icon
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedButton
-import androidx.compose.material.Text
-import androidx.compose.material.TextButton
+import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Mic
@@ -29,11 +24,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.recorder.core.designsystem.theme.VoiceRecorderTheme
 
 
 @Composable
 fun Record(
-    onListButtonClick: () -> Unit
+    onListButtonClick: () -> Unit,
 ) {
     val recordViewModel: RecordViewModel = hiltViewModel()
     val recordTime = recordViewModel.formattedTimer.collectAsStateWithLifecycle().value
@@ -99,7 +95,7 @@ fun RecordingTimer(
         Text(
             text = time,
             fontSize = 40.sp,
-            color = MaterialTheme.colors.onSurface
+            color = MaterialTheme.colorScheme.onSurface
         )
     }
 }
@@ -124,7 +120,7 @@ fun PlayListButton(
                 imageVector = Icons.Default.List,
                 contentDescription = "List of recordings icon",
                 modifier = Modifier.size(30.dp),
-                tint = MaterialTheme.colors.onSurface
+                tint = MaterialTheme.colorScheme.onSurface
             )
         }
     }
@@ -163,14 +159,16 @@ fun RecordAudioButton(
 @Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
 fun Prev() {
-    RecordContent(
-        modifier = Modifier,
-        true,
-        "00",
-        true,
+    VoiceRecorderTheme {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            RecordContent(
+                modifier = Modifier,
+                true,
+                "01",
+                true,
 //        "00",
-        onRecord = {},
-    ) {
-
+                onRecord = {},
+                onListButtonClick ={})
+        }
     }
 }
