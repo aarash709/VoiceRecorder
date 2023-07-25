@@ -32,7 +32,7 @@ fun Playlist(
     voices: List<Voice>,
     isPlaying: Boolean,
     onVoiceClicked: (Int, Voice) -> Unit,
-    onBackPressed: () -> Unit = {},
+    onBackPressed: () -> Unit,
 ) {
     val viewModel = hiltViewModel<PlaylistViewModel>()
     val context = LocalContext.current
