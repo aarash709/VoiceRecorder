@@ -1,4 +1,4 @@
-package com.experiment.voicerecorder.compose
+package com.experiment.voicerecorder.ui
 
 import androidx.compose.runtime.Composable
 import com.experiment.voicerecorder.VoiceRecorderPermissionsHandler

@@ -14,8 +14,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
-import com.experiment.voicerecorder.compose.MainScreen
-import com.experiment.voicerecorder.compose.VoiceRecorderNavigation
+import com.experiment.voicerecorder.ui.MainScreen
+import com.experiment.voicerecorder.ui.VoiceRecorderNavigation
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.recorder.core.designsystem.theme.VoiceRecorderTheme
 import com.recorder.service.PlayerService
