@@ -26,7 +26,7 @@ object ServiceModule {
         return MediaRecorder(context)
 
     }
-    @AndroidSDK30MediaRecorder
+//    @AndroidSDK30MediaRecorder
     @Provides
     fun providesMediaRecorderForAndroidR(): MediaRecorder {
         return MediaRecorder()
