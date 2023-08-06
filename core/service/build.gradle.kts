@@ -41,6 +41,9 @@ dependencies {
     implementation(libs.androidx.coreKtx)
     implementation(libs.androidx.lifecycleRuntimeKtx)
 
+    implementation(libs.media3.exoplayer)
+    implementation(libs.media3.mediasession)
+
     implementation(libs.hilt.android)
     kapt(libs.hilt.kaptCompiler)
 
