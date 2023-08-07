@@ -33,16 +33,19 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <service
             android:name="com.recorder.service.RecorderService"
             android:exported="false"
             android:foregroundServiceType="microphone" />
-        <service android:name="com.recorder.service.PlayerService"
+        <service
+            android:name="com.recorder.service.PlayerService"
             android:exported="false"
             android:foregroundServiceType="mediaPlayback">
             <intent-filter>
-                <action android:name="androidx.media3.session.MediaLibraryService"/>
-                <action android:name="androidx.media3.browser.MediaBrowserService"/>
+                <action android:name="androidx.media3.session.MediaLibraryService" />
+                <!-- for compatibility -->
+                <action android:name="androidx.media3.browser.MediaBrowserService" />
             </intent-filter>
         </service>
     </application>

@@ -13,6 +13,9 @@ import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.content.ContextCompat
+import androidx.media3.session.MediaController
+import androidx.media3.session.SessionToken
 import androidx.navigation.compose.rememberNavController
 import com.experiment.voicerecorder.ui.MainScreen
 import com.experiment.voicerecorder.ui.VoiceRecorderNavigation
@@ -79,6 +82,18 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        val sessionToken = SessionToken(this,
+            ComponentName(this, PlayerService::class.java)
+        )
+        val mediaController = MediaController.Builder(this,sessionToken).buildAsync()
+        mediaController.addListener(
+            { mediaController.get() },
+            ContextCompat.getMainExecutor(this)
+        )
     }
 
     override fun onDestroy() {

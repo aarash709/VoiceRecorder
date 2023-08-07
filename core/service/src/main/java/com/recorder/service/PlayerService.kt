@@ -1,11 +1,13 @@
 package com.recorder.service
 
-import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.media.MediaPlayer
 import android.os.Binder
 import android.os.IBinder
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.session.MediaLibraryService
+import androidx.media3.session.MediaSession
 import com.core.common.Storage
 import com.core.common.model.Voice
 import dagger.hilt.android.AndroidEntryPoint
@@ -16,14 +18,15 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.json.Json
 import timber.log.Timber
 import java.lang.Exception
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class PlayerService() : Service() {
+class PlayerService() : MediaLibraryService() {
+
+
+    private lateinit var mediaLibrarySession : MediaLibrarySession
 
     @Inject
     lateinit var storage: Storage
@@ -45,14 +48,33 @@ class PlayerService() : Service() {
         fun getService() = this@PlayerService
     }
 
+    inner class MediaLibraryCallback() : MediaLibrarySession.Callback {
+        override fun onConnect(
+            session: MediaSession,
+            controller: MediaSession.ControllerInfo,
+        ): MediaSession.ConnectionResult {
+            return super.onConnect(session, controller)
+        }
+    }
+
     override fun onCreate() {
         super.onCreate()
         Timber.e("player service created")
+
+        val exoPlayer = ExoPlayer.Builder(this).build()
+        mediaLibrarySession = MediaLibrarySession.Builder(
+            this,
+            exoPlayer,
+            MediaLibraryCallback()
+        )
+            .build()
+
         getVoices(this)
         player = MediaPlayer()
     }
 
     override fun onBind(intent: Intent?): IBinder {
+        super.onBind(intent)
         Timber.e("${this.javaClass.simpleName} binded")
         return binder
     }
@@ -62,7 +84,12 @@ class PlayerService() : Service() {
         return super.onUnbind(intent)
     }
 
+    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaLibrarySession? {
+        return mediaLibrarySession
+    }
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        super.onStartCommand(intent, flags, startId)
         return START_STICKY
     }
 
