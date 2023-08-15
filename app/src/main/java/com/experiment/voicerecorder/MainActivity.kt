@@ -1,8 +1,6 @@
 package com.experiment.voicerecorder
 
 import android.content.ComponentName
-import android.content.Context
-import android.content.Intent
 import android.content.ServiceConnection
 import android.os.Bundle
 import android.os.IBinder
@@ -13,18 +11,22 @@ import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.core.content.ContextCompat
-import androidx.media3.session.MediaController
+import androidx.media3.common.MediaItem
+import androidx.media3.session.MediaBrowser
+import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.SessionToken
 import androidx.navigation.compose.rememberNavController
 import com.experiment.voicerecorder.ui.MainScreen
 import com.experiment.voicerecorder.ui.VoiceRecorderNavigation
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.common.collect.ImmutableList
+import com.google.common.util.concurrent.MoreExecutors
 import com.recorder.core.designsystem.theme.VoiceRecorderTheme
 import com.recorder.service.PlayerService
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
+import okhttp3.internal.immutableListOf
 import timber.log.Timber
 
 @ExperimentalPermissionsApi
@@ -34,6 +36,8 @@ class MainActivity : ComponentActivity() {
 
     private lateinit var playerService: PlayerService
     private var isPlayerServiceBound = MutableStateFlow(false)
+    private lateinit var browser: MediaBrowser
+    private val mediaItems = mutableListOf<MediaItem>()
 
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
@@ -50,9 +54,9 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Intent(this, PlayerService::class.java).also {
-            bindService(it, serviceConnection, Context.BIND_AUTO_CREATE)
-        }
+//        Intent(this, PlayerService::class.java).also {
+//            bindService(it, serviceConnection, Context.BIND_AUTO_CREATE)
+//        }
         setContent {
             VoiceRecorderTheme {
                 val navState = rememberNavController()
@@ -70,9 +74,18 @@ class MainActivity : ComponentActivity() {
                         VoiceRecorderNavigation(
                             modifier = Modifier,
                             navController = navState,
-                            voices = voices,
+                            voices = mediaItems,
                             isPlaying = isPlaying,
                             onPlay = { index, voice ->
+                                val mediaItem = MediaItem.fromUri(voice.path)
+                                if (browser.isConnected) {
+                                    Timber.e("${browser.isConnected}")
+                                    browser.run {
+                                        setMediaItem(mediaItem)
+                                        prepare()
+                                        play()
+                                    }
+                                }
                                 if (isPlayerServiceBound.value) {
                                     playerService.onPlay(voice, index)
                                 }
@@ -86,19 +99,53 @@ class MainActivity : ComponentActivity() {
 
     override fun onStart() {
         super.onStart()
-        val sessionToken = SessionToken(this,
+        val sessionToken = SessionToken(
+            this,
             ComponentName(this, PlayerService::class.java)
         )
-        val mediaController = MediaController.Builder(this,sessionToken).buildAsync()
-        mediaController.addListener(
-            { mediaController.get() },
-            ContextCompat.getMainExecutor(this)
+        val mediaBrowser = MediaBrowser.Builder(this, sessionToken).buildAsync()
+        mediaBrowser.addListener(
+            {
+                browser = mediaBrowser.get()
+                val root = browser.getLibraryRoot(null)
+                root.addListener(
+                    {
+                        val rootMediaItem = root.get().value!!
+                        val childrenFuture = browser.getChildren(
+                            rootMediaItem.mediaId,
+                            0,
+                            Int.MAX_VALUE,
+                            null
+                        )
+                        childrenFuture.addListener(
+                            {
+                                val mediaItems = childrenFuture.get().value!!
+                                mediaItems.addAll(mediaItems)
+                            },
+                            MoreExecutors.directExecutor()
+                        )
+
+                    },
+                    MoreExecutors.directExecutor()
+                )
+//                val items = browser.getChildren(
+//                    "",
+//                    0,
+//                    Int.MAX_VALUE,
+//                    null
+//                ).get().value!!
+//                mediaItems.toMutableList().addAll(items)
+//                Timber.e("item: ${items.any()}")
+            },
+            MoreExecutors.directExecutor()
+//            ContextCompat.getMainExecutor(this)
+
         )
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        unbindService(serviceConnection)
+//        unbindService(serviceConnection)
     }
 }
 
