@@ -54,7 +54,7 @@ fun NavGraphBuilder.recordings(
                 voiceList = voices.map {
                     Voice(
                         title = it.mediaMetadata.title.toString(),
-                        path = it.localConfiguration?.uri?.path.toString(),
+                        path = it.localConfiguration?.uri.toString(),
                         isPlaying = false,
                         duration = "",
                         recordTime = ""

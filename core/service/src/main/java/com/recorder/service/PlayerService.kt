@@ -1,10 +1,12 @@
 package com.recorder.service
 
+import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.media.MediaPlayer
 import android.os.Binder
 import android.os.IBinder
+import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Metadata
@@ -31,7 +33,7 @@ import java.lang.Exception
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class PlayerService() : MediaLibraryService() {
+class PlayerService : MediaLibraryService() {
 
 
     private lateinit var mediaLibrarySession: MediaLibrarySession
@@ -39,12 +41,14 @@ class PlayerService() : MediaLibraryService() {
     @Inject
     lateinit var storage: Storage
     private lateinit var player: MediaPlayer
+    private lateinit var exoPlayer: ExoPlayer
 
-    private val binder = LocalBinder()
     private val job = Job()
     private val serviceScope = CoroutineScope(Dispatchers.IO + job)
     private var currentVoiceIndex: Int? = null
     private var currentVoice: Voice? = null
+
+    private val callback = MediaLibraryCallback()
 
     private var _isPlaying = MutableStateFlow(false)
     val isPlaying = _isPlaying.asStateFlow()
@@ -52,15 +56,12 @@ class PlayerService() : MediaLibraryService() {
     private val _voices = MutableStateFlow(listOf<Voice>())
     val voices = _voices.asStateFlow()
 
-    inner class LocalBinder : Binder() {
-        fun getService() = this@PlayerService
-    }
-
     inner class MediaLibraryCallback() : MediaLibrarySession.Callback {
         override fun onConnect(
             session: MediaSession,
             controller: MediaSession.ControllerInfo,
         ): MediaSession.ConnectionResult {
+            Timber.e("onconnect")
             return super.onConnect(session, controller)
         }
 
@@ -69,7 +70,24 @@ class PlayerService() : MediaLibraryService() {
             browser: MediaSession.ControllerInfo,
             params: LibraryParams?,
         ): ListenableFuture<LibraryResult<MediaItem>> {
-            return super.onGetLibraryRoot(session, browser, params)
+            Timber.e("ongetchildern")
+//            return super.onGetLibraryRoot(session, browser, params)
+            val mediaItems = voices.value[0].let {
+                val metadata =
+                    MediaMetadata.Builder()
+                        .setTitle("root")
+                        .setIsBrowsable(true)
+                        .setIsPlayable(true)
+                        .build()
+            Timber.e("service root path: ${it.path}")
+                MediaItem
+                    .Builder()
+                    .setMediaId(it.title)
+                    .setUri("/storage/emulated/0/Android/data/com.experiment.voicerecorder/files/230728_114117.m4a")
+                    .setMediaMetadata(metadata)
+                    .build()
+            }
+            return Futures.immediateFuture(LibraryResult.ofItem(mediaItems, params))
         }
 
         override fun onGetItem(
@@ -77,6 +95,7 @@ class PlayerService() : MediaLibraryService() {
             browser: MediaSession.ControllerInfo,
             mediaId: String,
         ): ListenableFuture<LibraryResult<MediaItem>> {
+            Timber.e("on get item")
             return super.onGetItem(session, browser, mediaId)
         }
 
@@ -89,14 +108,21 @@ class PlayerService() : MediaLibraryService() {
             params: LibraryParams?,
         ): ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> {
 //            return super.onGetChildren(session, browser, parentId, page, pageSize, params)
+            Timber.e("ongetchildern")
             val mediaItems = voices.value.map {
+//                Timber.e("service childe: ${it.path}")
                 val metadata =
                     MediaMetadata.Builder()
                         .setTitle(it.title)
+                        .setArtworkUri(it.path.toUri())
+                        .setIsBrowsable(false)
+                        .setIsPlayable(true)
                         .build()
                 MediaItem
                     .Builder()
+                    .setMediaId(it.title)
                     .setMediaMetadata(metadata)
+                    .setUri(it.path)
                     .build()
             }
             return Futures.immediateFuture(LibraryResult.ofItemList(mediaItems, params))
@@ -107,36 +133,19 @@ class PlayerService() : MediaLibraryService() {
         super.onCreate()
         Timber.e("player service created")
 
-        val exoPlayer = ExoPlayer.Builder(this).build()
+        exoPlayer = ExoPlayer.Builder(this).build()
         mediaLibrarySession = MediaLibrarySession.Builder(
             this,
             exoPlayer,
-            MediaLibraryCallback()
+            callback,
         )
             .build()
-
         getVoices(this)
-//        player = MediaPlayer()
     }
 
-    override fun onBind(intent: Intent?): IBinder {
-        super.onBind(intent)
-        Timber.e("${this.javaClass.simpleName} is bound")
-        return binder
-    }
-
-    override fun onUnbind(intent: Intent?): Boolean {
-        Timber.e("${this.javaClass.simpleName} unbind")
-        return super.onUnbind(intent)
-    }
-
-    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaLibrarySession? {
+    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaLibrarySession {
+        Timber.e("getsession")
         return mediaLibrarySession
-    }
-
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        super.onStartCommand(intent, flags, startId)
-        return START_STICKY
     }
 
     override fun onDestroy() {

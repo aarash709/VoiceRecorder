@@ -1,9 +1,7 @@
 package com.experiment.voicerecorder
 
 import android.content.ComponentName
-import android.content.ServiceConnection
 import android.os.Bundle
-import android.os.IBinder
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
@@ -11,22 +9,21 @@ import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.media3.session.MediaBrowser
-import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.SessionToken
 import androidx.navigation.compose.rememberNavController
 import com.experiment.voicerecorder.ui.MainScreen
 import com.experiment.voicerecorder.ui.VoiceRecorderNavigation
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.common.collect.ImmutableList
+import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.recorder.core.designsystem.theme.VoiceRecorderTheme
 import com.recorder.service.PlayerService
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.update
-import okhttp3.internal.immutableListOf
 import timber.log.Timber
 
 @ExperimentalPermissionsApi
@@ -36,27 +33,13 @@ class MainActivity : ComponentActivity() {
 
     private lateinit var playerService: PlayerService
     private var isPlayerServiceBound = MutableStateFlow(false)
-    private lateinit var browser: MediaBrowser
+    private lateinit var browserFuture: ListenableFuture<MediaBrowser>
+    private val browser
+        get() = if (browserFuture.isDone) browserFuture.get() else null
     private val mediaItems = mutableListOf<MediaItem>()
-
-    private val serviceConnection = object : ServiceConnection {
-        override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-            Timber.e("service connection")
-            val binder = service as PlayerService.LocalBinder
-            playerService = binder.getService()
-            isPlayerServiceBound.update { true }
-        }
-
-        override fun onServiceDisconnected(name: ComponentName?) {
-            isPlayerServiceBound.update { false }
-        }
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-//        Intent(this, PlayerService::class.java).also {
-//            bindService(it, serviceConnection, Context.BIND_AUTO_CREATE)
-//        }
         setContent {
             VoiceRecorderTheme {
                 val navState = rememberNavController()
@@ -64,10 +47,10 @@ class MainActivity : ComponentActivity() {
                     if (isPlayerServiceBound.collectAsState().value)
                         playerService.isPlaying.collectAsState().value
                     else false
-                val voices = if (isPlayerServiceBound.collectAsState().value)
-                    playerService.voices.collectAsState().value
-                else
-                    listOf()
+//                val voices = if (isPlayerServiceBound.collectAsState().value)
+//                    playerService.voices.collectAsState().value
+//                else
+//                    listOf()
 
                 MainScreen {
                     Box(modifier = Modifier) {
@@ -77,14 +60,20 @@ class MainActivity : ComponentActivity() {
                             voices = mediaItems,
                             isPlaying = isPlaying,
                             onPlay = { index, voice ->
-                                val mediaItem = MediaItem.fromUri(voice.path)
-                                if (browser.isConnected) {
-                                    Timber.e("${browser.isConnected}")
-                                    browser.run {
+                                val mediaItem =
+                                    mediaItems.first { it.mediaMetadata.title == voice.title }
+                                val mediaItem1 = MediaItem.Builder()
+                                    .setUri("/storage/emulated/0/Android/data/com.experiment.voicerecorder/files/230728_114117.m4a")
+                                    .build()
+                                if (browser?.isConnected!!) {
+                                    Timber.e("connected:${browser?.isConnected}")
+                                    browser?.run {
+                                        Timber.e("path: ${mediaItem.localConfiguration?.uri}")
                                         setMediaItem(mediaItem)
                                         prepare()
                                         play()
                                     }
+                                    Timber.e("islive: ${browser?.currentMediaItem?.mediaMetadata?.title}")
                                 }
                                 if (isPlayerServiceBound.value) {
                                     playerService.onPlay(voice, index)
@@ -103,49 +92,46 @@ class MainActivity : ComponentActivity() {
             this,
             ComponentName(this, PlayerService::class.java)
         )
-        val mediaBrowser = MediaBrowser.Builder(this, sessionToken).buildAsync()
-        mediaBrowser.addListener(
+        browserFuture = MediaBrowser.Builder(this, sessionToken).buildAsync()
+        browserFuture.addListener(
             {
-                browser = mediaBrowser.get()
-                val root = browser.getLibraryRoot(null)
-                root.addListener(
+                val mediaBrowser = browserFuture.get()
+                val rootFuture = mediaBrowser.getLibraryRoot(null)
+                rootFuture.addListener(
                     {
-                        val rootMediaItem = root.get().value!!
-                        val childrenFuture = browser.getChildren(
-                            rootMediaItem.mediaId,
-                            0,
-                            Int.MAX_VALUE,
-                            null
-                        )
-                        childrenFuture.addListener(
-                            {
-                                val mediaItems = childrenFuture.get().value!!
-                                mediaItems.addAll(mediaItems)
-                            },
-                            MoreExecutors.directExecutor()
-                        )
+                        val rootMediaItem = rootFuture.get().value!!
+                        Timber.e("uri root${rootMediaItem.mediaMetadata.artworkUri}")
+                        mediaItems.add(rootMediaItem)
 
+                        getChildren(rootMediaItem)
                     },
-                    MoreExecutors.directExecutor()
+                    ContextCompat.getMainExecutor(this)
                 )
-//                val items = browser.getChildren(
-//                    "",
-//                    0,
-//                    Int.MAX_VALUE,
-//                    null
-//                ).get().value!!
-//                mediaItems.toMutableList().addAll(items)
-//                Timber.e("item: ${items.any()}")
             },
-            MoreExecutors.directExecutor()
-//            ContextCompat.getMainExecutor(this)
-
+            ContextCompat.getMainExecutor(this)
         )
     }
 
     override fun onDestroy() {
         super.onDestroy()
-//        unbindService(serviceConnection)
+    }
+
+    private fun getChildren(mediaItem: MediaItem) {
+        val childrenFuture =
+            browser?.getChildren(
+                mediaItem.mediaId,
+                0,
+                Int.MAX_VALUE,
+                null
+            )
+        childrenFuture?.addListener(
+            {
+                val childItems = childrenFuture.get().value!!
+                mediaItems.clear()
+                mediaItems.addAll(childItems)
+            },
+            MoreExecutors.directExecutor()
+        )
     }
 }
 
