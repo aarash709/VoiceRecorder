@@ -1,6 +1,8 @@
 ## Voice Recorder Sample
 A  simple work in progress (🚧) voice recorder android app.
 ### Roadmap
-* [ ] Media3 and MediaLibrary service implementation for playback.
-* [ ] Rename and delete feature.
-* [ ] Ability to filter voices.
+* [ ] Redesign UI.
+* [ ] Rename and delete recordings.
+* [ ] Ability to filter voices based on the time of recording.
+* [ ] Implement background playback using new Media3 API.
+* [ ] Add minor animations for better UX.
