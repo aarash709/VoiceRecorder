@@ -33,11 +33,6 @@ object ServiceModule {
     }
 
     @Provides
-    fun providesStorage(): Storage {
-        return Storage()
-    }
-
-    @Provides
     fun providesNotificationManager(
         @ApplicationContext context: Context,
     ): NotificationManager {
