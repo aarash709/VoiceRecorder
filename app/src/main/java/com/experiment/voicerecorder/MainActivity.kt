@@ -13,11 +13,14 @@ import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.media3.session.MediaBrowser
+import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import androidx.navigation.compose.rememberNavController
+import com.core.common.Storage
 import com.experiment.voicerecorder.ui.MainScreen
 import com.experiment.voicerecorder.ui.VoiceRecorderNavigation
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.android.material.internal.ViewUtils.getChildren
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.recorder.core.designsystem.theme.VoiceRecorderTheme
@@ -43,35 +46,38 @@ class MainActivity : ComponentActivity() {
         setContent {
             VoiceRecorderTheme {
                 val navState = rememberNavController()
-                val isPlaying =
-                    if (isPlayerServiceBound.collectAsState().value)
-                        playerService.isPlaying.collectAsState().value
-                    else false
-//                val voices = if (isPlayerServiceBound.collectAsState().value)
-//                    playerService.voices.collectAsState().value
-//                else
-//                    listOf()
+//                val isPlaying =
+//                    if (isPlayerServiceBound.collectAsState().value)
+//                        playerService.isPlaying.collectAsState().value
+//                    else false
+                val voices = if (browser != null){
+                    Storage().getVoices(this)!!.map {
+                        MediaItem.fromUri(it.path)
+                    }
+                }
+                else {
+                    listOf()
+                }
 
                 MainScreen {
                     Box(modifier = Modifier) {
                         VoiceRecorderNavigation(
                             modifier = Modifier,
                             navController = navState,
-                            voices = mediaItems,
-                            isPlaying = isPlaying,
+                            voices = voices,
+                            isPlaying = /*isPlaying*/false,
                             onPlay = { index, voice ->
                                 val mediaItem =
-                                    mediaItems.first { it.mediaMetadata.title == voice.title }
-                                val mediaItem1 = MediaItem.Builder()
-                                    .setUri("/storage/emulated/0/Android/data/com.experiment.voicerecorder/files/230728_114117.m4a")
-                                    .build()
+                                    MediaItem.fromUri("/storage/emulated/0/Android/data/com.experiment.voicerecorder/files/230705_142853.m4a")
                                 if (browser?.isConnected!!) {
                                     Timber.e("connected:${browser?.isConnected}")
                                     browser?.run {
-                                        Timber.e("path: ${mediaItem.localConfiguration?.uri}")
                                         setMediaItem(mediaItem)
                                         prepare()
                                         play()
+                                        Timber.e("path: ${mediaItem.localConfiguration?.uri}")
+                                        Timber.e("currt itm:${browser?.currentMediaItem?.mediaId}")
+                                        Timber.e("${this.isPlaying}")
                                     }
                                     Timber.e("islive: ${browser?.currentMediaItem?.mediaMetadata?.title}")
                                 }
@@ -97,6 +103,7 @@ class MainActivity : ComponentActivity() {
             {
                 val mediaBrowser = browserFuture.get()
                 val rootFuture = mediaBrowser.getLibraryRoot(null)
+                Timber.e("${mediaBrowser.mediaItemCount}")
                 rootFuture.addListener(
                     {
                         val rootMediaItem = rootFuture.get().value!!

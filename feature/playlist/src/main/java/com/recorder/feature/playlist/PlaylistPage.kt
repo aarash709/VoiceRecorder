@@ -21,6 +21,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.core.common.model.Voice
 import com.recorder.core.designsystem.theme.VoiceRecorderTheme
 import timber.log.Timber
@@ -39,13 +40,17 @@ fun Playlist(
     var playingVoiceIndex by remember {
         mutableStateOf(0)
     }
+    val voiceList by viewModel.voices.collectAsStateWithLifecycle()
+    LaunchedEffect(key1 = Unit, block = {
+        viewModel.getVoices(context)
+    })
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
         PlaylistContent(
-            voices = voices,
+            voices = voiceList,
             isPlaying = isPlaying,
             onPlayPause = { },
             onStop = { },
