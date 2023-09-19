@@ -13,7 +13,6 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
 import com.core.common.model.Voice
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 const val RECORDING_ROUTE = "RECORDING_ROUTE"
@@ -26,6 +25,7 @@ fun NavGraphBuilder.recordings(
     voices: List<MediaItem>,
     isPlaying: Boolean,
     onPlay: (Int, Voice) -> Unit,
+    onStop: () -> Unit,
     onBackPressed: () -> Unit,
 ) {
     composable(
@@ -46,7 +46,7 @@ fun NavGraphBuilder.recordings(
                 )
             }
         }) {
-        var voiceList by remember{
+        var voiceList by remember {
             mutableStateOf(listOf<Voice>())
         }
         LaunchedEffect(key1 = voices, block = {
@@ -66,7 +66,7 @@ fun NavGraphBuilder.recordings(
             isPlaying = isPlaying,
             voices = voiceList,
             onPlayPause = { },
-            onStop = { },
+            onStop = { onStop() },
             onVoiceClicked = { i, voice ->
                 onPlay(i, voice)
             },

@@ -8,9 +8,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -21,6 +23,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.session.MediaBrowser
 import androidx.media3.session.SessionToken
@@ -33,6 +36,7 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.recorder.core.designsystem.theme.VoiceRecorderTheme
 import com.recorder.service.PlayerService
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import timber.log.Timber
 
 @ExperimentalPermissionsApi
@@ -52,25 +56,53 @@ class MainActivity : ComponentActivity() {
                 val navState = rememberNavController()
                 MainScreen {
                     Box(modifier = Modifier) {
-                        var isVoicePlaying by remember {
+                        var isVoicePlaying by remember() {
                             mutableStateOf(false)
                         }
                         val lifecycleOwner = LocalLifecycleOwner.current
                         val context = LocalContext.current
+                        val scope = rememberCoroutineScope()
+                        DisposableEffect(lifecycleOwner) {
+                            val observer = LifecycleEventObserver { _, event ->
+                                if (event.targetState == Lifecycle.State.STARTED) {
+                                    browserFuture.addListener(
+                                        {
+                                            browserFuture.get().apply {
+                                                addListener(
+                                                    object : Player.Listener {
+                                                        override fun onIsPlayingChanged(isPlaying: Boolean) {
+                                                            super.onIsPlayingChanged(isPlaying)
+                                                            isVoicePlaying = isPlaying
+                                                            Timber.e("isplaying chnage$isPlaying")
+                                                        }
 
-                        DisposableEffect(Unit){
-                            val observer = LifecycleEventObserver{ _, event ->
-                                if (event.targetState == Lifecycle.State.STARTED){
-                                    val sessionToken = SessionToken(
-                                        context,
-                                        ComponentName(context, PlayerService::class.java)
+                                                        override fun onPlayerError(error: PlaybackException) {
+                                                            super.onPlayerError(error)
+                                                            Timber.e(error.message)
+                                                            browser?.stop()
+                                                        }
+
+                                                    })
+                                            }
+
+                                        }, MoreExecutors.directExecutor()
                                     )
-                                    browserFuture = MediaBrowser.Builder(context, sessionToken).buildAsync()
                                 }
                             }
                             lifecycleOwner.lifecycle.addObserver(observer)
                             onDispose {
                                 lifecycleOwner.lifecycle.removeObserver(observer)
+                            }
+                        }
+                        LaunchedEffect(key1 = lifecycleOwner, block = {
+                            scope.launch {
+                                Timber.e("listener update")
+                            }
+                        })
+                        LaunchedEffect(key1 = Unit,key2 = isVoicePlaying) {
+                            browser?.run {
+                                Timber.e("curent isplaying = $isPlaying")
+                                isVoicePlaying = isPlaying
                             }
                         }
                         VoiceRecorderNavigation(
@@ -79,22 +111,23 @@ class MainActivity : ComponentActivity() {
                             voices = listOf(),
                             isPlaying = isVoicePlaying,
                             onPlay = { index, voice ->
-                                val metadata = MediaMetadata.Builder().setTitle(voice.title)
+                                val metadata = MediaMetadata.Builder()
+                                    .setTitle(voice.title)
                                     .setIsPlayable(true).build()
-                                val mediaItem = MediaItem.Builder().setMediaMetadata(metadata)
-                                    .setUri(voice.path).setMediaId(voice.title).build()
+                                val mediaitem = MediaItem.Builder()
+                                    .setMediaMetadata(metadata)
+                                    .setUri(voice.path)
+                                    .setMediaId(voice.title)
+                                    .build()
                                 browser?.run {
-                                    setMediaItem(mediaItem)
-                                    prepare()
+                                    setMediaItem(mediaitem)
                                     play()
-                                    browser?.addListener(
-                                        object : Player.Listener {
-                                            override fun onIsPlayingChanged(isPlaying: Boolean) {
-                                                super.onIsPlayingChanged(isPlaying)
-                                                isVoicePlaying = isPlaying
-                                                Timber.e("isplaying chnage$isPlaying")
-                                            }
-                                        })
+                                }
+                            },
+                            onStop = {
+                                browser?.run {
+                                    stop()
+                                    isVoicePlaying = isPlaying
                                 }
                             }
                         )
@@ -106,23 +139,20 @@ class MainActivity : ComponentActivity() {
 
     override fun onStart() {
         super.onStart()
-//        val sessionToken = SessionToken(
-//            this,
-//            ComponentName(this, PlayerService::class.java)
-//        )
-//        browserFuture = MediaBrowser.Builder(this, sessionToken).buildAsync()
-//        browserFuture.addListener(
-//            { getRoot() },
-//            ContextCompat.getMainExecutor(this)
-//        )
+        val sessionToken = SessionToken(
+            this,
+            ComponentName(this, PlayerService::class.java)
+        )
+        browserFuture = MediaBrowser.Builder(this, sessionToken).buildAsync()
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
+    override fun onStop() {
+        super.onStop()
+        MediaBrowser.releaseFuture(browserFuture)
     }
 
     private fun getRoot() {
-        val mediaBrowser = browserFuture.get()
+        val mediaBrowser = this.browser ?: return
         val rootFuture = mediaBrowser.getLibraryRoot(null)
         rootFuture.addListener(
             {

@@ -28,14 +28,14 @@ fun VoiceRecorderNavigation(
     voices: List<MediaItem>,
     isPlaying: Boolean,
     onPlay: (Int, Voice) -> Unit,
-//    onStop:()->Unit,
+    onStop: () -> Unit,
 //    onPlayPause:()->Unit,
 ) {
     NavHost(
         navController = navController,
         startDestination = RECORDER_ROUTE
     ) {
-        recorder (onListButtonClick = {
+        recorder(onListButtonClick = {
             navController.toRecordings()
         })
         recordings(
@@ -44,6 +44,7 @@ fun VoiceRecorderNavigation(
             onPlay = { i, voice ->
                 onPlay(i, voice)
             },
+            onStop = { onStop() },
             onBackPressed = { navController.popBackStack() }
         )
     }
