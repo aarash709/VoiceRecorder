@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,7 +35,6 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.recorder.core.designsystem.theme.VoiceRecorderTheme
 import com.recorder.service.PlayerService
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
 import timber.log.Timber
 
 @ExperimentalPermissionsApi
@@ -59,6 +57,7 @@ class MainActivity : ComponentActivity() {
                         var isVoicePlaying by remember() {
                             mutableStateOf(false)
                         }
+
                         val lifecycleOwner = LocalLifecycleOwner.current
                         val context = LocalContext.current
                         val scope = rememberCoroutineScope()
@@ -68,8 +67,40 @@ class MainActivity : ComponentActivity() {
                                     browserFuture.addListener(
                                         {
                                             browserFuture.get().apply {
+                                                isVoicePlaying = isPlaying
                                                 addListener(
                                                     object : Player.Listener {
+                                                        override fun onEvents(
+                                                            player: Player,
+                                                            events: Player.Events,
+                                                        ) {
+                                                            super.onEvents(player, events)
+                                                        }
+
+                                                        override fun onPlaybackStateChanged(
+                                                            playbackState: Int,
+                                                        ) {
+                                                            when (playbackState) {
+                                                                Player.STATE_IDLE -> {
+                                                                    isVoicePlaying = isPlaying
+                                                                }
+                                                                Player.STATE_ENDED->{
+                                                                    isVoicePlaying = isPlaying
+                                                                }
+
+                                                                Player.STATE_BUFFERING -> {
+
+                                                                }
+
+                                                                Player.STATE_READY -> {
+
+                                                                }
+                                                            }
+                                                            super.onPlaybackStateChanged(
+                                                                playbackState
+                                                            )
+                                                        }
+
                                                         override fun onIsPlayingChanged(isPlaying: Boolean) {
                                                             super.onIsPlayingChanged(isPlaying)
                                                             isVoicePlaying = isPlaying
@@ -94,43 +125,32 @@ class MainActivity : ComponentActivity() {
                                 lifecycleOwner.lifecycle.removeObserver(observer)
                             }
                         }
-                        LaunchedEffect(key1 = lifecycleOwner, block = {
-                            scope.launch {
-                                Timber.e("listener update")
-                            }
-                        })
-                        LaunchedEffect(key1 = Unit,key2 = isVoicePlaying) {
-                            browser?.run {
-                                Timber.e("curent isplaying = $isPlaying")
-                                isVoicePlaying = isPlaying
-                            }
-                        }
-                        VoiceRecorderNavigation(
-                            modifier = Modifier,
-                            navController = navState,
-                            voices = listOf(),
-                            isPlaying = isVoicePlaying,
-                            onPlay = { index, voice ->
-                                val metadata = MediaMetadata.Builder()
-                                    .setTitle(voice.title)
-                                    .setIsPlayable(true).build()
-                                val mediaitem = MediaItem.Builder()
-                                    .setMediaMetadata(metadata)
-                                    .setUri(voice.path)
-                                    .setMediaId(voice.title)
-                                    .build()
-                                browser?.run {
-                                    setMediaItem(mediaitem)
-                                    play()
+                            VoiceRecorderNavigation(
+                                modifier = Modifier,
+                                navController = navState,
+                                voices = listOf(),
+                                isPlaying = isVoicePlaying,
+                                onPlay = { index, voice ->
+                                    val metadata = MediaMetadata.Builder()
+                                        .setTitle(voice.title)
+                                        .setIsPlayable(true).build()
+                                    val mediaitem = MediaItem.Builder()
+                                        .setMediaMetadata(metadata)
+                                        .setUri(voice.path)
+                                        .setMediaId(voice.title)
+                                        .build()
+                                    browser?.run {
+                                        setMediaItem(mediaitem)
+                                        play()
+                                    }
+                                },
+                                onStop = {
+                                    browser?.run {
+                                        stop()
+                                        pause()
+                                    }
                                 }
-                            },
-                            onStop = {
-                                browser?.run {
-                                    stop()
-                                    isVoicePlaying = isPlaying
-                                }
-                            }
-                        )
+                            )
                     }
                 }
             }
@@ -149,37 +169,6 @@ class MainActivity : ComponentActivity() {
     override fun onStop() {
         super.onStop()
         MediaBrowser.releaseFuture(browserFuture)
-    }
-
-    private fun getRoot() {
-        val mediaBrowser = this.browser ?: return
-        val rootFuture = mediaBrowser.getLibraryRoot(null)
-        rootFuture.addListener(
-            {
-                val rootMediaItem = rootFuture.get().value!!
-                mediaItems.add(rootMediaItem)
-                getChildren(rootMediaItem)
-            },
-            ContextCompat.getMainExecutor(this)
-        )
-    }
-
-    private fun getChildren(mediaItem: MediaItem) {
-        val childrenFuture =
-            browser?.getChildren(
-                mediaItem.mediaId,
-                0,
-                Int.MAX_VALUE,
-                null
-            )
-        childrenFuture?.addListener(
-            {
-                val childItems = childrenFuture.get().value!!
-                mediaItems.clear()
-                mediaItems.addAll(childItems)
-            },
-            MoreExecutors.directExecutor()
-        )
     }
 }
 
