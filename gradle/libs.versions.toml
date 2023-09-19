@@ -34,6 +34,7 @@ junit4 = "4.13.2"
 espresso-core = "3.5.1"
 appcompat = "1.6.1"
 material = "1.9.0"
+media3 = "1.1.1"
 
 [libraries]
 compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
@@ -100,6 +101,8 @@ androidx-test-extJunit = { group = "androidx.test.ext", name = "junit", version.
 espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espresso-core" }
 appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+media3-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "media3" }
+media3-mediasession = { group = "androidx.media3", name = "media3-session", version.ref = "media3" }
 
 
 [bundles]

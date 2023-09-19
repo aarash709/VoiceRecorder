@@ -3,6 +3,7 @@ package com.experiment.voicerecorder.ui
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.media3.common.MediaItem
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
@@ -24,17 +25,17 @@ sealed class Pages(val route: String) {
 fun VoiceRecorderNavigation(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
-    voices: List<Voice>,
+    voices: List<MediaItem>,
     isPlaying: Boolean,
     onPlay: (Int, Voice) -> Unit,
-//    onStop:()->Unit,
+    onStop: () -> Unit,
 //    onPlayPause:()->Unit,
 ) {
     NavHost(
         navController = navController,
         startDestination = RECORDER_ROUTE
     ) {
-        recorder (onListButtonClick = {
+        recorder(onListButtonClick = {
             navController.toRecordings()
         })
         recordings(
@@ -43,6 +44,7 @@ fun VoiceRecorderNavigation(
             onPlay = { i, voice ->
                 onPlay(i, voice)
             },
+            onStop = { onStop() },
             onBackPressed = { navController.popBackStack() }
         )
     }

@@ -2,6 +2,8 @@ plugins {
     id(libs.plugins.android.library.get().pluginId)
     id(libs.plugins.kotlin.android.get().pluginId)
     id(libs.plugins.kotlin.serialization.get().pluginId)
+    id(libs.plugins.hilt.get().pluginId)
+    id("kotlin-kapt")
 }
 
 android {
@@ -26,7 +28,6 @@ android {
         jvmTarget = "17"
     }
 }
-
 dependencies {
 
     implementation(project(":core:designsystem"))
@@ -37,7 +38,10 @@ dependencies {
     implementation(libs.appcompat)
     implementation(libs.material)
 
+    implementation(libs.hilt.android)
+    kapt(libs.hilt.kaptCompiler)
     testImplementation(libs.junit4)
     androidTestImplementation(libs.androidx.test.extJunit)
     androidTestImplementation(libs.espresso.core)
+
 }

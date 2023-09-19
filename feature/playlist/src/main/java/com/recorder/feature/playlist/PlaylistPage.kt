@@ -3,16 +3,14 @@ package com.recorder.feature.playlist
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.*
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -21,6 +19,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.core.common.model.Voice
 import com.recorder.core.designsystem.theme.VoiceRecorderTheme
 import timber.log.Timber
@@ -37,7 +36,18 @@ fun Playlist(
     val viewModel = hiltViewModel<PlaylistViewModel>()
     val context = LocalContext.current
     var playingVoiceIndex by remember {
-        mutableStateOf(0)
+        mutableIntStateOf(-1)
+    }
+    val voiceList by viewModel.voices.collectAsStateWithLifecycle()
+    LaunchedEffect(key1 = Unit, block = {
+        viewModel.getVoices(context)
+    })
+    LaunchedEffect(key1 = isPlaying) {
+        Timber.e("updatelist")
+        viewModel.updateVoiceList(
+            selectedVoiceIndex = playingVoiceIndex,
+            isPlaying = isPlaying
+        )
     }
     Box(
         modifier = Modifier
@@ -45,10 +55,9 @@ fun Playlist(
             .background(MaterialTheme.colorScheme.background)
     ) {
         PlaylistContent(
-            voices = voices,
-            isPlaying = isPlaying,
+            voices = voiceList,
             onPlayPause = { },
-            onStop = { },
+            onStop = { onStop() },
             onVoiceClicked = { voiceIndex, voice ->
                 playingVoiceIndex = voiceIndex
                 onVoiceClicked(voiceIndex, voice)
@@ -61,7 +70,6 @@ fun Playlist(
 @Composable
 fun PlaylistContent(
     voices: List<Voice>,
-    isPlaying: Boolean,
     onPlayPause: () -> Unit,
     onStop: () -> Unit,
     onVoiceClicked: (Int, Voice) -> Unit,
@@ -109,11 +117,13 @@ fun PlaylistContent(
                 }) { voiceIndex ->
                 PlaylistItem(
                     modifier = Modifier,
-                    voice = voices[voiceIndex]
-                ) { clickedVoice ->
-                    onVoiceClicked(voiceIndex, clickedVoice)
-                    voice = clickedVoice
-                }
+                    voice = voices[voiceIndex],
+                    onVoiceClicked = { clickedVoice ->
+                        onVoiceClicked(voiceIndex, clickedVoice)
+                        voice = clickedVoice
+                    },
+                    onStop = { onStop() }
+                )
             }
         }
 
@@ -125,12 +135,11 @@ fun PlaylistItem(
     modifier: Modifier = Modifier,
     voice: Voice,
     onVoiceClicked: (Voice) -> Unit,
+    onStop: () -> Unit,
 ) {
     Surface(
         modifier = Modifier,
-        onClick = {
-            onVoiceClicked(Voice(voice.title, voice.path))
-            Timber.e("ui item: ${voice.title}") },
+        onClick = { },
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surface,
     ) {
@@ -148,7 +157,8 @@ fun PlaylistItem(
                     tint = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier
                         .size(60.dp)
-                        .padding(all = 8.dp),
+                        .padding(all = 8.dp)
+                        .clickable { onStop() },
                     contentDescription = ""
                 )
             else
@@ -157,7 +167,11 @@ fun PlaylistItem(
                     tint = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier
                         .size(60.dp)
-                        .padding(all = 8.dp),
+                        .padding(all = 8.dp)
+                        .clickable {
+                            onVoiceClicked(Voice(voice.title, voice.path))
+                            Timber.e("ui item: ${voice.title}")
+                        },
                     contentDescription = ""
                 )
             Column(
@@ -241,7 +255,6 @@ fun PlaylistPagePreview() {
                     Voice("title4", "", isPlaying = false, "05:01"),
                     Voice("title5", "", isPlaying = false, "00:41")
                 ),
-                isPlaying = false,
                 onPlayPause = {},
                 onStop = {},
                 onVoiceClicked = { i, voice ->
@@ -257,15 +270,19 @@ fun PlaylistPagePreview() {
 @Composable
 fun PlaylistItemPreview() {
     VoiceRecorderTheme {
-    Surface(color = MaterialTheme.colorScheme.background) {
+        Surface(color = MaterialTheme.colorScheme.background) {
             PlaylistItem(
-                voice = Voice(
+                voice =
+                Voice(
                     title = "title prview",
                     path = "path",
                     isPlaying = false,
                     duration = "00:12",
                     recordTime = "just now"
-                ), onVoiceClicked = {}
+                ),
+                onVoiceClicked = {},
+                onStop = {},
+                modifier = Modifier,
             )
         }
     }
