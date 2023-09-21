@@ -8,7 +8,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -17,7 +19,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.media3.common.MediaItem
@@ -35,6 +36,7 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.recorder.core.designsystem.theme.VoiceRecorderTheme
 import com.recorder.service.PlayerService
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
 import timber.log.Timber
 
 @ExperimentalPermissionsApi
@@ -57,6 +59,12 @@ class MainActivity : ComponentActivity() {
                         var isVoicePlaying by remember() {
                             mutableStateOf(false)
                         }
+                        var progress by remember() {
+                            mutableLongStateOf(0)
+                        }
+                        var voiceDuration by remember() {
+                            mutableLongStateOf(0)
+                        }
 
                         val lifecycleOwner = LocalLifecycleOwner.current
                         val context = LocalContext.current
@@ -68,6 +76,7 @@ class MainActivity : ComponentActivity() {
                                         {
                                             browserFuture.get().apply {
                                                 isVoicePlaying = isPlaying
+                                                progress = currentPosition
                                                 addListener(
                                                     object : Player.Listener {
                                                         override fun onEvents(
@@ -84,8 +93,10 @@ class MainActivity : ComponentActivity() {
                                                                 Player.STATE_IDLE -> {
                                                                     isVoicePlaying = isPlaying
                                                                 }
-                                                                Player.STATE_ENDED->{
+
+                                                                Player.STATE_ENDED -> {
                                                                     isVoicePlaying = isPlaying
+                                                                    progress = 0
                                                                 }
 
                                                                 Player.STATE_BUFFERING -> {
@@ -93,7 +104,6 @@ class MainActivity : ComponentActivity() {
                                                                 }
 
                                                                 Player.STATE_READY -> {
-
                                                                 }
                                                             }
                                                             super.onPlaybackStateChanged(
@@ -125,32 +135,46 @@ class MainActivity : ComponentActivity() {
                                 lifecycleOwner.lifecycle.removeObserver(observer)
                             }
                         }
-                            VoiceRecorderNavigation(
-                                modifier = Modifier,
-                                navController = navState,
-                                voices = listOf(),
-                                isPlaying = isVoicePlaying,
-                                onPlay = { index, voice ->
-                                    val metadata = MediaMetadata.Builder()
-                                        .setTitle(voice.title)
-                                        .setIsPlayable(true).build()
-                                    val mediaitem = MediaItem.Builder()
-                                        .setMediaMetadata(metadata)
-                                        .setUri(voice.path)
-                                        .setMediaId(voice.title)
-                                        .build()
-                                    browser?.run {
-                                        setMediaItem(mediaitem)
-                                        play()
-                                    }
-                                },
-                                onStop = {
-                                    browser?.run {
-                                        stop()
-                                        pause()
+                        LaunchedEffect(key1 = progress, isVoicePlaying) {
+                            if (isVoicePlaying)
+                                browser?.run {
+                                    voiceDuration = duration
+                                    while (true) {
+                                        delay(1_000)
+                                        progress = currentPosition
+                                        Timber.e(progress.toString())
                                     }
                                 }
-                            )
+                        }
+                        VoiceRecorderNavigation(
+                            modifier = Modifier,
+                            navController = navState,
+                            voices = listOf(),
+                            isPlaying = isVoicePlaying,
+                            onPlay = { index, voice ->
+                                val metadata = MediaMetadata.Builder()
+                                    .setTitle(voice.title)
+                                    .setIsPlayable(true).build()
+                                val mediaitem = MediaItem.Builder()
+                                    .setMediaMetadata(metadata)
+                                    .setUri(voice.path)
+                                    .setMediaId(voice.title)
+                                    .build()
+                                browser?.run {
+                                    setMediaItem(mediaitem)
+                                    play()
+                                }
+                            },
+                            onStop = {
+                                browser?.run {
+                                    stop()
+                                    pause()
+                                }
+                            },
+                            progress = progress.toFloat(),
+                            duration = voiceDuration.toFloat(),
+                            onProgressChange = { }
+                        )
                     }
                 }
             }

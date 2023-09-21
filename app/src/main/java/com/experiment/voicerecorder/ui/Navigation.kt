@@ -26,6 +26,9 @@ fun VoiceRecorderNavigation(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
     voices: List<MediaItem>,
+    progress: Float,
+    duration: Float,
+    onProgressChange: (Float)->Unit,
     isPlaying: Boolean,
     onPlay: (Int, Voice) -> Unit,
     onStop: () -> Unit,
@@ -45,7 +48,10 @@ fun VoiceRecorderNavigation(
                 onPlay(i, voice)
             },
             onStop = { onStop() },
-            onBackPressed = { navController.popBackStack() }
+            onBackPressed = { navController.popBackStack() },
+            progress = progress,
+            duration = duration,
+            onProgressChange = { onProgressChange(it) }
         )
     }
 }

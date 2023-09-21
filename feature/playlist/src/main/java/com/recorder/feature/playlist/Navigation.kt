@@ -17,6 +17,9 @@ fun NavController.toRecordings(navOptions: NavOptions? = null) {
 
 fun NavGraphBuilder.recordings(
     voices: List<MediaItem>,
+    progress: Float,
+    duration: Float,
+    onProgressChange :(Float)->Unit,
     isPlaying: Boolean,
     onPlay: (Int, Voice) -> Unit,
     onStop: () -> Unit,
@@ -50,7 +53,8 @@ fun NavGraphBuilder.recordings(
                 onPlay(i, voice)
             },
             onBackPressed = { onBackPressed() },
-            progress = 0.0f,
+            progress = progress,
+            duration = duration,
             onProgressChange = {}
         )
     }

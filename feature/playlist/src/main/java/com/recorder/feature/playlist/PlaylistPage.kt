@@ -35,6 +35,7 @@ fun Playlist(
     onStop: () -> Unit,
     voices: List<Voice>,
     progress: Float,
+    duration: Float,
     onProgressChange: (Float) -> Unit,
     isPlaying: Boolean,
     onVoiceClicked: (Int, Voice) -> Unit,
@@ -71,6 +72,7 @@ fun Playlist(
             },
             onBackPressed = { onBackPressed() },
             progress = progress,
+            duration = duration,
             onProgressChange = { progress ->
                 onProgressChange(progress)
             })
@@ -82,6 +84,7 @@ fun Playlist(
 fun PlaylistContent(
     voices: List<Voice>,
     progress: Float,
+    duration: Float,
     onProgressChange: (Float) -> Unit,
     onPlayPause: () -> Unit,
     onStop: () -> Unit,
@@ -137,6 +140,7 @@ fun PlaylistContent(
                     },
                     onStop = { onStop() },
                     progress = progress,
+                    duration = duration,
                     onProgressChange = { progress ->
                         onProgressChange(progress)
                     }
@@ -152,6 +156,7 @@ fun PlaylistItem(
     modifier: Modifier = Modifier,
     voice: Voice,
     progress: Float,
+    duration: Float,
     onProgressChange: (Float) -> Unit,
     onVoiceClicked: (Voice) -> Unit,
     onStop: () -> Unit,
@@ -206,15 +211,12 @@ fun PlaylistItem(
                     text = voice.title,
                     color = textColor
                 )
-                var value by remember {
-                    mutableFloatStateOf(0f)
-                }
                 AnimatedVisibility(visible = voice.isPlaying) {
                     Slider(
                         value = progress,
                         onValueChange = { onProgressChange(it) },
                         modifier = Modifier,
-                        valueRange = 0f..1f,
+                        valueRange = 0f..duration,
                         steps = 0,
                         onValueChangeFinished = {},
                     )
@@ -258,6 +260,7 @@ fun PlaylistPagePreview() {
                 },
                 onBackPressed = {},
                 progress = 0.0f,
+                duration = 0.0f,
                 onProgressChange = {},
 
                 )
@@ -325,6 +328,7 @@ fun PlaylistItemPreview() {
                 onStop = {},
                 modifier = Modifier,
                 progress = 0f,
+                duration = 0f,
                 onProgressChange = {}
             )
         }
