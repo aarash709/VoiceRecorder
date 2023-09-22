@@ -3,6 +3,10 @@ package com.recorder.feature.playlist
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -160,7 +164,7 @@ fun PlaylistItem(
     onStop: () -> Unit,
 ) {
     Surface(
-        modifier = Modifier,
+        modifier = Modifier.animateContentSize(),
         onClick = { },
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surface,
@@ -175,7 +179,8 @@ fun PlaylistItem(
         ) {
             AnimatedContent(
                 targetState = voice.isPlaying,
-                label = "play icon") { isPlaying->
+                label = "play icon"
+            ) { isPlaying ->
                 if (isPlaying)
                     Icon(
                         imageVector = Icons.Default.StopCircle,
@@ -203,13 +208,18 @@ fun PlaylistItem(
                     )
             }
             Column(
-                verticalArrangement = Arrangement.spacedBy(4.dp),
+                modifier = Modifier.animateContentSize(),
+                verticalArrangement = Arrangement.spacedBy(0.dp),//janky animation if set to > 0
             ) {
                 Text(
                     text = voice.title,
                     color = textColor
                 )
-                if(voice.isPlaying) {
+                AnimatedVisibility(
+                    voice.isPlaying,
+                    enter = expandVertically(),
+                    exit = shrinkVertically()
+                ) {
                     Slider(
                         value = progress,
                         onValueChange = { onProgressChange(it) },
