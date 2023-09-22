@@ -3,8 +3,6 @@ package com.recorder.feature.playlist
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -162,7 +160,7 @@ fun PlaylistItem(
     onStop: () -> Unit,
 ) {
     Surface(
-        modifier = Modifier.animateContentSize(),
+        modifier = Modifier,
         onClick = { },
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surface,
@@ -211,7 +209,7 @@ fun PlaylistItem(
                     text = voice.title,
                     color = textColor
                 )
-                AnimatedVisibility(visible = voice.isPlaying) {
+                if(voice.isPlaying) {
                     Slider(
                         value = progress,
                         onValueChange = { onProgressChange(it) },

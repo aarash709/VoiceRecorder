@@ -92,11 +92,13 @@ class MainActivity : ComponentActivity() {
                                                             when (playbackState) {
                                                                 Player.STATE_IDLE -> {
                                                                     isVoicePlaying = isPlaying
+                                                                    voiceDuration = 0
                                                                 }
 
                                                                 Player.STATE_ENDED -> {
                                                                     isVoicePlaying = isPlaying
                                                                     progress = 0
+                                                                    voiceDuration = 0
                                                                 }
 
                                                                 Player.STATE_BUFFERING -> {
@@ -104,6 +106,8 @@ class MainActivity : ComponentActivity() {
                                                                 }
 
                                                                 Player.STATE_READY -> {
+                                                                    voiceDuration = duration
+                                                                    progress = currentPosition
                                                                 }
                                                             }
                                                             super.onPlaybackStateChanged(
@@ -111,11 +115,24 @@ class MainActivity : ComponentActivity() {
                                                             )
                                                         }
 
-                                                        override fun onIsPlayingChanged(isPlaying: Boolean) {
-                                                            super.onIsPlayingChanged(isPlaying)
+                                                        override fun onPlayWhenReadyChanged(
+                                                            playWhenReady: Boolean,
+                                                            reason: Int,
+                                                        ) {
+                                                            Timber.e("play when ready:$playWhenReady")
                                                             isVoicePlaying = isPlaying
-                                                            Timber.e("isplaying chnage$isPlaying")
+                                                            super.onPlayWhenReadyChanged(
+                                                                playWhenReady,
+                                                                reason
+                                                            )
                                                         }
+
+                                                        override fun onIsPlayingChanged(isPlaying: Boolean) {
+                                                            isVoicePlaying = isPlaying
+                                                            super.onIsPlayingChanged(isPlaying)
+                                                            Timber.e("is playing chnage:$isPlaying")
+                                                        }
+
 
                                                         override fun onPlayerError(error: PlaybackException) {
                                                             super.onPlayerError(error)
@@ -138,11 +155,9 @@ class MainActivity : ComponentActivity() {
                         LaunchedEffect(key1 = progress, isVoicePlaying) {
                             if (isVoicePlaying)
                                 browser?.run {
-                                    voiceDuration = duration
                                     while (true) {
                                         delay(1_000)
                                         progress = currentPosition
-                                        Timber.e(progress.toString())
                                     }
                                 }
                         }
