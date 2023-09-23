@@ -72,6 +72,10 @@ class PlayerService : MediaLibraryService() {
 
     override fun onDestroy() {
         super.onDestroy()
+        mediaLibrarySession.run {
+            player.release()
+            release()
+        }
         Timber.e("player service destroyed")
     }
 

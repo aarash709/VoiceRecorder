@@ -25,7 +25,9 @@ sealed class Pages(val route: String) {
 fun VoiceRecorderNavigation(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
-    voices: List<MediaItem>,
+    progress: Float,
+    duration: Float,
+    onProgressChange: (Float) -> Unit,
     isPlaying: Boolean,
     onPlay: (Int, Voice) -> Unit,
     onStop: () -> Unit,
@@ -40,12 +42,16 @@ fun VoiceRecorderNavigation(
         })
         recordings(
             isPlaying = isPlaying,
-            voices = voices,
             onPlay = { i, voice ->
                 onPlay(i, voice)
             },
             onStop = { onStop() },
-            onBackPressed = { navController.popBackStack() }
+            onBackPressed = { navController.popBackStack() },
+            progress = progress,
+            duration = duration,
+            onProgressChange = { newProgress ->
+                onProgressChange(newProgress)
+            }
         )
     }
 }
