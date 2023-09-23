@@ -164,7 +164,6 @@ class MainActivity : ComponentActivity() {
                         VoiceRecorderNavigation(
                             modifier = Modifier,
                             navController = navState,
-                            voices = listOf(),
                             isPlaying = isVoicePlaying,
                             onPlay = { index, voice ->
                                 val metadata = MediaMetadata.Builder()
@@ -183,12 +182,15 @@ class MainActivity : ComponentActivity() {
                             onStop = {
                                 browser?.run {
                                     stop()
-                                    pause()
                                 }
                             },
                             progress = progress.toFloat(),
                             duration = voiceDuration.toFloat(),
-                            onProgressChange = { }
+                            onProgressChange = { currentPosition->
+                                browser?.run {
+                                    seekTo(currentPosition.toLong())
+                                }
+                            }
                         )
                     }
                 }

@@ -29,13 +29,13 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.core.common.model.Voice
 import com.recorder.core.designsystem.theme.VoiceRecorderTheme
+import kotlinx.coroutines.delay
 import timber.log.Timber
 
 @Composable
 fun Playlist(
     onPlayPause: () -> Unit,
     onStop: () -> Unit,
-    voices: List<Voice>,
     progress: Float,
     duration: Float,
     onProgressChange: (Float) -> Unit,
@@ -52,12 +52,20 @@ fun Playlist(
     LaunchedEffect(key1 = Unit, block = {
         viewModel.getVoices(context)
     })
+    var lastProgress by remember(progress) {
+        mutableFloatStateOf(progress)
+    }
     LaunchedEffect(key1 = isPlaying) {
-        Timber.e("updatelist")
         viewModel.updateVoiceList(
             selectedVoiceIndex = playingVoiceIndex,
             isPlaying = isPlaying
         )
+    }
+    LaunchedEffect(key1 = lastProgress) {
+        if (progress != lastProgress) {
+            delay(50)
+            onProgressChange(lastProgress)
+        }
     }
     Box(
         modifier = Modifier
@@ -73,10 +81,10 @@ fun Playlist(
                 onVoiceClicked(voiceIndex, voice)
             },
             onBackPressed = { onBackPressed() },
-            progress = progress,
+            progress = lastProgress,
             duration = duration,
-            onProgressChange = { progress ->
-                onProgressChange(progress)
+            onProgressChange = { desireePosition ->
+                lastProgress = desireePosition
             })
     }
 }
