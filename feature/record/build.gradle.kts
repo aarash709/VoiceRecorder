@@ -40,10 +40,6 @@ dependencies {
     implementation(project(":core:service"))
     implementation(project(":core:designsystem"))
 
-    implementation(platform(libs.compose.bom))
-    androidTestImplementation(platform(libs.compose.bom))
-    implementation(libs.bundles.compose)
-    debugImplementation(libs.compose.ui.tooling)
 
     implementation(libs.androidx.navigationCompose)
 
@@ -62,8 +58,6 @@ dependencies {
 
     implementation(libs.androidx.coreKtx)
     implementation(libs.appcompat)
-
-    implementation(libs.timberLogger)
 
     testImplementation(libs.junit4)
     testImplementation(libs.kotlix.coroutinesTest)

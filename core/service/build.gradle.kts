@@ -41,13 +41,11 @@ dependencies {
     implementation(libs.androidx.coreKtx)
     implementation(libs.androidx.lifecycleRuntimeKtx)
 
-    api(libs.media3.exoplayer)
-    api(libs.media3.mediasession)
+    api(libs.androidx.media3.exoPlayer)
+    api(libs.androidx.media3.mediasession)
 
     implementation(libs.hilt.android)
     kapt(libs.hilt.kaptCompiler)
-
-    implementation(libs.timberLogger)
 
     testImplementation(libs.junit4)
     androidTestImplementation(libs.androidx.test.extJunit)
