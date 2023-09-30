@@ -18,13 +18,18 @@ import androidx.media3.common.Player
 import androidx.media3.session.MediaBrowser
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
 @Composable
 fun rememberPlayerState(
-    future: ListenableFuture<MediaBrowser>?,
+    future: ListenableFuture<MediaBrowser>,
+    coroutineScope: CoroutineScope = rememberCoroutineScope(),
 ): PlayerState {
     val lifecycleOwner = LocalLifecycleOwner.current
     var progress by remember {
@@ -55,25 +60,27 @@ fun rememberPlayerState(
         PlayerState(
             isPlaying = isPlaying,
             progress = progress,
-            duration = currentDuration
-
+            duration = currentDuration,
+            coroutineScope = coroutineScope
         )
     }
 }
 
 @Stable
 class PlayerState(
-//    private val future: ListenableFuture<MediaBrowser>?,
     isPlaying: Boolean,
     progress: Long,
     duration: Long,
+    coroutineScope: CoroutineScope,
 ) {
-    var isVoicePlaying = isPlaying
-    var progress =
-        if (isVoicePlaying)
-            progress
-        else 0L
-    var voiceDuration = duration
+    var isVoicePlaying = flow {
+        emit(isPlaying)
+    }.stateIn(
+        scope = coroutineScope,
+        started = SharingStarted.WhileSubscribed(1_000),
+        initialValue = false)
+    var progress = if (isVoicePlaying.value) progress.toFloat() else 0f
+    var voiceDuration = duration.toFloat()
 
     init {
         Timber.e("init state")
@@ -84,7 +91,7 @@ class PlayerState(
 
 @Composable
 fun PlayerStateEffect(
-    future: ListenableFuture<MediaBrowser>?,
+    future: ListenableFuture<MediaBrowser>,
     lifecycleOwner: LifecycleOwner,
     progress: (Long) -> Unit,
     currentDuration: (Long) -> Unit,
@@ -94,16 +101,10 @@ fun PlayerStateEffect(
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event.targetState == Lifecycle.State.STARTED) {
-                future?.addListener(
+                future.addListener(
                     {
                         future.get().apply {
                             isVoicePlaying(isPlaying)
-                            scope.launch {
-                                while (isPlaying) {
-                                    delay(1_000L)
-                                    progress(currentPosition)
-                                }
-                            }
                             addListener(
                                 object : Player.Listener {
                                     override fun onPlaybackStateChanged(
@@ -126,7 +127,15 @@ fun PlayerStateEffect(
                                             }
 
                                             Player.STATE_READY -> {
+                                                isVoicePlaying(isPlaying)
                                                 currentDuration(duration)
+                                                scope.launch {
+                                                    while (isPlaying) {
+                                                        delay(1_000L)
+                                                        progress(currentPosition)
+                                                        Timber.e("sp:$currentPosition")
+                                                    }
+                                                }
                                             }
                                         }
                                         super.onPlaybackStateChanged(
