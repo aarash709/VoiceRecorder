@@ -7,15 +7,15 @@ androidxCompose = "1.4.3"
 androidxComposeCompiler = "1.5.3"
 androidxCore = "1.12.0"
 androidxAppcompat = "1.6.1"
-andoidxWindow = "1.1.0"
-andoidxWork = "2.8.1"
-andoidxNavigation = "2.7.3"
-andoidxLifecycle = "2.6.2"
+androidxWindow = "1.1.0"
+androidxWork = "2.8.1"
+androidxNavigation = "2.7.3"
+androidxLifecycle = "2.6.2"
 androidxActivityCompose = "1.7.2"
 androidxHiltWork = "1.0.0"
 androidxRoom = "2.5.2"
 androidxSplashScreen = "1.0.1"
-andoidxDatastorePreferences = "1.0.0"
+androidxDatastorePreferences = "1.0.0"
 androidxMedia = "1.6.0"
 androidxTestExtJunit = "1.1.5"
 accompanist = "0.30.1"
@@ -34,6 +34,7 @@ espresso-core = "3.5.1"
 appcompat = "1.6.1"
 material = "1.9.0"
 androidxMedia3 = "1.1.1"
+detekt = "1.23.1"
 
 [libraries]
 compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
@@ -53,16 +54,16 @@ androidx-CoreKtx = { group = "androidx.core", name = "core-ktx", version.ref = "
 androidx-Activity = { group = "androidx.activity", name = "activity", version.ref = "androidxActivity" }
 androidx-splashScreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "androidxSplashScreen" }
 androidx-AppCompat = { group = "androidx.core", name = "core-ktx", version.ref = "androidxCore" }
-androidx-Window = { group = "androidx.window", name = "window", version.ref = "andoidxWindow" }
-androidx-Work = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "andoidxWork" }
-androidx-NavigationCompose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "andoidxNavigation" }
-androidx-LifecycleRuntimeKtx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "andoidxLifecycle" }
-androidx-LifecycleViewModelKtx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "andoidxLifecycle" }
-androidx-LifecycleLiveDataKtx = { group = "androidx.lifecycle", name = "lifecycle-livedata-ktx", version.ref = "andoidxLifecycle" }
-androidx-LifecycleComposeRuntime = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "andoidxLifecycle" }
-androidx-LifecycleViewModelCompose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "andoidxLifecycle" }
+androidx-Window = { group = "androidx.window", name = "window", version.ref = "androidxWindow" }
+androidx-Work = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "androidxWork" }
+androidx-NavigationCompose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "androidxNavigation" }
+androidx-LifecycleRuntimeKtx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "androidxLifecycle" }
+androidx-LifecycleViewModelKtx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "androidxLifecycle" }
+androidx-LifecycleLiveDataKtx = { group = "androidx.lifecycle", name = "lifecycle-livedata-ktx", version.ref = "androidxLifecycle" }
+androidx-LifecycleComposeRuntime = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "androidxLifecycle" }
+androidx-LifecycleViewModelCompose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "androidxLifecycle" }
 androidx-ActivityCompose = { group = "androidx.activity", name = "activity-compose", version.ref = "androidxActivityCompose" }
-androidx-Datastore = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "andoidxDatastorePreferences" }
+androidx-Datastore = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "androidxDatastorePreferences" }
 androidx-HiltWork = { group = "androidx.hilt", name = "hilt-work", version.ref = "androidxHiltWork" }
 androidx-HiltKaptCompiler = { group = "androidx.hilt", name = "hilt-compiler", version.ref = "androidxHiltWork" }
 androidx-roomCommon = { group = "androidx.room", name = "room-common", version.ref = "androidxRoom" }
@@ -102,6 +103,7 @@ androidx-test-extJunit = { group = "androidx.test.ext", name = "junit", version.
 espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espresso-core" }
 appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+detekt-formatting = { group = "io.gitlab.arturbosch.detekt", name = "detekt-formatting", version.ref = "detekt" }
 
 
 [bundles]
@@ -133,3 +135,4 @@ android-library = { id = "com.android.library", version.ref = "androidGradle" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hiltAndroid" }
+detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }

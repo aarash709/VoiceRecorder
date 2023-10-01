@@ -3,6 +3,7 @@ plugins {
     id(libs.plugins.kotlin.android.get().pluginId)
     id(libs.plugins.kotlin.serialization.get().pluginId)
     id(libs.plugins.hilt.get().pluginId)
+    alias(libs.plugins.detekt)
     id("kotlin-kapt")
 }
 
@@ -62,6 +63,7 @@ dependencies {
     implementation(project(":core:common"))
     implementation(project(":core:service"))
 
+    detektPlugins(libs.detekt.formatting)
 
     implementation(libs.androidx.coreKtx)
     implementation(libs.androidx.appCompat)
