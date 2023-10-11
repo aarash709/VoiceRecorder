@@ -13,10 +13,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.Lifecycle
@@ -47,7 +45,6 @@ class MainActivity : ComponentActivity() {
     private lateinit var browserFuture: ListenableFuture<MediaBrowser>
     private val browser
         get() = if (browserFuture.isDone) browserFuture.get() else null
-    private val mediaItems = mutableListOf<MediaItem>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,19 +53,17 @@ class MainActivity : ComponentActivity() {
                 val navState = rememberNavController()
                 MainScreen {
                     Box(modifier = Modifier) {
-                        var isVoicePlaying by remember() {
+                        var isVoicePlaying by remember {
                             mutableStateOf(false)
                         }
-                        var progress by remember() {
+                        var progress by remember {
                             mutableLongStateOf(0)
                         }
-                        var voiceDuration by remember() {
+                        var voiceDuration by remember {
                             mutableLongStateOf(0)
                         }
 
                         val lifecycleOwner = LocalLifecycleOwner.current
-                        val context = LocalContext.current
-                        val scope = rememberCoroutineScope()
                         DisposableEffect(lifecycleOwner) {
                             val observer = LifecycleEventObserver { _, event ->
                                 if (event.targetState == Lifecycle.State.STARTED) {
@@ -79,13 +74,6 @@ class MainActivity : ComponentActivity() {
                                                 progress = currentPosition
                                                 addListener(
                                                     object : Player.Listener {
-                                                        override fun onEvents(
-                                                            player: Player,
-                                                            events: Player.Events,
-                                                        ) {
-                                                            super.onEvents(player, events)
-                                                        }
-
                                                         override fun onPlaybackStateChanged(
                                                             playbackState: Int,
                                                         ) {
@@ -102,7 +90,6 @@ class MainActivity : ComponentActivity() {
                                                                 }
 
                                                                 Player.STATE_BUFFERING -> {
-
                                                                 }
 
                                                                 Player.STATE_READY -> {
@@ -114,7 +101,6 @@ class MainActivity : ComponentActivity() {
                                                                 playbackState
                                                             )
                                                         }
-
                                                         override fun onPlayWhenReadyChanged(
                                                             playWhenReady: Boolean,
                                                             reason: Int,
@@ -133,17 +119,16 @@ class MainActivity : ComponentActivity() {
                                                             Timber.e("is playing chnage:$isPlaying")
                                                         }
 
-
                                                         override fun onPlayerError(error: PlaybackException) {
                                                             super.onPlayerError(error)
                                                             Timber.e(error.message)
                                                             browser?.stop()
                                                         }
-
-                                                    })
+                                                    }
+                                                )
                                             }
-
-                                        }, MoreExecutors.directExecutor()
+                                        },
+                                        MoreExecutors.directExecutor()
                                     )
                                 }
                             }
@@ -153,16 +138,16 @@ class MainActivity : ComponentActivity() {
                             }
                         }
                         LaunchedEffect(key1 = progress, isVoicePlaying) {
-                            if (isVoicePlaying)
+                            if (isVoicePlaying) {
                                 browser?.run {
                                     while (true) {
-                                        delay(1_000)
+                                        delay(1_000L)
                                         progress = currentPosition
                                     }
                                 }
+                            }
                         }
                         VoiceRecorderNavigation(
-                            modifier = Modifier,
                             navController = navState,
                             isPlaying = isVoicePlaying,
                             onPlay = { index, voice ->
@@ -186,7 +171,7 @@ class MainActivity : ComponentActivity() {
                             },
                             progress = progress.toFloat(),
                             duration = voiceDuration.toFloat(),
-                            onProgressChange = { currentPosition->
+                            onProgressChange = { currentPosition ->
                                 browser?.run {
                                     seekTo(currentPosition.toLong())
                                 }
@@ -213,11 +198,9 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-
 @Preview(showBackground = true)
 @Composable
 fun DefaultPreview() {
     VoiceRecorderTheme {
-
     }
 }

@@ -1,4 +1,4 @@
-package com.experiment.voicerecorder
+package com.experiment.voicerecorder.ui
 
 import android.Manifest
 import android.os.Build
@@ -40,7 +40,8 @@ fun VoiceRecorderPermissionsHandler(
         }
     val lifecycleOwner = LocalLifecycleOwner.current
     val permissionState = rememberMultiplePermissionsState(
-        permissions = permissionList)
+        permissions = permissionList
+    )
     DisposableEffect(key1 = lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_START) {
@@ -55,111 +56,56 @@ fun VoiceRecorderPermissionsHandler(
 
     permissionState.permissions.forEach { permission ->
         when (permission.permission) {
-//            Manifest.permission.MANAGE_EXTERNAL_STORAGE ->
-//                when {
-//                    permission.status.isGranted -> {
-//                        content()
-//                    }
-//                    permission.status.shouldShowRationale -> {
-//                        Column(modifier = Modifier.fillMaxSize()) {
-//                            Text(text = "accept manage ratianale",
-//                                color = MaterialTheme.colors.onSurface)
-//                            Button(onClick = { permission.launchPermissionRequest() }) {
-//                                Text(text = "grant permission",
-//                                    color = MaterialTheme.colors.onSurface)
-//                            }
-//                        }
-//
-//                    }
-////                    permission.permissionRequested ->
-////                        Text(text = "read permission requested")
-//
-//                    permission.permanentlyDenied() ->
-//                        Text(text = "manage storage permission was permanently" +
-//                                "denied. You can enable it in the app" +
-//                                "settings.",
-//                            color = MaterialTheme.colors.onSurface)
-//                }
-//            Manifest.permission.READ_EXTERNAL_STORAGE ->
-//                when {
-//                    permission.hasPermission -> {
-//                        content()
-//                    }
-//                    permission.shouldShowRationale -> {
-//                        Column(modifier = Modifier.fillMaxSize()) {
-//                            Text(text = "accept read ratianale")
-//                            Button(onClick = { permission.launchPermissionRequest() }) {
-//                                Text(text = "grant permission")
-//                            }
-//                        }
-//
-//                    }
-//                    permission.permissionRequested ->
-//                        Text(text = "read permission requested")
-//
-//                    permission.permanentlyDenied() ->
-//                        Text(text = "Read permission was permanently" +
-//                                "denied. You can enable it in the app" +
-//                                "settings.")
-//                }
             Manifest.permission.READ_MEDIA_AUDIO ->
                 when {
-                    permission.status.isGranted -> {
-                        content()
-                    }
-                    !permission.status.isGranted -> {
-                        Text(text = "no access to audio files")
-                    }
-                    permission.status.shouldShowRationale -> {
+                    permission.status.isGranted -> content()
+                    !permission.status.isGranted -> Text(text = "no access to audio files")
+                    permission.status.shouldShowRationale ->
                         Column(modifier = Modifier.fillMaxSize()) {
-                            Text(text = "accept write ratianale",
-                                color = MaterialTheme.colors.onSurface)
+                            Text(
+                                text = "accept write ratianale",
+                                color = MaterialTheme.colors.onSurface
+                            )
                             Button(onClick = { permission.launchPermissionRequest() }) {
-                                Text(text = "grant permission",
-                                    color = MaterialTheme.colors.onSurface)
+                                Text(
+                                    text = "grant permission",
+                                    color = MaterialTheme.colors.onSurface
+                                )
                             }
                         }
-
-                    }
-//                    permission.permissionRequested ->
-//                        Text(text = "write permission requested")
-                    permission.permanentlyDenied() ->
-                        Text(text = "Write permission was permanently" +
-                                "denied. You can enable it in the app" +
-                                "settings.",
-                            color = MaterialTheme.colors.onSurface)
+                    permission.permanentlyDenied() -> Text(
+                        text = "Write permission was permanently denied. You can enable it in the app settings.",
+                        color = MaterialTheme.colors.onSurface
+                    )
                 }
+
             Manifest.permission.RECORD_AUDIO ->
                 when {
-                    permission.status.isGranted-> {
-                        content()
-                    }
-                    permission.status.shouldShowRationale -> {
+                    permission.status.isGranted -> content()
+                    permission.status.shouldShowRationale ->
                         Column(modifier = Modifier.fillMaxSize()) {
-                            Text(text = "accept record ratianale",
-                                color = MaterialTheme.colors.onSurface)
+                            Text(
+                                text = "accept record ratianale",
+                                color = MaterialTheme.colors.onSurface
+                            )
                             Button(onClick = { permission.launchPermissionRequest() }) {
-                                Text(text = "grant permission",
-                                    color = MaterialTheme.colors.onSurface)
+                                Text(
+                                    text = "grant permission",
+                                    color = MaterialTheme.colors.onSurface
+                                )
                             }
                         }
-
-                    }
-//                    permission.permissionRequested ->
-//                        Text(text = "record permission requested")
-
                     permission.permanentlyDenied() ->
-                        Text(text = "Record audio permission was permanently" +
-                                "denied. You can enable it in the app" +
-                                "settings.",
-                            color = MaterialTheme.colors.onSurface)
+                        Text(
+                            text = "Record audio permission was permanently denied. You can enable it in the app settings.",
+                            color = MaterialTheme.colors.onSurface
+                        )
                 }
         }
     }
 }
 
-
-//ext
+// ext
 @ExperimentalPermissionsApi
 fun PermissionState.permanentlyDenied(): Boolean {
     return !status.isGranted && !status.shouldShowRationale

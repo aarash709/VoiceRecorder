@@ -2,8 +2,6 @@ package com.experiment.voicerecorder.ui
 
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.media3.common.MediaItem
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
@@ -14,16 +12,10 @@ import com.recorder.feature.playlist.toRecordings
 import com.recorder.feature.record.RECORDER_ROUTE
 import com.recorder.feature.record.recorder
 
-sealed class Pages(val route: String) {
-    object RecordingPage : Pages("RecordingPage")
-    object PlayListPage : Pages("PlayListPage")
-}
-
 @ExperimentalPermissionsApi
 @ExperimentalMaterialApi
 @Composable
 fun VoiceRecorderNavigation(
-    modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
     progress: Float,
     duration: Float,
