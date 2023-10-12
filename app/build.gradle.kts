@@ -1,9 +1,10 @@
 plugins {
-    id(libs.plugins.android.application.get().pluginId)
-    id(libs.plugins.kotlin.android.get().pluginId)
-    id(libs.plugins.kotlin.serialization.get().pluginId)
-    id(libs.plugins.hilt.get().pluginId)
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.hilt)
     alias(libs.plugins.detekt)
+    alias(libs.plugins.kotlinter)
     id("kotlin-kapt")
 }
 
