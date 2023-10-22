@@ -1,11 +1,8 @@
 package com.core.common
 
 import android.content.Context
-import android.media.MediaMetadataRetriever
-import android.media.MediaMetadataRetriever.METADATA_KEY_DURATION
 import com.core.common.model.Voice
 import java.io.File
-import java.util.concurrent.TimeUnit
 
 class Storage {
 
@@ -18,18 +15,15 @@ class Storage {
         return File(
             path,
         ).listFiles()?.map { voiceFile ->
-            val savedTime = FileSavedTime().getLastTimeRecorded(voiceFile.lastModified())
-            val durationMillis = MediaMetadataRetriever().run {
-                setDataSource(voiceFile.path)
-                extractMetadata(METADATA_KEY_DURATION)
-            }.toString().toLong()
-            val seconds = TimeUnit.MILLISECONDS.toSeconds(durationMillis)
-            val minutes = TimeUnit.MILLISECONDS.toMinutes(durationMillis)
+            val recordTime = getLastTimeRecorded(voiceFile.lastModified())
+            val durationInMillis = mediaDurationInMillis(voiceFile.path)
+            val seconds = getSeconds(durationInMillis).doubleDigitFormat()
+            val minutes = getMinutes(durationInMillis).doubleDigitFormat()
             Voice(
                 title = voiceFile.name,
                 path = voiceFile.path,
-                duration = "${String.format("%02d", minutes)}:${String.format("%02d",seconds)}",
-                recordTime = savedTime,
+                duration = "$minutes:$seconds",
+                recordTime = recordTime,
             )
         }
     }
