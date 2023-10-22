@@ -6,7 +6,6 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.media.MediaRecorder
-import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import com.core.common.Storage
@@ -14,11 +13,9 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.io.File
-import java.lang.Exception
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -148,12 +145,10 @@ class RecorderService : Service() {
     }
 
     private fun generateFileName(
-        pattern: String = "yyMMdd_HHmmss",
-        fileExt: String = ".m4a",
+        pattern: String = "hh.mm, d MMM",
         local: Locale = Locale.getDefault(),
     ): String {
         val sdf = SimpleDateFormat(pattern, local)
-        val date = sdf.format(Date())
-        return "$date$fileExt"
+        return sdf.format(Date())
     }
 }
