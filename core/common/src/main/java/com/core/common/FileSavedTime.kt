@@ -1,12 +1,15 @@
 package com.core.common
 
-import java.util.*
+import java.util.Date
 import java.util.concurrent.TimeUnit
-
 class FileSavedTime {
-    fun getLastTimeRecorded(duration: Long): String {
+    /**
+     * Calculates the time a file is saved on storage.
+     * [lastModified] get the time of file creation by using File().lastModified.
+     * */
+    fun getLastTimeRecorded(lastModified: Long): String {
         val currentTime = Date().time
-        val timeToCalculate = currentTime - duration
+        val timeToCalculate = currentTime - lastModified
         val seconds = TimeUnit.MILLISECONDS.toSeconds(timeToCalculate)
         val minutes = TimeUnit.MILLISECONDS.toMinutes(timeToCalculate)
         val hours = TimeUnit.MILLISECONDS.toHours(timeToCalculate)
