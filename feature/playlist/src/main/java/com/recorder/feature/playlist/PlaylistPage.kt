@@ -7,16 +7,46 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.PlayCircle
+import androidx.compose.material.icons.filled.StopCircle
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MediumTopAppBar
+import androidx.compose.material3.Slider
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -89,7 +119,7 @@ fun Playlist(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun PlaylistContent(
     voices: List<Voice>,
@@ -103,6 +133,12 @@ fun PlaylistContent(
 ) {
     var voice by remember {
         mutableStateOf(Voice())
+    }
+    var selectedVoices by remember {
+        mutableStateOf(emptySet<String>())
+    }
+    val isInEditMode by remember {
+        derivedStateOf { selectedVoices.isNotEmpty() }
     }
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     Column(
@@ -142,7 +178,18 @@ fun PlaylistContent(
                     it
                 }) { voiceIndex ->
                 PlaylistItem(
-                    modifier = Modifier,
+                    modifier = Modifier.combinedClickable(
+                        onClick = {
+                            if (isInEditMode) {
+                                selectedVoices += voice.title
+                            }
+                        },
+                        onLongClick = {
+                            if (!isInEditMode) {
+                                selectedVoices += voice.title
+                            }
+                        },
+                    ),
                     voice = voices[voiceIndex],
                     onVoiceClicked = { clickedVoice ->
                         onVoiceClicked(voiceIndex, clickedVoice)
@@ -151,6 +198,7 @@ fun PlaylistContent(
                     onStop = { onStop() },
                     progress = progress,
                     duration = duration,
+                    isInEditMode = isInEditMode,
                     onProgressChange = { progress ->
                         onProgressChange(progress)
                     }
@@ -167,6 +215,7 @@ fun PlaylistItem(
     voice: Voice,
     progress: Float,
     duration: Float,
+    isInEditMode: Boolean,
     onProgressChange: (Float) -> Unit,
     onVoiceClicked: (Voice) -> Unit,
     onStop: () -> Unit,
@@ -284,47 +333,6 @@ fun PlaylistPagePreview() {
     }
 }
 
-@Composable
-fun MediaControls(
-    modifier: Modifier = Modifier,
-    voice: Voice,
-    onPlayPause: (Voice) -> Unit,
-    onStop: () -> Unit,
-) {
-    var sliderInt by remember {
-        mutableStateOf(0f)
-    }
-    Card(modifier = modifier) {
-        Column() {
-            Text(text = "filename:${voice.title}")
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                Button(onClick = { onPlayPause(voice) }) {
-                    Timber.e("${voice.isPlaying}")
-                    if (voice.isPlaying)
-                        Icon(
-                            imageVector = Icons.Default.Pause,
-                            contentDescription = "Play/Pause Button"
-                        )
-                    else
-                        Icon(
-                            imageVector = Icons.Default.PlayArrow,
-                            contentDescription = "Play/Pause Button"
-                        )
-                }
-                Spacer(modifier = Modifier.width(16.dp))
-                Button(onClick = { onStop() }) {
-                    Icon(
-                        imageVector = Icons.Default.Stop,
-                        contentDescription = "Stop Button"
-                    )
-                }
-            }
-            Slider(value = sliderInt, onValueChange = { sliderInt = it })
-        }
-
-    }
-}
-
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_NO)
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
 @Composable
@@ -340,6 +348,7 @@ fun PlaylistItemPreview() {
                     duration = "00:12",
                     recordTime = "just now"
                 ),
+                isInEditMode = false,
                 onVoiceClicked = {},
                 onStop = {},
                 modifier = Modifier,
