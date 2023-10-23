@@ -6,7 +6,11 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -27,13 +31,18 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.PlayCircle
+import androidx.compose.material.icons.filled.RestoreFromTrash
+import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.StopCircle
+import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MediumTopAppBar
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -141,72 +150,131 @@ fun PlaylistContent(
         derivedStateOf { selectedVoices.isNotEmpty() }
     }
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(bottom = 0.dp)
-            .nestedScroll(scrollBehavior.nestedScrollConnection)
-    ) {
-        MediumTopAppBar(
-            title = {
-                Text(
-                    text = "Recordings",
-                )
-            },
-            navigationIcon = {
-                IconButton(onClick = { onBackPressed() }) {
-                    Icon(
-                        imageVector = Icons.Default.ArrowBack,
-                        tint = MaterialTheme.colorScheme.onBackground,
-                        contentDescription = "back icon"
-                    )
-                }
-            },
-            colors = TopAppBarDefaults
-                .mediumTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                ),
-            scrollBehavior = scrollBehavior
-        )
-        LazyColumn(
-            modifier = Modifier.padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(
-                count = voices.size,
-                key = {
-                    it
-                }) { voiceIndex ->
-                PlaylistItem(
-                    modifier = Modifier.combinedClickable(
-                        onClick = {
-                            if (isInEditMode) {
-                                selectedVoices += voice.title
-                            }
-                        },
-                        onLongClick = {
-                            if (!isInEditMode) {
-                                selectedVoices += voice.title
-                            }
-                        },
-                    ),
-                    voice = voices[voiceIndex],
-                    onVoiceClicked = { clickedVoice ->
-                        onVoiceClicked(voiceIndex, clickedVoice)
-                        voice = clickedVoice
-                    },
-                    onStop = { onStop() },
-                    progress = progress,
-                    duration = duration,
-                    isInEditMode = isInEditMode,
-                    onProgressChange = { progress ->
-                        onProgressChange(progress)
+    Scaffold(
+        topBar = {
+            MediumTopAppBar(
+                title = {
+                    AnimatedContent(
+                        targetState = isInEditMode,
+                        label = "Title Animation"
+                    ) { inEditMode ->
+                        if (inEditMode)
+                            Text(text = "${selectedVoices.count()} item selected")
+                        else {
+                            Text(
+                                text = "Recordings",
+                            )
+                        }
                     }
-                )
+                },
+                navigationIcon = {
+                    IconButton(onClick = { onBackPressed() }) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            tint = MaterialTheme.colorScheme.onBackground,
+                            contentDescription = "back icon"
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults
+                    .mediumTopAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.background
+                    ),
+                scrollBehavior = scrollBehavior
+            )
+        },
+        bottomBar = {
+            AnimatedVisibility(
+                visible = isInEditMode,
+                enter = slideInVertically(
+                    initialOffsetY = { height ->
+                        height
+                    }) + fadeIn(),
+                exit = slideOutVertically(
+                    targetOffsetY = { height ->
+                        height
+                    }
+                ) + fadeOut()
+            ) {
+                BottomAppBar(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    tonalElevation = 0.dp
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        IconButton(onClick = { /*TODO delete functionality*/ }) {
+                            Icon(
+                                imageVector = Icons.Default.RestoreFromTrash,
+                                contentDescription = "Delete Icon"
+                            )
+                        }
+                        IconButton(onClick = { /*TODO save to gallery or recordings folder */ }) {
+                            Icon(
+                                imageVector = Icons.Default.Save,
+                                contentDescription = "Save Button"
+                            )
+                        }
+                    }
+                }
             }
         }
-
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .nestedScroll(scrollBehavior.nestedScrollConnection),
+        ) {
+            LazyColumn(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(
+                    count = voices.size,
+                    key = {
+                        it
+                    }) { voiceIndex ->
+                    val selected by remember {
+                        derivedStateOf {
+                            voices[voiceIndex].title in selectedVoices
+                        }
+                    }
+                    PlaylistItem(
+                        modifier = if (isInEditMode) {
+                            Modifier.clickable {
+                                if (selected)
+                                    selectedVoices -= voices[voiceIndex].title
+                                else selectedVoices += voices[voiceIndex].title
+                            }
+                        } else {
+                            Modifier.combinedClickable(
+                                onLongClick = {
+                                    selectedVoices += voices[voiceIndex].title
+                                },
+                                onClick = { }
+                            )
+                        },
+                        voice = voices[voiceIndex],
+                        onVoiceClicked = { clickedVoice ->
+                            onVoiceClicked(voiceIndex, clickedVoice)
+                            voice = clickedVoice
+                        },
+                        onStop = { onStop() },
+                        progress = progress,
+                        duration = duration,
+                        isInEditMode = isInEditMode,
+                        isSelected = selected,
+                        onProgressChange = { progress ->
+                            onProgressChange(progress)
+                        }
+                    )
+                }
+            }
+        }
     }
+
 }
 
 @Composable
@@ -216,6 +284,7 @@ fun PlaylistItem(
     progress: Float,
     duration: Float,
     isInEditMode: Boolean,
+    isSelected: Boolean,
     onProgressChange: (Float) -> Unit,
     onVoiceClicked: (Voice) -> Unit,
     onStop: () -> Unit,
@@ -232,73 +301,79 @@ fun PlaylistItem(
             modifier = modifier
                 .fillMaxWidth()
                 .padding(8.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            AnimatedContent(
-                targetState = voice.isPlaying,
-                label = "play icon"
-            ) { isPlaying ->
-                if (isPlaying)
-                    Icon(
-                        imageVector = Icons.Default.StopCircle,
-                        tint = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier
-                            .size(60.dp)
-                            .padding(all = 8.dp)
-                            .clip(CircleShape)
-                            .clickable { onStop() },
-                        contentDescription = ""
-                    )
-                else
-                    Icon(
-                        imageVector = Icons.Default.PlayCircle,
-                        tint = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier
-                            .size(60.dp)
-                            .padding(all = 8.dp)
-                            .clip(CircleShape)
-                            .clickable {
-                                onVoiceClicked(Voice(voice.title, voice.path))
-                                Timber.e("ui item: ${voice.title}")
-                            },
-                        contentDescription = ""
-                    )
-            }
-            Column(
-                modifier = Modifier.animateContentSize(),
-                verticalArrangement = Arrangement.spacedBy(0.dp),//janky animation if set to > 0
-            ) {
-                Text(
-                    text = voice.title,
-                    color = textColor
-                )
-                AnimatedVisibility(
-                    voice.isPlaying,
-                    enter = expandVertically(),
-                    exit = shrinkVertically()
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                AnimatedContent(
+                    targetState = voice.isPlaying,
+                    label = "play icon"
+                ) { isPlaying ->
+                    if (isPlaying)
+                        Icon(
+                            imageVector = Icons.Default.StopCircle,
+                            tint = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier
+                                .size(60.dp)
+                                .padding(all = 8.dp)
+                                .clip(CircleShape)
+                                .clickable { onStop() },
+                            contentDescription = ""
+                        )
+                    else
+                        Icon(
+                            imageVector = Icons.Default.PlayCircle,
+                            tint = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier
+                                .size(60.dp)
+                                .padding(all = 8.dp)
+                                .clip(CircleShape)
+                                .clickable {
+                                    onVoiceClicked(Voice(voice.title, voice.path))
+                                    Timber.e("ui item: ${voice.title}")
+                                },
+                            contentDescription = ""
+                        )
+                }
+                Column(
+                    modifier = Modifier.animateContentSize(),
+                    verticalArrangement = Arrangement.spacedBy(0.dp),//janky animation if set to > 0
                 ) {
-                    Slider(
-                        value = progress,
-                        onValueChange = { onProgressChange(it) },
-                        modifier = Modifier,
-                        valueRange = 0f..duration,
-                        steps = 0,
-                        onValueChangeFinished = {},
-                    )
-                }
-                Row {
                     Text(
-                        text = voice.duration,
-                        fontSize = 12.sp,
-                        color = textColor.copy(alpha = 0.7f)
+                        text = voice.title,
+                        color = textColor
                     )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = voice.recordTime,
-                        fontSize = 12.sp,
-                        color = textColor.copy(alpha = 0.7f)
-                    )
+                    AnimatedVisibility(
+                        voice.isPlaying,
+                        enter = expandVertically(),
+                        exit = shrinkVertically()
+                    ) {
+                        Slider(
+                            value = progress,
+                            onValueChange = { onProgressChange(it) },
+                            modifier = Modifier,
+                            valueRange = 0f..duration,
+                            steps = 0,
+                            onValueChangeFinished = {},
+                        )
+                    }
+                    Row {
+                        Text(
+                            text = voice.duration,
+                            fontSize = 12.sp,
+                            color = textColor.copy(alpha = 0.7f)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = voice.recordTime,
+                            fontSize = 12.sp,
+                            color = textColor.copy(alpha = 0.7f)
+                        )
+                    }
                 }
+            }
+            if (isInEditMode) {
+                RadioButton(selected = isSelected, onClick = { /*TODO*/ })
             }
         }
 
@@ -348,7 +423,8 @@ fun PlaylistItemPreview() {
                     duration = "00:12",
                     recordTime = "just now"
                 ),
-                isInEditMode = false,
+                isInEditMode = true,
+                isSelected = false,
                 onVoiceClicked = {},
                 onStop = {},
                 modifier = Modifier,
