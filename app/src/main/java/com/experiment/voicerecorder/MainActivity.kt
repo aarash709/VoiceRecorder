@@ -2,9 +2,13 @@ package com.experiment.voicerecorder
 
 import android.Manifest
 import android.content.ComponentName
+import android.graphics.Color
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.runtime.Composable
@@ -59,7 +63,27 @@ class MainActivity : ComponentActivity() {
                 Manifest.permission.POST_NOTIFICATIONS),
             0
         )
+        enableEdgeToEdge()
         setContent {
+            val isDarkTheme = isSystemInDarkTheme()
+            LaunchedEffect(isDarkTheme) {
+                enableEdgeToEdge(
+                    statusBarStyle = SystemBarStyle.light(
+                        Color.TRANSPARENT,
+                        Color.TRANSPARENT,
+                    ),
+                    navigationBarStyle = if (isDarkTheme) {
+                        SystemBarStyle.dark(
+                            Color.TRANSPARENT,
+                        )
+                    } else {
+                        SystemBarStyle.light(
+                            Color.TRANSPARENT,
+                            Color.TRANSPARENT,
+                        )
+                    }
+                )
+            }
             VoiceRecorderTheme {
                 val navState = rememberNavController()
                 MainScreen {
