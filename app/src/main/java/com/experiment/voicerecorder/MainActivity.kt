@@ -1,5 +1,6 @@
 package com.experiment.voicerecorder
 
+import android.Manifest
 import android.content.ComponentName
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -19,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.app.ActivityCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.media3.common.MediaItem
@@ -51,6 +53,12 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        ActivityCompat.requestPermissions(
+            this,
+            arrayOf(Manifest.permission.RECORD_AUDIO,
+                Manifest.permission.POST_NOTIFICATIONS),
+            0
+        )
         setContent {
             VoiceRecorderTheme {
                 val navState = rememberNavController()
@@ -186,7 +194,7 @@ class MainActivity : ComponentActivity() {
                             },
                             progress = progress.toFloat(),
                             duration = voiceDuration.toFloat(),
-                            onProgressChange = { currentPosition->
+                            onProgressChange = { currentPosition ->
                                 browser?.run {
                                     seekTo(currentPosition.toLong())
                                 }
