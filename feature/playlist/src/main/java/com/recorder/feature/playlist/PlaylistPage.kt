@@ -18,8 +18,10 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -29,11 +31,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.PlayCircle
-import androidx.compose.material.icons.filled.RestoreFromTrash
-import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.StopCircle
+import androidx.compose.material.icons.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.ChecklistRtl
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.DeleteForever
+import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -124,7 +128,10 @@ fun Playlist(
             duration = duration,
             onProgressChange = { desireePosition ->
                 lastProgress = desireePosition
-            })
+            },
+            delete = {},
+            save = {},
+        )
     }
 }
 
@@ -139,6 +146,8 @@ fun PlaylistContent(
     onStop: () -> Unit,
     onVoiceClicked: (Int, Voice) -> Unit,
     onBackPressed: () -> Unit,
+    delete: () -> Unit,
+    save: () -> Unit,
 ) {
     var voice by remember {
         mutableStateOf(Voice())
@@ -149,8 +158,22 @@ fun PlaylistContent(
     val isInEditMode by remember {
         derivedStateOf { selectedVoices.isNotEmpty() }
     }
+    var isAllSelected by remember {
+        mutableStateOf(false)
+    }
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    LaunchedEffect(key1 = isAllSelected) {
+        Timber.e("$isAllSelected")
+        if (isAllSelected) {
+            selectedVoices = emptySet()
+            selectedVoices += voices.map { it.title }
+        } else {
+            selectedVoices = emptySet()
+        }
+    }
     Scaffold(
+        modifier = Modifier,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             MediumTopAppBar(
                 title = {
@@ -168,12 +191,37 @@ fun PlaylistContent(
                     }
                 },
                 navigationIcon = {
-                    IconButton(onClick = { onBackPressed() }) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            tint = MaterialTheme.colorScheme.onBackground,
-                            contentDescription = "back icon"
-                        )
+                    AnimatedContent(
+                        targetState = isInEditMode,
+                        label = "Top bar Icon"
+                    ) { isInEditMode ->
+                        if (isInEditMode) {
+                            IconButton(onClick = { selectedVoices = emptySet() }) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Close,
+                                    tint = MaterialTheme.colorScheme.onBackground,
+                                    contentDescription = "Clear selection Button"
+                                )
+                            }
+                        } else {
+                            IconButton(onClick = { onBackPressed() }) {
+                                Icon(
+                                    imageVector = Icons.Outlined.ArrowBack,
+                                    tint = MaterialTheme.colorScheme.onBackground,
+                                    contentDescription = "back icon"
+                                )
+                            }
+                        }
+                    }
+                },
+                actions = {
+                    AnimatedVisibility(visible = isInEditMode) {
+                        IconButton(onClick = { isAllSelected = !isAllSelected }) {
+                            Icon(
+                                imageVector = Icons.Outlined.ChecklistRtl,
+                                contentDescription = "Select all button"
+                            )
+                        }
                     }
                 },
                 colors = TopAppBarDefaults
@@ -197,22 +245,27 @@ fun PlaylistContent(
                 ) + fadeOut()
             ) {
                 BottomAppBar(
+                    modifier = Modifier,
                     containerColor = MaterialTheme.colorScheme.surface,
-                    tonalElevation = 0.dp
+                    tonalElevation = 0.dp,
+                    contentPadding = PaddingValues(bottom = 8.dp),
+                    windowInsets = WindowInsets(0, 0, 0, 0),
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.Center
                     ) {
-                        IconButton(onClick = { /*TODO delete functionality*/ }) {
+                        IconButton(onClick = { delete() }) {
                             Icon(
-                                imageVector = Icons.Default.RestoreFromTrash,
+                                modifier = Modifier.size(32.dp),
+                                imageVector = Icons.Outlined.DeleteForever,
                                 contentDescription = "Delete Icon"
                             )
                         }
-                        IconButton(onClick = { /*TODO save to gallery or recordings folder */ }) {
+                        IconButton(onClick = { save() }) {
                             Icon(
-                                imageVector = Icons.Default.Save,
+                                modifier = Modifier.size(32.dp),
+                                imageVector = Icons.Outlined.Save,
                                 contentDescription = "Save Button"
                             )
                         }
@@ -236,7 +289,7 @@ fun PlaylistContent(
                     key = {
                         it
                     }) { voiceIndex ->
-                    val selected by remember {
+                    val selected by remember() {
                         derivedStateOf {
                             voices[voiceIndex].title in selectedVoices
                         }
@@ -401,7 +454,7 @@ fun PlaylistPagePreview() {
                 onBackPressed = {},
                 progress = 0.0f,
                 duration = 0.0f,
-                onProgressChange = {},
+                onProgressChange = {}, delete = {}, save = {},
 
                 )
         }
