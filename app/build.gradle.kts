@@ -94,8 +94,7 @@ dependencies {
 
     testImplementation(libs.junit4)
     testImplementation(libs.kotlix.coroutinesTest)
-    androidTestImplementation(libs.kotlix.coroutinesTest)
-    androidTestImplementation(libs.androidx.test.extJunit)
-    androidTestImplementation(libs.espresso.core)
-    androidTestImplementation(libs.compose.ui.testJunit)
+    androidTestImplementation(project(":core:designsystem")) // using ui tests apis (add test apis with a test module)
+
+
 }
