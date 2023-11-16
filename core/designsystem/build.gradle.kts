@@ -38,8 +38,8 @@ dependencies {
 
     testImplementation(libs.junit4)
     testImplementation(libs.kotlix.coroutinesTest)
-    androidTestImplementation(libs.kotlix.coroutinesTest)
-    androidTestImplementation(libs.androidx.test.extJunit)
-    androidTestImplementation(libs.espresso.core)
-    androidTestImplementation(libs.compose.ui.testJunit)
+    androidTestApi(libs.compose.ui.testJunit)
+    androidTestApi(libs.kotlix.coroutinesTest)
+    androidTestApi(libs.androidx.test.extJunit)
+    androidTestApi(libs.espresso.core)
 }
