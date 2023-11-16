@@ -48,5 +48,12 @@ class PlaylistViewModel @Inject constructor(
             }
         }
     }
+    fun deleteVoice(voice: Voice){
+
+    }
+
+    fun renameVoice(voice: Voice){
+
+    }
 }
 

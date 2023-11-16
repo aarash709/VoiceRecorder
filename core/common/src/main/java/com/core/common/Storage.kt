@@ -61,4 +61,20 @@ class Storage {
         return sdf.format(Date())
     }
 
+    fun deleteVoice(voice: Voice, context: Context) {
+        // TODO:WIP test before merging
+        val path = getPath(context) + voice.path
+        File(path).delete()
+    }
+
+    fun renameVoice(currentName: String, newName: String, context: Context) {
+        // TODO:WIP test before merging
+        val path = getPath(context)
+        val oldPath = path + currentName
+        val newPath = path + newName
+        val oldFile = File(oldPath)
+        val newFile = File(newPath)
+        oldFile.renameTo(newFile)
+    }
+
 }
