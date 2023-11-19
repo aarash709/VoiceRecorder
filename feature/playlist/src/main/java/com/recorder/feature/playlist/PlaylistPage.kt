@@ -158,13 +158,19 @@ fun PlaylistContent(
     val isInEditMode by remember {
         derivedStateOf { selectedVoices.isNotEmpty() }
     }
-    var isAllSelected by remember {
-        mutableStateOf(false)
+    var isAllSelected by remember(selectedVoices) {
+        mutableStateOf(
+            if (selectedVoices.isNotEmpty())
+                voices.size == selectedVoices.size
+            else
+                false
+        )
     }
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     LaunchedEffect(key1 = isAllSelected) {
-        Timber.e("$isAllSelected")
+        Timber.e("is all: $isAllSelected")
         if (isAllSelected) {
+            //make sure there is no duplicate selected voice
             selectedVoices = emptySet()
             selectedVoices += voices.map { it.title }
         } else {
