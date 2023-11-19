@@ -2,6 +2,7 @@ package com.core.common
 
 import android.content.Context
 import com.core.common.model.Voice
+import timber.log.Timber
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -61,20 +62,27 @@ class Storage {
         return sdf.format(Date())
     }
 
-    fun deleteVoice(voice: Voice, context: Context) {
-        // TODO:WIP test before merging
-        val path = getPath(context) + voice.path
-        File(path).delete()
+    fun deleteVoice(voiceTitle: String, context: Context): Boolean {
+        return try {
+            File(context.getExternalFilesDir(null), voiceTitle).delete()
+        } catch (securityException: SecurityException) {
+            Timber.e(securityException.message)
+            false
+        }
     }
 
-    fun renameVoice(currentName: String, newName: String, context: Context) {
-        // TODO:WIP test before merging
+    fun renameVoice(currentName: String, newName: String, context: Context): Boolean {
         val path = getPath(context)
-        val oldPath = path + currentName
-        val newPath = path + newName
-        val oldFile = File(oldPath)
-        val newFile = File(newPath)
-        oldFile.renameTo(newFile)
+        val currentFile = File(path, currentName)
+        val newFile = File(path, newName)
+        return try {
+            currentFile.renameTo(newFile)
+        } catch (npe: NullPointerException) {
+            Timber.e(npe.message)
+            false
+        } catch (securityException: SecurityException) {
+            Timber.e(securityException.message)
+            false
+        }
     }
-
 }
