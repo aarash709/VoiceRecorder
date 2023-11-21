@@ -9,7 +9,9 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -24,6 +26,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -36,21 +39,26 @@ import androidx.compose.material.icons.filled.StopCircle
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.ChecklistRtl
 import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material.icons.outlined.DeleteForever
-import androidx.compose.material.icons.outlined.Save
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.DriveFileRenameOutline
+import androidx.compose.material.icons.outlined.SdStorage
 import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MediumTopAppBar
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -59,12 +67,18 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -73,6 +87,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.core.common.model.Voice
 import com.recorder.core.designsystem.theme.VoiceRecorderTheme
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import timber.log.Timber
 
 @Composable
@@ -131,6 +146,7 @@ fun Playlist(
             },
             delete = {},
             save = {},
+            rename = {},
         )
     }
 }
@@ -148,6 +164,7 @@ fun PlaylistContent(
     onBackPressed: () -> Unit,
     delete: () -> Unit,
     save: () -> Unit,
+    rename: () -> Unit,
 ) {
     var voice by remember {
         mutableStateOf(Voice())
@@ -166,7 +183,24 @@ fun PlaylistContent(
                 false
         )
     }
+    val focusRequester = remember {
+        FocusRequester()
+    }
+    var showRenameSheet by rememberSaveable {
+        mutableStateOf(false)
+    }
+    val sheetState = rememberModalBottomSheetState()
+    val scope = rememberCoroutineScope()
+    var renameTextFieldValue by remember() {
+        mutableStateOf(TextFieldValue(""))
+    }
+    val showRenameButton by rememberSaveable(selectedVoices) {
+        mutableStateOf(selectedVoices.size == 1)
+    }
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    LaunchedEffect(key1 = Unit, block = {
+        sheetState.hide()
+    })
     LaunchedEffect(key1 = isAllSelected) {
         Timber.e("is all: $isAllSelected")
         if (isAllSelected) {
@@ -177,6 +211,7 @@ fun PlaylistContent(
             selectedVoices = emptySet()
         }
     }
+
     Scaffold(
         modifier = Modifier,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -258,22 +293,60 @@ fun PlaylistContent(
                     windowInsets = WindowInsets(0, 0, 0, 0),
                 ) {
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 64.dp)
+                            .animateContentSize(),
+                        horizontalArrangement = Arrangement.SpaceAround
                     ) {
-                        IconButton(onClick = { delete() }) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .clickable { }
+                                .padding(8.dp)) {
                             Icon(
-                                modifier = Modifier.size(32.dp),
-                                imageVector = Icons.Outlined.DeleteForever,
+                                modifier = Modifier,
+                                imageVector = Icons.Outlined.Delete,
                                 contentDescription = "Delete Icon"
                             )
+                            Text("Delete", fontSize = 10.sp)
                         }
-                        IconButton(onClick = { save() }) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .clickable { }
+                                .padding(8.dp)) {
                             Icon(
-                                modifier = Modifier.size(32.dp),
-                                imageVector = Icons.Outlined.Save,
+                                modifier = Modifier,
+                                imageVector = Icons.Outlined.SdStorage,
                                 contentDescription = "Save Button"
                             )
+                            Text("Save", fontSize = 10.sp)
+                        }
+                        AnimatedVisibility(
+                            visible = showRenameButton,
+                            enter = fadeIn() + slideInHorizontally { it },
+                            exit = fadeOut() + slideOutHorizontally { it }) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .clickable {
+                                        val value =
+                                            selectedVoices.first()
+                                        renameTextFieldValue = TextFieldValue(
+                                            text = value,
+                                            selection = TextRange(value.length)
+                                        )
+                                        showRenameSheet = true
+                                    }
+                                    .padding(8.dp)) {
+                                Icon(
+                                    modifier = Modifier,
+                                    imageVector = Icons.Outlined.DriveFileRenameOutline,
+                                    contentDescription = "Rename Button"
+                                )
+                                Text("Rename", fontSize = 10.sp)
+                            }
                         }
                     }
                 }
@@ -286,6 +359,64 @@ fun PlaylistContent(
                 .padding(paddingValues)
                 .nestedScroll(scrollBehavior.nestedScrollConnection),
         ) {
+            if (showRenameSheet) {
+                LaunchedEffect(key1 = Unit, block = {
+                    focusRequester.requestFocus()
+                })
+                ModalBottomSheet(
+                    modifier = Modifier.fillMaxWidth(),
+                    sheetState = sheetState,
+                    onDismissRequest = { showRenameSheet = false }) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(text = "Rename", fontSize = 18.sp)
+                        Spacer(modifier = Modifier.height(16.dp))
+                        TextField(
+                            modifier = Modifier.focusRequester(focusRequester = focusRequester),
+                            value = renameTextFieldValue,
+                            onValueChange = { renameTextFieldValue = it })
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 32.dp),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Button(
+                                modifier = Modifier
+                                    .padding(horizontal = 16.dp)
+                                    .weight(1f),
+                                onClick = {
+                                    scope.launch {
+                                        sheetState.hide()
+                                    }.invokeOnCompletion {
+                                        showRenameSheet = !showRenameSheet
+                                        renameTextFieldValue = TextFieldValue(text = "")
+                                    }
+                                }) {
+                                Text(text = "Cancel")
+                            }
+                            Button(
+                                modifier = Modifier
+                                    .padding(horizontal = 16.dp)
+                                    .weight(1f),
+                                onClick = {
+                                    rename()
+                                    scope.launch {
+                                        sheetState.hide()
+                                    }.invokeOnCompletion {
+                                        showRenameSheet = !showRenameSheet
+                                    }
+
+                                }) {
+                                Text(text = "Ok")
+                            }
+                        }
+                    }
+                }
+            }
             LazyColumn(
                 modifier = Modifier.padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -460,9 +591,8 @@ fun PlaylistPagePreview() {
                 onBackPressed = {},
                 progress = 0.0f,
                 duration = 0.0f,
-                onProgressChange = {}, delete = {}, save = {},
-
-                )
+                onProgressChange = {}, delete = {}, save = {}, rename = {},
+            )
         }
     }
 }
@@ -498,7 +628,7 @@ fun PlaylistItemPreview() {
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_NO)
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
 @Composable
-fun MediaControlsPreview() {
+fun BottomBarPreview() {
     VoiceRecorderTheme {
         Surface(color = MaterialTheme.colorScheme.background) {
 
