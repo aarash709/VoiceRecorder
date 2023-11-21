@@ -4,11 +4,8 @@ import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -18,39 +15,24 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.PlayCircle
-import androidx.compose.material.icons.filled.StopCircle
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.ChecklistRtl
 import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material.icons.outlined.DeleteForever
-import androidx.compose.material.icons.outlined.Save
-import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MediumTopAppBar
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -59,15 +41,15 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.core.common.model.Voice
@@ -129,8 +111,17 @@ fun Playlist(
             onProgressChange = { desireePosition ->
                 lastProgress = desireePosition
             },
-            delete = {},
-            save = {},
+            delete = { title ->
+                //can delete multiple
+//                     viewModel.delete(title.toList)
+            },
+            save = {
+                //save to shared storage: eg. recording or music or downloads folder
+//                   viewModel.save()
+            },
+            rename = { current, desired ->
+//                viewModel.rename(current, desired, context)
+            },
         )
     }
 }
@@ -146,8 +137,9 @@ fun PlaylistContent(
     onStop: () -> Unit,
     onVoiceClicked: (Int, Voice) -> Unit,
     onBackPressed: () -> Unit,
-    delete: () -> Unit,
+    delete: (Set<String>) -> Unit,
     save: () -> Unit,
+    rename: (current: String, desired: String) -> Unit,
 ) {
     var voice by remember {
         mutableStateOf(Voice())
@@ -158,19 +150,41 @@ fun PlaylistContent(
     val isInEditMode by remember {
         derivedStateOf { selectedVoices.isNotEmpty() }
     }
-    var isAllSelected by remember {
+    var isAllSelected by remember(selectedVoices) {
+        Timber.e("size: ${selectedVoices.size}")
+        mutableStateOf(
+            if (selectedVoices.isNotEmpty())
+                voices.size == selectedVoices.size
+            else
+                false
+        )
+    }
+    val focusRequester = remember {
+        FocusRequester()
+    }
+    var showRenameSheet by rememberSaveable {
         mutableStateOf(false)
     }
+    val sheetState = rememberModalBottomSheetState()
+    var renameTextFieldValue by remember() {
+        mutableStateOf(TextFieldValue(""))
+    }
+    val showRenameButton by rememberSaveable(selectedVoices) {
+        mutableStateOf(selectedVoices.size == 1)
+    }
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    LaunchedEffect(key1 = Unit, block = {
+        sheetState.hide()
+    })
     LaunchedEffect(key1 = isAllSelected) {
-        Timber.e("$isAllSelected")
+        Timber.e("is all: $isAllSelected")
         if (isAllSelected) {
+            //make sure there is no duplicate selected voice
             selectedVoices = emptySet()
             selectedVoices += voices.map { it.title }
-        } else {
-            selectedVoices = emptySet()
         }
     }
+
     Scaffold(
         modifier = Modifier,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -244,33 +258,14 @@ fun PlaylistContent(
                     }
                 ) + fadeOut()
             ) {
-                BottomAppBar(
-                    modifier = Modifier,
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    tonalElevation = 0.dp,
-                    contentPadding = PaddingValues(bottom = 8.dp),
-                    windowInsets = WindowInsets(0, 0, 0, 0),
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        IconButton(onClick = { delete() }) {
-                            Icon(
-                                modifier = Modifier.size(32.dp),
-                                imageVector = Icons.Outlined.DeleteForever,
-                                contentDescription = "Delete Icon"
-                            )
-                        }
-                        IconButton(onClick = { save() }) {
-                            Icon(
-                                modifier = Modifier.size(32.dp),
-                                imageVector = Icons.Outlined.Save,
-                                contentDescription = "Save Button"
-                            )
-                        }
-                    }
-                }
+                PlaylistButtonBar(
+                    showRenameButton = showRenameButton,
+                    selectedVoices = selectedVoices,
+                    showRenameSheet = { showRenameSheet = it },
+                    renameTextFieldValue = {
+                        renameTextFieldValue = it
+                    },
+                    delete = { delete(it) })
             }
         }
     ) { paddingValues ->
@@ -280,6 +275,21 @@ fun PlaylistContent(
                 .padding(paddingValues)
                 .nestedScroll(scrollBehavior.nestedScrollConnection),
         ) {
+            if (showRenameSheet) {
+                PlaylistBottomSheet(
+                    focusRequester = focusRequester,
+                    sheetState = sheetState,
+                    selectedVoices = selectedVoices,
+                    showRenameSheet = { showRenameSheet = it },
+                    renameTextFieldValue = renameTextFieldValue,
+                    onTextFieldValueChange = { renameTextFieldValue = it },
+                    rename = { current, desired ->
+                        rename(current, desired)
+                    }
+
+                )
+
+            }
             LazyColumn(
                 modifier = Modifier.padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -295,7 +305,8 @@ fun PlaylistContent(
                         }
                     }
                     PlaylistItem(
-                        modifier = if (isInEditMode) {
+                        modifier =
+                        if (isInEditMode) {
                             Modifier.clickable {
                                 if (selected)
                                     selectedVoices -= voices[voiceIndex].title
@@ -330,108 +341,6 @@ fun PlaylistContent(
 
 }
 
-@Composable
-fun PlaylistItem(
-    modifier: Modifier = Modifier,
-    voice: Voice,
-    progress: Float,
-    duration: Float,
-    isInEditMode: Boolean,
-    isSelected: Boolean,
-    onProgressChange: (Float) -> Unit,
-    onVoiceClicked: (Voice) -> Unit,
-    onStop: () -> Unit,
-) {
-    Surface(
-        modifier = Modifier.animateContentSize(),
-        onClick = { },
-        shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.surface,
-    ) {
-        val textColor = if (voice.isPlaying) MaterialTheme.colorScheme.primary
-        else LocalContentColor.current
-        Row(
-            modifier = modifier
-                .fillMaxWidth()
-                .padding(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                AnimatedContent(
-                    targetState = voice.isPlaying,
-                    label = "play icon"
-                ) { isPlaying ->
-                    if (isPlaying)
-                        Icon(
-                            imageVector = Icons.Default.StopCircle,
-                            tint = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier
-                                .size(60.dp)
-                                .padding(all = 8.dp)
-                                .clip(CircleShape)
-                                .clickable { onStop() },
-                            contentDescription = ""
-                        )
-                    else
-                        Icon(
-                            imageVector = Icons.Default.PlayCircle,
-                            tint = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier
-                                .size(60.dp)
-                                .padding(all = 8.dp)
-                                .clip(CircleShape)
-                                .clickable {
-                                    onVoiceClicked(Voice(voice.title, voice.path))
-                                    Timber.e("ui item: ${voice.title}")
-                                },
-                            contentDescription = ""
-                        )
-                }
-                Column(
-                    modifier = Modifier.animateContentSize(),
-                    verticalArrangement = Arrangement.spacedBy(0.dp),//janky animation if set to > 0
-                ) {
-                    Text(
-                        text = voice.title,
-                        color = textColor
-                    )
-                    AnimatedVisibility(
-                        voice.isPlaying,
-                        enter = expandVertically(),
-                        exit = shrinkVertically()
-                    ) {
-                        Slider(
-                            value = progress,
-                            onValueChange = { onProgressChange(it) },
-                            modifier = Modifier,
-                            valueRange = 0f..duration,
-                            steps = 0,
-                            onValueChangeFinished = {},
-                        )
-                    }
-                    Row {
-                        Text(
-                            text = voice.duration,
-                            fontSize = 12.sp,
-                            color = textColor.copy(alpha = 0.7f)
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = voice.recordTime,
-                            fontSize = 12.sp,
-                            color = textColor.copy(alpha = 0.7f)
-                        )
-                    }
-                }
-            }
-            if (isInEditMode) {
-                RadioButton(selected = isSelected, onClick = { /*TODO*/ })
-            }
-        }
-
-    }
-}
 
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_NO)
@@ -454,48 +363,11 @@ fun PlaylistPagePreview() {
                 onBackPressed = {},
                 progress = 0.0f,
                 duration = 0.0f,
-                onProgressChange = {}, delete = {}, save = {},
-
-                )
-        }
-    }
-}
-
-@Preview(showBackground = true, uiMode = UI_MODE_NIGHT_NO)
-@Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
-@Composable
-fun PlaylistItemPreview() {
-    VoiceRecorderTheme {
-        Surface(color = MaterialTheme.colorScheme.background) {
-            PlaylistItem(
-                voice =
-                Voice(
-                    title = "title prview",
-                    path = "path",
-                    isPlaying = false,
-                    duration = "00:12",
-                    recordTime = "just now"
-                ),
-                isInEditMode = true,
-                isSelected = false,
-                onVoiceClicked = {},
-                onStop = {},
-                modifier = Modifier,
-                progress = 0f,
-                duration = 0f,
-                onProgressChange = {}
+                onProgressChange = {},
+                delete = {},
+                save = {},
+                rename = { s1, s2 -> },
             )
-        }
-    }
-}
-
-@Preview(showBackground = true, uiMode = UI_MODE_NIGHT_NO)
-@Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
-@Composable
-fun MediaControlsPreview() {
-    VoiceRecorderTheme {
-        Surface(color = MaterialTheme.colorScheme.background) {
-
         }
     }
 }
