@@ -16,9 +16,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.io.File
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -26,8 +23,10 @@ class RecorderService : Service() {
 
     @Inject
     lateinit var recorder: MediaRecorder
+
     @Inject
     lateinit var storage: Storage
+
     @Inject
     lateinit var notificationManager: NotificationManager
     private val job = Job()
@@ -100,8 +99,8 @@ class RecorderService : Service() {
     private fun startRecording(context: Context) {
         serviceScope.launch {
             val path = storage.getPath(context)
-            val fileName = generateFileName()
-            val file = File(path, fileName)
+            val voiceName = storage.generateVoiceName(context)
+            val file = File(path, voiceName)
             recorder.apply {
                 setAudioSource(MediaRecorder.AudioSource.MIC)
                 setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
@@ -144,11 +143,4 @@ class RecorderService : Service() {
         }
     }
 
-    private fun generateFileName(
-        pattern: String = "hh.mm, d MMM",
-        local: Locale = Locale.getDefault(),
-    ): String {
-        val sdf = SimpleDateFormat(pattern, local)
-        return sdf.format(Date())
-    }
 }
