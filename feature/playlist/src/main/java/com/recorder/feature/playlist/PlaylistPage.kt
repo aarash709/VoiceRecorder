@@ -43,6 +43,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -55,7 +56,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.core.common.model.Voice
 import com.recorder.core.designsystem.theme.VoiceRecorderTheme
 import kotlinx.coroutines.delay
-import timber.log.Timber
 
 @Composable
 fun Playlist(
@@ -111,16 +111,17 @@ fun Playlist(
             onProgressChange = { desireePosition ->
                 lastProgress = desireePosition
             },
-            delete = { title ->
+            delete = { titles ->
                 //can delete multiple
-//                     viewModel.delete(title.toList)
+                viewModel.deleteVoice(titles.toList(), context)
+
             },
             save = {
                 //save to shared storage: eg. recording or music or downloads folder
-//                   viewModel.save()
             },
             rename = { current, desired ->
-//                viewModel.rename(current, desired, context)
+                viewModel.renameVoice(current, desired, context)
+                viewModel.getVoices(context)
             },
         )
     }
@@ -151,7 +152,6 @@ fun PlaylistContent(
         derivedStateOf { selectedVoices.isNotEmpty() }
     }
     var isAllSelected by remember(selectedVoices) {
-        Timber.e("size: ${selectedVoices.size}")
         mutableStateOf(
             if (selectedVoices.isNotEmpty())
                 voices.size == selectedVoices.size
@@ -177,7 +177,6 @@ fun PlaylistContent(
         sheetState.hide()
     })
     LaunchedEffect(key1 = isAllSelected) {
-        Timber.e("is all: $isAllSelected")
         if (isAllSelected) {
             //make sure there is no duplicate selected voice
             selectedVoices = emptySet()
@@ -265,7 +264,10 @@ fun PlaylistContent(
                     renameTextFieldValue = {
                         renameTextFieldValue = it
                     },
-                    delete = { delete(it) })
+                    delete = {
+                        delete(it)
+                        selectedVoices = emptySet()
+                    })
             }
         }
     ) { paddingValues ->
@@ -285,55 +287,68 @@ fun PlaylistContent(
                     onTextFieldValueChange = { renameTextFieldValue = it },
                     rename = { current, desired ->
                         rename(current, desired)
+                        selectedVoices = emptySet()
                     }
 
                 )
-
             }
-            LazyColumn(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(
-                    count = voices.size,
-                    key = {
-                        it
-                    }) { voiceIndex ->
-                    val selected by remember() {
-                        derivedStateOf {
-                            voices[voiceIndex].title in selectedVoices
-                        }
-                    }
-                    PlaylistItem(
-                        modifier =
-                        if (isInEditMode) {
-                            Modifier.clickable {
-                                if (selected)
-                                    selectedVoices -= voices[voiceIndex].title
-                                else selectedVoices += voices[voiceIndex].title
-                            }
-                        } else {
-                            Modifier.combinedClickable(
-                                onLongClick = {
-                                    selectedVoices += voices[voiceIndex].title
-                                },
-                                onClick = { }
-                            )
-                        },
-                        voice = voices[voiceIndex],
-                        onVoiceClicked = { clickedVoice ->
-                            onVoiceClicked(voiceIndex, clickedVoice)
-                            voice = clickedVoice
-                        },
-                        onStop = { onStop() },
-                        progress = progress,
-                        duration = duration,
-                        isInEditMode = isInEditMode,
-                        isSelected = selected,
-                        onProgressChange = { progress ->
-                            onProgressChange(progress)
-                        }
+            if (voices.isEmpty()) {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "No Recordings",
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                     )
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(
+                        count = voices.size,
+                        key = {
+                            it
+                        }) { voiceIndex ->
+                        val selected by remember(voices) {
+                            derivedStateOf {
+                                voices[voiceIndex].title in selectedVoices
+                            }
+                        }
+                        PlaylistItem(
+                            modifier =
+                            if (isInEditMode) {
+                                Modifier.clickable {
+                                    if (selected)
+                                        selectedVoices -= voices[voiceIndex].title
+                                    else selectedVoices += voices[voiceIndex].title
+                                }
+                            } else {
+                                Modifier.combinedClickable(
+                                    onLongClick = {
+                                        selectedVoices += voices[voiceIndex].title
+                                    },
+                                    onClick = { }
+                                )
+                            },
+                            voice = voices[voiceIndex],
+                            onVoiceClicked = { clickedVoice ->
+                                onVoiceClicked(voiceIndex, clickedVoice)
+                                voice = clickedVoice
+                            },
+                            onStop = { onStop() },
+                            progress = progress,
+                            duration = duration,
+                            isInEditMode = isInEditMode,
+                            isSelected = selected,
+                            onProgressChange = { progress ->
+                                onProgressChange(progress)
+                            }
+                        )
+                    }
                 }
             }
         }

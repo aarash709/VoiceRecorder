@@ -1,7 +1,10 @@
 package com.core.common
 
 import android.content.Context
+import android.media.MediaMetadataRetriever
 import com.core.common.model.Voice
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import java.text.SimpleDateFormat
@@ -10,25 +13,29 @@ import java.util.Locale
 
 class Storage {
 
+    private val metadataRetriever: MediaMetadataRetriever = MediaMetadataRetriever()
+
     fun getPath(context: Context): String {
         return context.getExternalFilesDir(null)?.path.toString()
     }
 
-    fun getVoices(context: Context): List<Voice>? {
-        val path = getPath(context)
-        return File(
-            path,
-        ).listFiles()?.map { voiceFile ->
-            val recordTime = getLastTimeRecorded(voiceFile.lastModified())
-            val durationInMillis = mediaDurationInMillis(voiceFile.path)
-            val seconds = getSeconds(durationInMillis).doubleDigitFormat()
-            val minutes = getMinutes(durationInMillis).doubleDigitFormat()
-            Voice(
-                title = voiceFile.name,
-                path = voiceFile.path,
-                duration = "$minutes:$seconds",
-                recordTime = recordTime,
-            )
+    suspend fun getVoices(context: Context): List<Voice>? {
+        return withContext(Dispatchers.IO) {
+            val path = getPath(context)
+            File(
+                path,
+            ).listFiles()?.map { voiceFile ->
+                val recordTime = getLastTimeRecorded(voiceFile.lastModified())
+                val durationInMillis = mediaDurationInMillis(voiceFile.path)
+                val seconds = getSeconds(durationInMillis).doubleDigitFormat()
+                val minutes = getMinutes(durationInMillis).doubleDigitFormat()
+                Voice(
+                    title = voiceFile.name,
+                    path = voiceFile.path,
+                    duration = "$minutes:$seconds",
+                    recordTime = recordTime,
+                )
+            }
         }
     }
 
@@ -62,27 +69,33 @@ class Storage {
         return sdf.format(Date())
     }
 
-    fun deleteVoice(voiceTitle: String, context: Context): Boolean {
-        return try {
-            File(context.getExternalFilesDir(null), voiceTitle).delete()
-        } catch (securityException: SecurityException) {
-            Timber.e(securityException.message)
-            false
+    suspend fun deleteVoice(voiceTitle: List<String>, context: Context): Boolean {
+        return withContext(Dispatchers.IO) {
+            try {
+                voiceTitle.map {
+                    File(getPath(context), it).delete()
+                }.last()
+            } catch (securityException: SecurityException) {
+                Timber.e(securityException.message)
+                false
+            }
         }
     }
 
-    fun renameVoice(currentName: String, newName: String, context: Context): Boolean {
-        val path = getPath(context)
-        val currentFile = File(path, currentName)
-        val newFile = File(path, newName)
-        return try {
-            currentFile.renameTo(newFile)
-        } catch (npe: NullPointerException) {
-            Timber.e(npe.message)
-            false
-        } catch (securityException: SecurityException) {
-            Timber.e(securityException.message)
-            false
+    suspend fun renameVoice(currentName: String, newName: String, context: Context): Boolean {
+        return withContext(Dispatchers.IO) {
+            val path = getPath(context)
+            val currentFile = File(path, currentName)
+            val newFile = File(path, newName)
+            try {
+                currentFile.renameTo(newFile)
+            } catch (npe: NullPointerException) {
+                Timber.e(npe.message)
+                false
+            } catch (securityException: SecurityException) {
+                Timber.e(securityException.message)
+                false
+            }
         }
     }
 }
