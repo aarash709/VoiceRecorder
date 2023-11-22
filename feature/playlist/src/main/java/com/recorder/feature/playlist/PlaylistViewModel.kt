@@ -29,7 +29,10 @@ class PlaylistViewModel @Inject constructor(
     )
 
     fun getVoices(context: Context) {
-        _voices.update { storage.getVoices(context) ?: listOf() }
+        viewModelScope.launch {
+            _voices.update { storage.getVoices(context) ?: listOf() }
+        }
+
     }
 
     fun updateVoiceList(selectedVoiceIndex: Int, isPlaying: Boolean = false) {
@@ -52,10 +55,11 @@ class PlaylistViewModel @Inject constructor(
         }
     }
 
-    fun deleteVoice(voiceTitle: String, context: Context) {
+    fun deleteVoice(voiceTitle: List<String>, context: Context) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 storage.deleteVoice(voiceTitle = voiceTitle, context = context)
+                getVoices(context)
             }
         }
     }
@@ -63,7 +67,13 @@ class PlaylistViewModel @Inject constructor(
     fun renameVoice(currentName: String, newName: String, context: Context) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                storage.renameVoice(currentName = currentName, newName = newName, context = context)
+                val isRenamed = storage.renameVoice(
+                    currentName = currentName,
+                    newName = newName,
+                    context = context
+                )
+                if (isRenamed)
+                    getVoices(context)
             }
         }
     }
