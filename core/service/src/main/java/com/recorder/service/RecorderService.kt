@@ -103,8 +103,9 @@ class RecorderService : Service() {
             val file = File(path, voiceName)
             recorder.apply {
                 setAudioSource(MediaRecorder.AudioSource.MIC)
-                setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
-                setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+                setOutputFormat(MediaRecorder.OutputFormat.AMR_WB)
+                setAudioEncoder(MediaRecorder.AudioEncoder.AMR_WB)
+                setAudioEncodingBitRate(256.times(1_000))
                 setOutputFile(file.path)
                 try {
                     prepare()
