@@ -2,15 +2,20 @@
 naming:
   FunctionNaming:
     active: true
-#    functionPattern: '[a-zA-Z][a-zA-Z]*'
+    functionPattern: '[a-zA-Z][a-zA-Z]*'
     ignoreAnnotated:
       - 'Composable'
+      - 'Test'
 complexity:
   LongMethod:
     active: true
     ignoreAnnotated:
       - 'Composable'
+    ignoreFunction:
+      - 'onCreate'
   LongParameterList:
     active: true
     ignoreAnnotated:
       - 'Composable'
+    functionThreshold: 10
+    ignoreDefaultParameters: true
