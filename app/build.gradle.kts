@@ -63,7 +63,7 @@ dependencies {
     implementation(project(":core:common"))
     implementation(project(":core:service"))
 
-//    detektPlugins(libs.detekt.formatting)
+    detektPlugins(libs.detekt.formatting)
 
     implementation(libs.androidx.coreKtx)
     implementation(libs.androidx.appCompat)
