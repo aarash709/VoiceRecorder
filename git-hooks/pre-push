@@ -1,6 +1,4 @@
 #!/bin/sh
 
 echo "Running static code analysis"
-echo "kotlinter is temporarily disabled,
- please enable it in pre-push git hook file and remove this line"
 #./gradlew lintKotlin
