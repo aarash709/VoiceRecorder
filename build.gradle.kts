@@ -1,5 +1,3 @@
-import com.android.tools.r8.internal.md
-
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 plugins {
     alias(libs.plugins.android.application) apply false
@@ -21,24 +19,25 @@ subprojects {
     apply(plugin = "io.gitlab.arturbosch.detekt")
     tasks {
         register("detektAll", io.gitlab.arturbosch.detekt.Detekt::class) {
-
             exclude("**/resources/**")
             exclude("**/build/**")
             config.setFrom(files("$rootDir/config/detekt/detekt.yml"))
-            buildUponDefaultConfig = true
+            buildUponDefaultConfig = false
             parallel = true
 //            allRules = true
 //            autoCorrect = true
         }
     }
     tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
-        reports {
-            html.required.set(true)
-            xml.required.set(false)
-            txt.required.set(false)
-            sarif.required.set(false)
-            md.required.set(false)
-        }
+        parallel = true
+        //reports are set in config file
+//        reports {
+//            html.required.set(true)
+//            xml.required.set(false)
+//            txt.required.set(false)
+//            sarif.required.set(false)
+//            md.required.set(false)
+//        }
     }
 }
 
