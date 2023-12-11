@@ -2,6 +2,7 @@ package com.recorder.feature.playlist
 
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -183,7 +184,11 @@ fun PlaylistContent(
             selectedVoices += voices.map { it.title }
         }
     }
-
+    BackHandler(isInEditMode) {
+        if (isInEditMode){
+            selectedVoices = emptySet()
+        }
+    }
     Scaffold(
         modifier = Modifier,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
