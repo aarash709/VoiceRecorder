@@ -3,6 +3,7 @@ package com.experiment.voicerecorder.ui
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.runtime.Composable
 import androidx.media3.session.MediaBrowser
+import com.experiment.voicerecorder.PlayerState
 import com.experiment.voicerecorder.VoiceRecorderPermissionsHandler
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 
@@ -10,8 +11,8 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 @ExperimentalPermissionsApi
 @Composable
 fun RecorderApp(
-    mediaBrowser: MediaBrowser?,
     playerState: PlayerState,
+    mediaBrowser: MediaBrowser? = playerState.browser,
 ) {
     VoiceRecorderPermissionsHandler {
         VoiceRecorderNavigation(
