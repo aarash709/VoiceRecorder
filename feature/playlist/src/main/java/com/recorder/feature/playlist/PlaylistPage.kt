@@ -9,14 +9,48 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.PlayCircle
+import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material.icons.filled.StopCircle
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MediumTopAppBar
+import androidx.compose.material3.Slider
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -27,23 +61,21 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
 import com.core.common.model.Voice
+import com.experiment.voicerecorder.rememberPlayerState
 import com.recorder.core.designsystem.theme.VoiceRecorderTheme
 import kotlinx.coroutines.delay
 import timber.log.Timber
 
 @Composable
 fun Playlist(
-    onPlayPause: () -> Unit,
-    onStop: () -> Unit,
-    progress: Float,
-    duration: Float,
     onProgressChange: (Float) -> Unit,
-    isPlaying: Boolean,
-    onVoiceClicked: (Int, Voice) -> Unit,
     onBackPressed: () -> Unit,
 ) {
     val viewModel = hiltViewModel<PlaylistViewModel>()
+    val playerState = rememberPlayerState()
     val context = LocalContext.current
     var playingVoiceIndex by remember {
         mutableIntStateOf(-1)
@@ -52,20 +84,41 @@ fun Playlist(
     LaunchedEffect(key1 = Unit, block = {
         viewModel.getVoices(context)
     })
-    var lastProgress by remember(progress) {
-        mutableFloatStateOf(progress)
+    val isPlaying by playerState.isVoicePlaying.collectAsStateWithLifecycle()
+    val progress = rememberUpdatedState() {
+        derivedStateOf {
+            playerState.browser?.run { currentPosition }
+        }
     }
-    LaunchedEffect(key1 = isPlaying) {
+    val duration = playerState.voiceDuration
+    var lastProgress by remember(playerState.progress) {
+        mutableFloatStateOf(playerState.progress)
+    }
+    LaunchedEffect(key1 = isPlaying, playerState.browser?.run { currentPosition }) {
+        Timber.e("voiceduration is :${playerState.voiceDuration}")
+        Timber.e("progress is :${playerState.progress}")
         viewModel.updateVoiceList(
             selectedVoiceIndex = playingVoiceIndex,
             isPlaying = isPlaying
         )
+        if (isPlaying) {
+            playerState.browser?.run {
+                while (true) {
+                    delay(1_000)
+//                    progress = currentPosition.toFloat()
+                    Timber.e("p$progress")
+                }
+            }
+        } else {
+//            progress = playerState.progress
+        }
+
     }
     LaunchedEffect(key1 = lastProgress) {
-        if (progress != lastProgress) {
-            delay(50)
-            onProgressChange(lastProgress)
-        }
+//        if (progress != lastProgress) {
+//            delay(50)
+//            onProgressChange(lastProgress)
+//        }
     }
     Box(
         modifier = Modifier
@@ -75,10 +128,31 @@ fun Playlist(
         PlaylistContent(
             voices = voiceList,
             onPlayPause = { },
-            onStop = { onStop() },
+            onStop = {
+                playerState.browser?.run {
+                    stop()
+                }
+            },
             onVoiceClicked = { voiceIndex, voice ->
                 playingVoiceIndex = voiceIndex
-                onVoiceClicked(voiceIndex, voice)
+//                onVoiceClicked(voiceIndex, voice)
+                Timber.e("onplay")
+                val metadata = MediaMetadata.Builder()
+                    .setTitle(voice.title)
+                    .setIsPlayable(true).build()
+                val mediaitem = MediaItem.Builder()
+                    .setMediaMetadata(metadata)
+                    .setUri(voice.path)
+                    .setMediaId(voice.title)
+                    .build()
+                if (playerState.browser == null) {
+                    Timber.e("browsernull")
+                }
+                playerState.browser?.run {
+                    Timber.e("item id to play:${mediaitem.mediaId}")
+                    setMediaItem(mediaitem)
+                    play()
+                }
             },
             onBackPressed = { onBackPressed() },
             progress = lastProgress,

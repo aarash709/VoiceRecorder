@@ -6,7 +6,6 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
-import com.core.common.model.Voice
 
 const val RECORDING_ROUTE = "RECORDING_ROUTE"
 
@@ -15,12 +14,6 @@ fun NavController.toRecordings(navOptions: NavOptions? = null) {
 }
 
 fun NavGraphBuilder.recordings(
-    progress: Float,
-    duration: Float,
-    onProgressChange: (Float) -> Unit,
-    isPlaying: Boolean,
-    onPlay: (Int, Voice) -> Unit,
-    onStop: () -> Unit,
     onBackPressed: () -> Unit,
 ) {
     composable(
@@ -43,17 +36,8 @@ fun NavGraphBuilder.recordings(
         }) {
 
         Playlist(
-            isPlaying = isPlaying,
-            onPlayPause = { },
-            onStop = { onStop() },
-            onVoiceClicked = { i, voice ->
-                onPlay(i, voice)
-            },
             onBackPressed = { onBackPressed() },
-            progress = progress,
-            duration = duration,
             onProgressChange = { newProgress ->
-                onProgressChange(newProgress)
             }
         )
     }
