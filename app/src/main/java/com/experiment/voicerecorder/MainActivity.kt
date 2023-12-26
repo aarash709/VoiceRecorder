@@ -1,7 +1,6 @@
 package com.experiment.voicerecorder
 
 import android.Manifest
-import android.content.ComponentName
 import android.graphics.Color
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -9,10 +8,11 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Box
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.app.ActivityCompat
 import com.experiment.voicerecorder.ui.RecorderApp
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.recorder.core.designsystem.theme.VoiceRecorderTheme
