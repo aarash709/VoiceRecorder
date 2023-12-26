@@ -2,14 +2,16 @@ package com.recorder.feature.playlist
 
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,9 +21,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Pause
@@ -32,17 +37,29 @@ import androidx.compose.material.icons.filled.StopCircle
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.Slider
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.material.icons.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.ChecklistRtl
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MediumTopAppBar
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
@@ -51,12 +68,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.MediaItem
@@ -65,7 +82,6 @@ import com.core.common.model.Voice
 import com.experiment.voicerecorder.rememberPlayerState
 import com.recorder.core.designsystem.theme.VoiceRecorderTheme
 import kotlinx.coroutines.delay
-import timber.log.Timber
 
 @Composable
 fun Playlist(
@@ -137,11 +153,24 @@ fun Playlist(
             duration = duration,
             onProgressChange = { desireePosition ->
                 lastProgress = desireePosition
-            })
+            },
+            delete = { titles ->
+                //can delete multiple
+                viewModel.deleteVoice(titles.toList(), context)
+
+            },
+            save = {
+                //save to shared storage: eg. recording or music or downloads folder
+            },
+            rename = { current, desired ->
+                viewModel.renameVoice(current, desired, context)
+                viewModel.getVoices(context)
+            },
+        )
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun PlaylistContent(
     voices: List<Voice>,
@@ -152,161 +181,228 @@ fun PlaylistContent(
     onStop: () -> Unit,
     onVoiceClicked: (Int, Voice) -> Unit,
     onBackPressed: () -> Unit,
+    delete: (Set<String>) -> Unit,
+    save: () -> Unit,
+    rename: (current: String, desired: String) -> Unit,
 ) {
     var voice by remember {
         mutableStateOf(Voice())
     }
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(bottom = 0.dp)
-            .nestedScroll(scrollBehavior.nestedScrollConnection)
-    ) {
-        MediumTopAppBar(
-            title = {
-                Text(
-                    text = "Recordings",
-                )
-            },
-            navigationIcon = {
-                IconButton(onClick = { onBackPressed() }) {
-                    Icon(
-                        imageVector = Icons.Default.ArrowBack,
-                        tint = MaterialTheme.colorScheme.onBackground,
-                        contentDescription = "back icon"
-                    )
-                }
-            },
-            colors = TopAppBarDefaults
-                .mediumTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                ),
-            scrollBehavior = scrollBehavior
+    var selectedVoices by remember {
+        mutableStateOf(emptySet<String>())
+    }
+    val isInEditMode by remember {
+        derivedStateOf { selectedVoices.isNotEmpty() }
+    }
+    var isAllSelected by remember(selectedVoices) {
+        mutableStateOf(
+            if (selectedVoices.isNotEmpty())
+                voices.size == selectedVoices.size
+            else
+                false
         )
-        LazyColumn(
-            modifier = Modifier.padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(
-                count = voices.size,
-                key = {
-                    it
-                }) { voiceIndex ->
-                PlaylistItem(
-                    modifier = Modifier,
-                    voice = voices[voiceIndex],
-                    onVoiceClicked = { clickedVoice ->
-                        onVoiceClicked(voiceIndex, clickedVoice)
-                        voice = clickedVoice
-                    },
-                    onStop = { onStop() },
-                    progress = progress,
-                    duration = duration,
-                    onProgressChange = { progress ->
-                        onProgressChange(progress)
+    }
+    val focusRequester = remember {
+        FocusRequester()
+    }
+    var showRenameSheet by rememberSaveable {
+        mutableStateOf(false)
+    }
+    val sheetState = rememberModalBottomSheetState()
+    var renameTextFieldValue by remember() {
+        mutableStateOf(TextFieldValue(""))
+    }
+    val showRenameButton by rememberSaveable(selectedVoices) {
+        mutableStateOf(selectedVoices.size == 1)
+    }
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    LaunchedEffect(key1 = Unit, block = {
+        sheetState.hide()
+    })
+    LaunchedEffect(key1 = isAllSelected) {
+        if (isAllSelected) {
+            //make sure there is no duplicate selected voice
+            selectedVoices = emptySet()
+            selectedVoices += voices.map { it.title }
+        }
+    }
+    BackHandler(isInEditMode) {
+        if (isInEditMode){
+            selectedVoices = emptySet()
+        }
+    }
+    Scaffold(
+        modifier = Modifier,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        topBar = {
+            MediumTopAppBar(
+                title = {
+                    AnimatedContent(
+                        targetState = isInEditMode,
+                        label = "Title Animation"
+                    ) { inEditMode ->
+                        if (inEditMode)
+                            Text(text = "${selectedVoices.count()} item selected")
+                        else {
+                            Text(
+                                text = "Recordings",
+                            )
+                        }
                     }
-                )
-            }
-        }
-
-    }
-}
-
-@Composable
-fun PlaylistItem(
-    modifier: Modifier = Modifier,
-    voice: Voice,
-    progress: Float,
-    duration: Float,
-    onProgressChange: (Float) -> Unit,
-    onVoiceClicked: (Voice) -> Unit,
-    onStop: () -> Unit,
-) {
-    Surface(
-        modifier = Modifier.animateContentSize(),
-        onClick = { },
-        shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.surface,
-    ) {
-        val textColor = if (voice.isPlaying) MaterialTheme.colorScheme.primary
-        else LocalContentColor.current
-        Row(
-            modifier = modifier
-                .fillMaxWidth()
-                .padding(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            AnimatedContent(
-                targetState = voice.isPlaying,
-                label = "play icon"
-            ) { isPlaying ->
-                if (isPlaying)
-                    Icon(
-                        imageVector = Icons.Default.StopCircle,
-                        tint = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier
-                            .size(60.dp)
-                            .padding(all = 8.dp)
-                            .clip(CircleShape)
-                            .clickable { onStop() },
-                        contentDescription = ""
-                    )
-                else
-                    Icon(
-                        imageVector = Icons.Default.PlayCircle,
-                        tint = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier
-                            .size(60.dp)
-                            .padding(all = 8.dp)
-                            .clip(CircleShape)
-                            .clickable {
-                                onVoiceClicked(Voice(voice.title, voice.path))
-                                Timber.e("ui item: ${voice.title}")
-                            },
-                        contentDescription = ""
-                    )
-            }
-            Column(
-                modifier = Modifier.animateContentSize(),
-                verticalArrangement = Arrangement.spacedBy(0.dp),//janky animation if set to > 0
+                },
+                navigationIcon = {
+                    AnimatedContent(
+                        targetState = isInEditMode,
+                        label = "Top bar Icon"
+                    ) { isInEditMode ->
+                        if (isInEditMode) {
+                            IconButton(onClick = { selectedVoices = emptySet() }) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Close,
+                                    tint = MaterialTheme.colorScheme.onBackground,
+                                    contentDescription = "Clear selection Button"
+                                )
+                            }
+                        } else {
+                            IconButton(onClick = { onBackPressed() }) {
+                                Icon(
+                                    imageVector = Icons.Outlined.ArrowBack,
+                                    tint = MaterialTheme.colorScheme.onBackground,
+                                    contentDescription = "back icon"
+                                )
+                            }
+                        }
+                    }
+                },
+                actions = {
+                    AnimatedVisibility(visible = isInEditMode) {
+                        IconButton(onClick = { isAllSelected = !isAllSelected }) {
+                            Icon(
+                                imageVector = Icons.Outlined.ChecklistRtl,
+                                contentDescription = "Select all button"
+                            )
+                        }
+                    }
+                },
+                colors = TopAppBarDefaults
+                    .mediumTopAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.background
+                    ),
+                scrollBehavior = scrollBehavior
+            )
+        },
+        bottomBar = {
+            AnimatedVisibility(
+                visible = isInEditMode,
+                enter = slideInVertically(
+                    initialOffsetY = { height ->
+                        height
+                    }) + fadeIn(),
+                exit = slideOutVertically(
+                    targetOffsetY = { height ->
+                        height
+                    }
+                ) + fadeOut()
             ) {
-                Text(
-                    text = voice.title,
-                    color = textColor
+                PlaylistButtonBar(
+                    showRenameButton = showRenameButton,
+                    selectedVoices = selectedVoices,
+                    showRenameSheet = { showRenameSheet = it },
+                    renameTextFieldValue = {
+                        renameTextFieldValue = it
+                    },
+                    delete = {
+                        delete(it)
+                        selectedVoices = emptySet()
+                    })
+            }
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .nestedScroll(scrollBehavior.nestedScrollConnection),
+        ) {
+            if (showRenameSheet) {
+                PlaylistBottomSheet(
+                    focusRequester = focusRequester,
+                    sheetState = sheetState,
+                    selectedVoices = selectedVoices,
+                    showRenameSheet = { showRenameSheet = it },
+                    renameTextFieldValue = renameTextFieldValue,
+                    onTextFieldValueChange = { renameTextFieldValue = it },
+                    rename = { current, desired ->
+                        rename(current, desired)
+                        selectedVoices = emptySet()
+                    }
+
                 )
-                Row {
+            }
+            if (voices.isEmpty()) {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
                     Text(
-                        text = voice.duration,
-                        fontSize = 12.sp,
-                        color = textColor.copy(alpha = 0.7f)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = voice.recordTime,
-                        fontSize = 12.sp,
-                        color = textColor.copy(alpha = 0.7f)
+                        text = "No Recordings",
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                     )
                 }
-                AnimatedVisibility(
-                    voice.isPlaying,
-                    enter = expandVertically(),
-                    exit = shrinkVertically()
+            } else {
+                LazyColumn(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Slider(
-                        value = progress,
-                        onValueChange = { onProgressChange(it) },
-                        modifier = Modifier,
-                        valueRange = 0f..duration,
-                        steps = 0,
-                        onValueChangeFinished = {},
-                    )
+                    items(
+                        count = voices.size,
+                        key = {
+                            it
+                        }) { voiceIndex ->
+                        val selected by remember(voices) {
+                            derivedStateOf {
+                                voices[voiceIndex].title in selectedVoices
+                            }
+                        }
+                        PlaylistItem(
+                            modifier =
+                            if (isInEditMode) {
+                                Modifier.clickable {
+                                    if (selected)
+                                        selectedVoices -= voices[voiceIndex].title
+                                    else selectedVoices += voices[voiceIndex].title
+                                }
+                            } else {
+                                Modifier.combinedClickable(
+                                    onLongClick = {
+                                        selectedVoices += voices[voiceIndex].title
+                                    },
+                                    onClick = { }
+                                )
+                            },
+                            voice = voices[voiceIndex],
+                            onVoiceClicked = { clickedVoice ->
+                                onVoiceClicked(voiceIndex, clickedVoice)
+                                voice = clickedVoice
+                            },
+                            onStop = { onStop() },
+                            progress = progress,
+                            duration = duration,
+                            isInEditMode = isInEditMode,
+                            isSelected = selected,
+                            onProgressChange = { progress ->
+                                onProgressChange(progress)
+                            }
+                        )
+                    }
                 }
             }
         }
-
     }
+
 }
+
 
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_NO)
@@ -330,86 +426,10 @@ fun PlaylistPagePreview() {
                 progress = 0.0f,
                 duration = 0.0f,
                 onProgressChange = {},
-
-                )
-        }
-    }
-}
-
-@Composable
-fun MediaControls(
-    modifier: Modifier = Modifier,
-    voice: Voice,
-    onPlayPause: (Voice) -> Unit,
-    onStop: () -> Unit,
-) {
-    var sliderInt by remember {
-        mutableStateOf(0f)
-    }
-    Card(modifier = modifier) {
-        Column() {
-            Text(text = "filename:${voice.title}")
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                Button(onClick = { onPlayPause(voice) }) {
-                    Timber.e("${voice.isPlaying}")
-                    if (voice.isPlaying)
-                        Icon(
-                            imageVector = Icons.Default.Pause,
-                            contentDescription = "Play/Pause Button"
-                        )
-                    else
-                        Icon(
-                            imageVector = Icons.Default.PlayArrow,
-                            contentDescription = "Play/Pause Button"
-                        )
-                }
-                Spacer(modifier = Modifier.width(16.dp))
-                Button(onClick = { onStop() }) {
-                    Icon(
-                        imageVector = Icons.Default.Stop,
-                        contentDescription = "Stop Button"
-                    )
-                }
-            }
-            Slider(value = sliderInt, onValueChange = { sliderInt = it })
-        }
-
-    }
-}
-
-@Preview(showBackground = true, uiMode = UI_MODE_NIGHT_NO)
-@Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
-@Composable
-fun PlaylistItemPreview() {
-    VoiceRecorderTheme {
-        Surface(color = MaterialTheme.colorScheme.background) {
-            PlaylistItem(
-                voice =
-                Voice(
-                    title = "title prview",
-                    path = "path",
-                    isPlaying = false,
-                    duration = "00:12",
-                    recordTime = "just now"
-                ),
-                onVoiceClicked = {},
-                onStop = {},
-                modifier = Modifier,
-                progress = 0f,
-                duration = 0f,
-                onProgressChange = {}
+                delete = {},
+                save = {},
+                rename = { s1, s2 -> },
             )
-        }
-    }
-}
-
-@Preview(showBackground = true, uiMode = UI_MODE_NIGHT_NO)
-@Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
-@Composable
-fun MediaControlsPreview() {
-    VoiceRecorderTheme {
-        Surface(color = MaterialTheme.colorScheme.background) {
-
         }
     }
 }

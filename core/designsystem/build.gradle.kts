@@ -32,15 +32,14 @@ android {
 }
 
 dependencies {
-    implementation(platform(libs.compose.bom))
-    androidTestImplementation(platform(libs.compose.bom))
-    implementation(libs.bundles.compose)
-    debugImplementation(libs.compose.ui.tooling)
+    api(platform(libs.compose.bom))
+    api(libs.bundles.compose)
+    debugApi(libs.compose.ui.tooling)
 
     testImplementation(libs.junit4)
     testImplementation(libs.kotlix.coroutinesTest)
-    androidTestImplementation(libs.kotlix.coroutinesTest)
-    androidTestImplementation(libs.androidx.test.extJunit)
-    androidTestImplementation(libs.espresso.core)
-    androidTestImplementation(libs.compose.ui.testJunit)
+    androidTestApi(libs.compose.ui.testJunit)
+    androidTestApi(libs.kotlix.coroutinesTest)
+    androidTestApi(libs.androidx.test.extJunit)
+    androidTestApi(libs.espresso.core)
 }

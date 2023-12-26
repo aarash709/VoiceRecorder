@@ -6,7 +6,6 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.media.MediaRecorder
-import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import com.core.common.Storage
@@ -14,14 +13,9 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.io.File
-import java.lang.Exception
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -29,8 +23,10 @@ class RecorderService : Service() {
 
     @Inject
     lateinit var recorder: MediaRecorder
+
     @Inject
     lateinit var storage: Storage
+
     @Inject
     lateinit var notificationManager: NotificationManager
     private val job = Job()
@@ -103,12 +99,13 @@ class RecorderService : Service() {
     private fun startRecording(context: Context) {
         serviceScope.launch {
             val path = storage.getPath(context)
-            val fileName = generateFileName()
-            val file = File(path, fileName)
+            val voiceName = storage.generateVoiceName(context)
+            val file = File(path, voiceName)
             recorder.apply {
                 setAudioSource(MediaRecorder.AudioSource.MIC)
-                setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
-                setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+                setOutputFormat(MediaRecorder.OutputFormat.AMR_WB)
+                setAudioEncoder(MediaRecorder.AudioEncoder.AMR_WB)
+                setAudioEncodingBitRate(256.times(1_000))
                 setOutputFile(file.path)
                 try {
                     prepare()
@@ -147,13 +144,4 @@ class RecorderService : Service() {
         }
     }
 
-    private fun generateFileName(
-        pattern: String = "yyMMdd_HHmmss",
-        fileExt: String = ".m4a",
-        local: Locale = Locale.getDefault(),
-    ): String {
-        val sdf = SimpleDateFormat(pattern, local)
-        val date = sdf.format(Date())
-        return "$date$fileExt"
-    }
 }

@@ -33,13 +33,11 @@ dependencies {
     implementation(project(":core:designsystem"))
 
     api(libs.kotlix.serialization)
-
-    implementation(libs.androidx.coreKtx)
-    implementation(libs.appcompat)
-    implementation(libs.material)
+    api(libs.timber)
 
     implementation(libs.hilt.android)
     kapt(libs.hilt.kaptCompiler)
+
     testImplementation(libs.junit4)
     androidTestImplementation(libs.androidx.test.extJunit)
     androidTestImplementation(libs.espresso.core)

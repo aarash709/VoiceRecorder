@@ -62,6 +62,7 @@ dependencies {
     implementation(project(":core:common"))
     implementation(project(":core:service"))
 
+    detektPlugins(libs.detekt.formatting)
 
     implementation(libs.androidx.coreKtx)
     implementation(libs.androidx.appCompat)
@@ -78,12 +79,6 @@ dependencies {
     implementation(libs.androidx.lifecycleComposeRuntime)
     implementation(libs.androidx.activity)
 
-    implementation(platform(libs.compose.bom))
-    androidTestImplementation(platform(libs.compose.bom))
-    implementation(libs.bundles.compose)
-    debugImplementation(libs.compose.ui.tooling)
-
-
     implementation(libs.androidx.navigationCompose)
     implementation(libs.androidx.lifecycleViewModelCompose)
     implementation(libs.androidx.activityCompose)
@@ -95,22 +90,12 @@ dependencies {
 
     implementation(libs.coilCompose)
 
-    implementation(libs.androidx.roomCommon)
-    implementation(libs.androidx.roomKtx)
-    kapt(libs.androidx.roomCompiler)
-    implementation(libs.androidx.roomRuntime)
-
-    implementation(libs.timberLogger)
-
     implementation(libs.hilt.android)
     kapt(libs.hilt.kaptCompiler)
 
-    debugImplementation(libs.compose.ui.tooling)
-
     testImplementation(libs.junit4)
     testImplementation(libs.kotlix.coroutinesTest)
-    androidTestImplementation(libs.kotlix.coroutinesTest)
-    androidTestImplementation(libs.androidx.test.extJunit)
-    androidTestImplementation(libs.espresso.core)
-    androidTestImplementation(libs.compose.ui.testJunit)
+    androidTestImplementation(project(":core:designsystem")) // using ui tests apis (add test apis with a test module)
+
+
 }
