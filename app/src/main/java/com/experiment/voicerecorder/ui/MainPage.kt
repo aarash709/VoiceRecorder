@@ -1,14 +1,16 @@
 package com.experiment.voicerecorder.ui
 
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.runtime.Composable
 import com.experiment.voicerecorder.VoiceRecorderPermissionsHandler
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 
+@OptIn(ExperimentalMaterialApi::class)
 @ExperimentalPermissionsApi
 @Composable
-fun MainScreen(content: @Composable () -> Unit) {
+fun RecorderApp() {
     VoiceRecorderPermissionsHandler {
-        content()
+        VoiceRecorderNavigation()
     }
 }
 

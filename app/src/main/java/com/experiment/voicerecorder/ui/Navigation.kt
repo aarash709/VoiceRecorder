@@ -3,11 +3,9 @@ package com.experiment.voicerecorder.ui
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.media3.common.MediaItem
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
-import com.core.common.model.Voice
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.recorder.feature.playlist.recordings
 import com.recorder.feature.playlist.toRecordings
@@ -25,13 +23,6 @@ sealed class Pages(val route: String) {
 fun VoiceRecorderNavigation(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
-    progress: Float,
-    duration: Float,
-    onProgressChange: (Float) -> Unit,
-    isPlaying: Boolean,
-    onPlay: (Int, Voice) -> Unit,
-    onStop: () -> Unit,
-//    onPlayPause:()->Unit,
 ) {
     NavHost(
         navController = navController,
@@ -40,18 +31,9 @@ fun VoiceRecorderNavigation(
         recorder(onListButtonClick = {
             navController.toRecordings()
         })
+
         recordings(
-            isPlaying = isPlaying,
-            onPlay = { i, voice ->
-                onPlay(i, voice)
-            },
-            onStop = { onStop() },
             onBackPressed = { navController.popBackStack() },
-            progress = progress,
-            duration = duration,
-            onProgressChange = { newProgress ->
-                onProgressChange(newProgress)
-            }
         )
     }
 }
