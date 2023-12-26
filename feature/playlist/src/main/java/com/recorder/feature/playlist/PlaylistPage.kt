@@ -64,11 +64,11 @@ import androidx.media3.common.MediaMetadata
 import com.core.common.model.Voice
 import com.experiment.voicerecorder.rememberPlayerState
 import com.recorder.core.designsystem.theme.VoiceRecorderTheme
+import kotlinx.coroutines.delay
 import timber.log.Timber
 
 @Composable
 fun Playlist(
-    onProgressChange: (Float) -> Unit,
     onBackPressed: () -> Unit,
 ) {
     val viewModel = hiltViewModel<PlaylistViewModel>()
@@ -87,20 +87,19 @@ fun Playlist(
     var lastProgress by remember(progress) {
         mutableFloatStateOf(progress)
     }
-    LaunchedEffect(key1 = isPlaying, playerState.browser?.run { currentPosition }) {
-        Timber.e("voiceduration is :${duration}")
-        Timber.e("is Playing is :${isPlaying}")
-        Timber.e("progress is :${progress}")
+    LaunchedEffect(key1 = isPlaying) {
         viewModel.updateVoiceList(
             selectedVoiceIndex = playingVoiceIndex,
-            isPlaying = isPlaying ?: false
+            isPlaying = isPlaying
         )
     }
     LaunchedEffect(key1 = lastProgress) {
-//        if (progress != lastProgress) {
-//            delay(50)
-//            onProgressChange(lastProgress)
-//        }
+        if (progress != lastProgress) {
+            delay(50)
+            playerState.browser?.run {
+                seekTo(lastProgress.toLong())
+            }
+        }
     }
     Box(
         modifier = Modifier
@@ -118,7 +117,7 @@ fun Playlist(
             onVoiceClicked = { voiceIndex, voice ->
                 playingVoiceIndex = voiceIndex
 //                onVoiceClicked(voiceIndex, voice)
-                Timber.e("onplay")
+                Timber.e("on voice clicked")
                 val metadata = MediaMetadata.Builder()
                     .setTitle(voice.title)
                     .setIsPlayable(true).build()
@@ -127,9 +126,6 @@ fun Playlist(
                     .setUri(voice.path)
                     .setMediaId(voice.title)
                     .build()
-                if (playerState.browser == null) {
-                    Timber.e("browsernull")
-                }
                 playerState.browser?.run {
                     Timber.e("item id to play:${mediaitem.mediaId}")
                     setMediaItem(mediaitem)
@@ -279,6 +275,19 @@ fun PlaylistItem(
                     text = voice.title,
                     color = textColor
                 )
+                Row {
+                    Text(
+                        text = voice.duration,
+                        fontSize = 12.sp,
+                        color = textColor.copy(alpha = 0.7f)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = voice.recordTime,
+                        fontSize = 12.sp,
+                        color = textColor.copy(alpha = 0.7f)
+                    )
+                }
                 AnimatedVisibility(
                     voice.isPlaying,
                     enter = expandVertically(),
@@ -291,19 +300,6 @@ fun PlaylistItem(
                         valueRange = 0f..duration,
                         steps = 0,
                         onValueChangeFinished = {},
-                    )
-                }
-                Row {
-                    Text(
-                        text = voice.duration,
-                        fontSize = 12.sp,
-                        color = textColor.copy(alpha = 0.7f)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = voice.recordTime,
-                        fontSize = 12.sp,
-                        color = textColor.copy(alpha = 0.7f)
                     )
                 }
             }

@@ -37,8 +37,6 @@ fun NavGraphBuilder.recordings(
 
         Playlist(
             onBackPressed = { onBackPressed() },
-            onProgressChange = { newProgress ->
-            }
         )
     }
 }
