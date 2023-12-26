@@ -5,7 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -31,15 +31,15 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 
 @Composable
-fun rememberPlayerState(
-    coroutineScope: CoroutineScope = rememberCoroutineScope(),
-): PlayerState {
+fun rememberPlayerState(): PlayerState {
     val lifecycleOwner = LocalLifecycleOwner.current
+    val scope = rememberCoroutineScope()
+
     var progress by remember {
-        mutableLongStateOf(0L)
+        mutableFloatStateOf(0f)
     }
     var currentDuration by remember {
-        mutableLongStateOf(0L)
+        mutableFloatStateOf(0f)
     }
     var isPlaying by remember {
         mutableStateOf(false)
@@ -50,28 +50,28 @@ fun rememberPlayerState(
     PlayerStateEffect(
         lifecycleOwner = lifecycleOwner,
         getBrowser = {
-            Timber.e("setting browser")
+            Timber.e("setting browser...")
             browser = it
         },
         progress = {
-            progress = it
-            Timber.e("pp$it")
+            progress = it.toFloat()
+            Timber.e("positio read: $it")
         },
         currentDuration = {
-            currentDuration = it
+            currentDuration = it.toFloat()
         },
         isVoicePlaying = {
-            Timber.e("isplayinggg$it")
+            Timber.e("isplaying: $it")
             isPlaying = it
         }
     )
-    return remember(isPlaying, progress, currentDuration, browser) {
+    return remember(isPlaying, progress, currentDuration, browser, scope) {
         PlayerState(
             browser = browser,
             isPlaying = isPlaying,
             progress = progress,
             duration = currentDuration,
-            coroutineScope = coroutineScope
+            coroutineScope = scope
         )
     }
 }
@@ -80,26 +80,38 @@ fun rememberPlayerState(
 class PlayerState(
     val browser: MediaBrowser?,
     isPlaying: Boolean,
-    progress: Long,
-    duration: Long,
+    progress: Float,
+    duration: Float,
     coroutineScope: CoroutineScope,
 ) {
-    var isVoicePlaying = flow {
+    val isVoicePlaying = flow {
         emit(isPlaying)
     }.stateIn(
         scope = coroutineScope,
         started = SharingStarted.WhileSubscribed(1_000),
         initialValue = false
     )
-    var progress = if (isVoicePlaying.value) progress.toFloat() else 0f
-    var voiceDuration = duration.toFloat()
+    val progress = flow {
+        emit(progress)
+    }.stateIn(
+        scope = coroutineScope,
+        started = SharingStarted.WhileSubscribed(1_000),
+        initialValue = 0f
+    )
+    val voiceDuration = flow {
+        emit(duration)
+    }.stateIn(
+        scope = coroutineScope,
+        started = SharingStarted.WhileSubscribed(1_000),
+        initialValue = 0f
+    )
 
     init {
         Timber.e("init state")
         if (browser == null) {
-            Timber.e("browser is null}")
+            Timber.e("browser is NULL")
         } else {
-            Timber.e("browser is not null}")
+            Timber.e("browser is SET...")
         }
     }
 
@@ -123,7 +135,7 @@ fun PlayerStateEffect(
     }
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
-            if (event.targetState == Lifecycle.State.STARTED) {
+            if (event == Lifecycle.Event.ON_START) {
                 val sessionToken = SessionToken(
                     context,
                     ComponentName(context, PlayerService::class.java)
@@ -142,28 +154,31 @@ fun PlayerStateEffect(
                                         ) {
                                             when (playbackState) {
                                                 Player.STATE_IDLE -> {
+                                                    Timber.e("state IDLE...")
                                                     isVoicePlaying(isPlaying)
                                                     currentDuration(duration)
                                                 }
 
                                                 Player.STATE_ENDED -> {
+                                                    Timber.e("state ENDED...")
                                                     isVoicePlaying(isPlaying)
                                                     progress(0L)
                                                     currentDuration(0L)
                                                 }
 
                                                 Player.STATE_BUFFERING -> {
-
+                                                    Timber.e("state BUFFERING...")
                                                 }
 
                                                 Player.STATE_READY -> {
+                                                    Timber.e("state READY...")
                                                     isVoicePlaying(isPlaying)
                                                     currentDuration(duration)
                                                     scope.launch {
                                                         while (isPlaying) {
-                                                            delay(1_000L)
                                                             progress(currentPosition)
-                                                            Timber.e("sp:$currentPosition")
+                                                            Timber.e("position sett:$currentPosition")
+                                                            delay(1_000L)
                                                         }
                                                     }
                                                 }
@@ -186,11 +201,11 @@ fun PlayerStateEffect(
                                         }
 
                                         override fun onIsPlayingChanged(isPlaying: Boolean) {
+                                            Timber.e("is playing change: $isPlaying")
                                             isVoicePlaying(isPlaying)
                                             if (isPlaying.not())
                                                 progress(0L)
                                             super.onIsPlayingChanged(isPlaying)
-                                            Timber.e("is playing chnage:$isPlaying")
                                         }
 
 

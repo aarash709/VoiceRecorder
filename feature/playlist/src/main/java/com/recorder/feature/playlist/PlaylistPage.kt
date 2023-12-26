@@ -43,13 +43,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -66,7 +64,6 @@ import androidx.media3.common.MediaMetadata
 import com.core.common.model.Voice
 import com.experiment.voicerecorder.rememberPlayerState
 import com.recorder.core.designsystem.theme.VoiceRecorderTheme
-import kotlinx.coroutines.delay
 import timber.log.Timber
 
 @Composable
@@ -85,34 +82,19 @@ fun Playlist(
         viewModel.getVoices(context)
     })
     val isPlaying by playerState.isVoicePlaying.collectAsStateWithLifecycle()
-    val progress = rememberUpdatedState() {
-        derivedStateOf {
-            playerState.browser?.run { currentPosition }
-        }
-    }
-    val duration = playerState.voiceDuration
-    var lastProgress by remember(playerState.progress) {
-        mutableFloatStateOf(playerState.progress)
+    val progress by playerState.progress.collectAsStateWithLifecycle()
+    val duration by playerState.voiceDuration.collectAsStateWithLifecycle()
+    var lastProgress by remember(progress) {
+        mutableFloatStateOf(progress)
     }
     LaunchedEffect(key1 = isPlaying, playerState.browser?.run { currentPosition }) {
-        Timber.e("voiceduration is :${playerState.voiceDuration}")
-        Timber.e("progress is :${playerState.progress}")
+        Timber.e("voiceduration is :${duration}")
+        Timber.e("is Playing is :${isPlaying}")
+        Timber.e("progress is :${progress}")
         viewModel.updateVoiceList(
             selectedVoiceIndex = playingVoiceIndex,
-            isPlaying = isPlaying
+            isPlaying = isPlaying ?: false
         )
-        if (isPlaying) {
-            playerState.browser?.run {
-                while (true) {
-                    delay(1_000)
-//                    progress = currentPosition.toFloat()
-                    Timber.e("p$progress")
-                }
-            }
-        } else {
-//            progress = playerState.progress
-        }
-
     }
     LaunchedEffect(key1 = lastProgress) {
 //        if (progress != lastProgress) {
