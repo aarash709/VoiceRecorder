@@ -7,9 +7,16 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayCircleOutline
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -42,7 +49,7 @@ import androidx.compose.ui.unit.dp
 //)
 
 private val darkColorScheme = darkColorScheme(
-    primary = Color.Blue,
+    primary = primaryColor,
     surface = darkGraySurface,
     background = dark90,
     onPrimary = Color.White,
@@ -51,7 +58,7 @@ private val darkColorScheme = darkColorScheme(
 )
 
 private val lightColorScheme = lightColorScheme(
-    primary = Color.Blue,
+    primary = primaryColor,
     surface = lightGraySurface,
     background = Color.White,
     onPrimary = Color.White,

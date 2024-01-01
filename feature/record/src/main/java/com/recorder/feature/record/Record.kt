@@ -1,6 +1,7 @@
 package com.recorder.feature.record
 
 import android.content.res.Configuration
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -12,7 +13,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.List
-import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.MicNone
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -23,7 +24,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -39,11 +39,13 @@ fun Record(
 ) {
     val recordViewModel: RecordViewModel = hiltViewModel()
     val recordTime by recordViewModel.formattedTimer.collectAsStateWithLifecycle()
+    val isRecording by recordViewModel.isRecording.collectAsStateWithLifecycle()
     val context = LocalContext.current
     RecordContent(
         modifier = Modifier
             .padding(16.dp),
-        recordEnabled = true,
+        isRecording = isRecording,
+        recordingAllowed = true,
         recordingTime = recordTime.toString(),
         navigateToPlaylistEnabled = true,
         onRecord = { recordViewModel.onRecord(context) },
@@ -54,7 +56,8 @@ fun Record(
 @Composable
 fun RecordContent(
     modifier: Modifier,
-    recordEnabled: Boolean,
+    isRecording: Boolean,
+    recordingAllowed: Boolean,
     recordingTime: String,
     navigateToPlaylistEnabled: Boolean,
     onRecord: () -> Unit,
@@ -65,10 +68,13 @@ fun RecordContent(
             .fillMaxSize(),
         verticalArrangement = Arrangement.Center
     ) {
-        RecordingTimer(modifier = Modifier.fillMaxWidth(), recordingTime)
+        AnimatedVisibility(visible = isRecording) {
+            RecordingTimer(modifier = Modifier.fillMaxWidth(), recordingTime)
+        }
         RecordAudioButton(
             modifier = Modifier.fillMaxWidth(),
-            recordEnabled
+            recordingAllowed = recordingAllowed,
+            isRecording = isRecording
         ) {
             onRecord()
         }
@@ -135,7 +141,8 @@ fun PlayListButton(
 @Composable
 fun RecordAudioButton(
     modifier: Modifier = Modifier,
-    recordEnabled: Boolean,
+    recordingAllowed: Boolean,
+    isRecording: Boolean,
     startRecording: () -> Unit,
 ) {
     Column(
@@ -147,13 +154,13 @@ fun RecordAudioButton(
             onClick = {
                 startRecording()
             },
-            border = BorderStroke(0.dp, Color.Transparent),
-            enabled = recordEnabled,
+            border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
+            enabled = recordingAllowed,
             modifier = Modifier.size(125.dp),
             shape = CircleShape
         ) {
             Icon(
-                imageVector = Icons.Default.Mic,
+                imageVector = Icons.Default.MicNone,
                 contentDescription = "Record Button Icon",
                 modifier = Modifier.size(100.dp)
             )
@@ -169,9 +176,10 @@ fun Prev() {
         Surface(color = MaterialTheme.colorScheme.background) {
             RecordContent(
                 modifier = Modifier,
-                true,
-                "01",
-                true,
+                isRecording = true,
+                recordingAllowed = true,
+                recordingTime = "01",
+                navigateToPlaylistEnabled = true,
 //        "00",
                 onRecord = {},
                 onPlayListClicked = {})

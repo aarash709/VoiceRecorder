@@ -2,10 +2,8 @@ package com.recorder.feature.record
 
 import android.content.Context
 import android.content.Intent
-import android.media.MediaRecorder
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.core.common.Storage
 import com.recorder.service.RecorderService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -31,6 +29,11 @@ import javax.inject.Inject
 class RecordViewModel @Inject constructor() : ViewModel() {
 
     private var _isRecording = MutableStateFlow(false)
+    var isRecording = _isRecording.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(1_000L),
+        initialValue = false
+    )
     private var _timerMillis = MutableStateFlow(0L)
 
     private val timePattern = DateTimeFormatter.ofPattern("mm:ss")
@@ -87,7 +90,7 @@ class RecordViewModel @Inject constructor() : ViewModel() {
         }
     }
 
-    private fun startTimer(isRecording: Boolean, currentTime:Long? = null): Flow<Long> = flow {
+    private fun startTimer(isRecording: Boolean, currentTime: Long? = null): Flow<Long> = flow {
         var startMillis = currentTime ?: System.currentTimeMillis()
         Timber.e(isRecording.toString())
         while (isRecording) {
