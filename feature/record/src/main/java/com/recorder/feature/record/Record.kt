@@ -4,6 +4,7 @@ import android.content.res.Configuration
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -63,36 +64,39 @@ fun RecordContent(
     onRecord: () -> Unit,
     onPlayListClicked: () -> Unit,
 ) {
-    Column(
-        modifier = modifier
-            .fillMaxSize(),
-        verticalArrangement = Arrangement.Center
-    ) {
-        AnimatedVisibility(visible = isRecording) {
-            RecordingTimer(modifier = Modifier.fillMaxWidth(), recordingTime)
+    Box(modifier = Modifier.fillMaxSize() then modifier) {
+        //center
+        Column(modifier = Modifier.align(Alignment.Center)) {
+            AnimatedVisibility(
+                visible = isRecording,
+            ) {
+                RecordingTimer(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    recordingTime
+                )
+            }
+            RecordAudioButton(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                recordingAllowed = recordingAllowed,
+                isRecording = isRecording
+            ) {
+                onRecord()
+            }
         }
-        RecordAudioButton(
-            modifier = Modifier.fillMaxWidth(),
-            recordingAllowed = recordingAllowed,
-            isRecording = isRecording
-        ) {
-            onRecord()
-        }
-    }
-    Column(
-        modifier = modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Bottom
-    ) {
+        //bottom
         PlayListButton(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .align(Alignment.BottomCenter),
             navigateToPlaylistEnabled = navigateToPlaylistEnabled
         ) {
             onPlayListClicked()
         }
     }
 }
+
 
 @Composable
 fun RecordingTimer(
