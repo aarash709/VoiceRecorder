@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.ChecklistRtl
@@ -206,7 +207,7 @@ fun PlaylistContent(
         }
     }
     BackHandler(isInEditMode) {
-        if (isInEditMode){
+        if (isInEditMode) {
             selectedVoices = emptySet()
         }
     }
@@ -334,14 +335,14 @@ fun PlaylistContent(
                     modifier = Modifier.padding(horizontal = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    items(
-                        count = voices.size,
-                        key = {
-                            it
-                        }) { voiceIndex ->
+                    itemsIndexed(
+                        items = voices,
+                        key = { i, it ->
+                            i
+                        }) { i, voice ->
                         val selected by remember(voices) {
                             derivedStateOf {
-                                voices[voiceIndex].title in selectedVoices
+                                voice.title in selectedVoices
                             }
                         }
                         PlaylistItem(
@@ -349,21 +350,24 @@ fun PlaylistContent(
                             if (isInEditMode) {
                                 Modifier.clickable {
                                     if (selected)
-                                        selectedVoices -= voices[voiceIndex].title
-                                    else selectedVoices += voices[voiceIndex].title
+                                        selectedVoices -= voice.title
+                                    else selectedVoices += voice.title
                                 }
                             } else {
                                 Modifier.combinedClickable(
                                     onLongClick = {
-                                        selectedVoices += voices[voiceIndex].title
+                                        selectedVoices += voices[i].title
                                     },
-                                    onClick = { }
+                                    onClick = {
+//                                        onVoiceClicked(i, voice)
+//                                        voice = voice
+                                    }
                                 )
                             },
-                            voice = voices[voiceIndex],
+                            voice = voice,
                             onVoiceClicked = { clickedVoice ->
-                                onVoiceClicked(voiceIndex, clickedVoice)
-                                voice = clickedVoice
+                                onVoiceClicked(i, clickedVoice)
+//                                voice = clickedVoice
                             },
                             onStop = { onStop() },
                             progress = progress,
@@ -390,13 +394,7 @@ fun PlaylistPagePreview() {
     VoiceRecorderTheme {
         Surface(color = MaterialTheme.colorScheme.background) {
             PlaylistContent(
-                listOf(
-                    Voice("title", "", isPlaying = false, "00:01"),
-                    Voice("title2", "", isPlaying = true, "00:10"),
-                    Voice("title3", "", isPlaying = false, "02:21"),
-                    Voice("title4", "", isPlaying = false, "05:01"),
-                    Voice("title5", "", isPlaying = false, "00:41")
-                ),
+                VoicesSampleData,
                 onPlayPause = {},
                 onStop = {},
                 onVoiceClicked = { i, voice ->
@@ -412,3 +410,20 @@ fun PlaylistPagePreview() {
         }
     }
 }
+
+val VoicesSampleData = listOf(
+    Voice("title", "", isPlaying = false, "00:01"),
+    Voice("title2", "", isPlaying = true, "00:10"),
+    Voice("title3", "", isPlaying = false, "02:21"),
+    Voice("title4", "", isPlaying = false, "05:01"),
+    Voice("title5", "", isPlaying = false, "00:41"),
+    Voice("title6", "", isPlaying = false, "08:01"),
+    Voice("title7", "", isPlaying = false, "10:05"),
+    Voice("title", "", isPlaying = false, "00:01"),
+    Voice("title2", "", isPlaying = false, "00:10"),
+    Voice("title3", "", isPlaying = false, "02:21"),
+    Voice("title4", "", isPlaying = false, "05:01"),
+    Voice("title5", "", isPlaying = false, "00:41"),
+    Voice("title6", "", isPlaying = false, "08:01"),
+    Voice("title7", "", isPlaying = false, "10:05")
+)
