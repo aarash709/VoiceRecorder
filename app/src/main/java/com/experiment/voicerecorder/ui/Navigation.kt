@@ -2,7 +2,6 @@ package com.experiment.voicerecorder.ui
 
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
@@ -21,14 +20,13 @@ sealed class Pages(val route: String) {
 @ExperimentalMaterialApi
 @Composable
 fun VoiceRecorderNavigation(
-    modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
 ) {
     NavHost(
         navController = navController,
         startDestination = RECORDER_ROUTE
     ) {
-        recorder(onListButtonClick = {
+        recorder(onNavigateToPlaylist = {
             navController.toRecordings()
         })
 

@@ -3,18 +3,24 @@ package com.recorder.feature.record
 import android.content.res.Configuration
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -29,18 +35,19 @@ import com.recorder.core.designsystem.theme.VoiceRecorderTheme
 
 @Composable
 fun Record(
-    onListButtonClick: () -> Unit,
+    onNavigateToPlaylist: () -> Unit,
 ) {
     val recordViewModel: RecordViewModel = hiltViewModel()
-    val recordTime = recordViewModel.formattedTimer.collectAsStateWithLifecycle().value
-    val context = LocalContext.current.applicationContext
+    val recordTime by recordViewModel.formattedTimer.collectAsStateWithLifecycle()
+    val context = LocalContext.current
     RecordContent(
-        modifier = Modifier,
+        modifier = Modifier
+            .padding(16.dp),
         recordEnabled = true,
         recordingTime = recordTime.toString(),
         navigateToPlaylistEnabled = true,
         onRecord = { recordViewModel.onRecord(context) },
-        onListButtonClick = { onListButtonClick() }
+        onPlayListClicked = { onNavigateToPlaylist() }
     )
 }
 
@@ -51,12 +58,11 @@ fun RecordContent(
     recordingTime: String,
     navigateToPlaylistEnabled: Boolean,
     onRecord: () -> Unit,
-    onListButtonClick: () -> Unit,
+    onPlayListClicked: () -> Unit,
 ) {
     Column(
         modifier = modifier
-            .fillMaxSize()
-            .padding(16.dp),
+            .fillMaxSize(),
         verticalArrangement = Arrangement.Center
     ) {
         RecordingTimer(modifier = Modifier.fillMaxWidth(), recordingTime)
@@ -77,7 +83,7 @@ fun RecordContent(
                 .padding(16.dp),
             navigateToPlaylistEnabled = navigateToPlaylistEnabled
         ) {
-            onListButtonClick()
+            onPlayListClicked()
         }
     }
 }
@@ -168,7 +174,7 @@ fun Prev() {
                 true,
 //        "00",
                 onRecord = {},
-                onListButtonClick ={})
+                onPlayListClicked = {})
         }
     }
 }

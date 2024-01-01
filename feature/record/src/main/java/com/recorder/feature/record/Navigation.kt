@@ -6,7 +6,6 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
-import com.core.common.model.Voice
 
 const val RECORDER_ROUTE = "RECORDER_ROUTE"
 
@@ -15,7 +14,7 @@ fun NavController.toRecorder(navOptions: NavOptions? = null) {
 }
 
 fun NavGraphBuilder.recorder(
-    onListButtonClick: () -> Unit
+    onNavigateToPlaylist: () -> Unit
 ){
     composable(
         route = RECORDER_ROUTE,
@@ -38,7 +37,7 @@ fun NavGraphBuilder.recorder(
             }
         }){
         Record(
-            onListButtonClick = { onListButtonClick() }
+            onNavigateToPlaylist = { onNavigateToPlaylist() }
         )
     }
 }
