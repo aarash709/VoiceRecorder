@@ -356,7 +356,7 @@ fun PlaylistContent(
                             } else {
                                 Modifier.combinedClickable(
                                     onLongClick = {
-                                        selectedVoices += voices[index].title
+                                        if (!voice.isPlaying) selectedVoices += voices[index].title
                                     },
                                     onClick = {
                                         if (!voice.isPlaying) {
