@@ -27,18 +27,25 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.recorder.core.designsystem.theme.VoiceRecorderTheme
+import kotlinx.coroutines.delay
 
 
 @Composable
@@ -71,6 +78,14 @@ fun RecordContent(
     onRecord: () -> Unit,
     onPlayListClicked: () -> Unit,
 ) {
+    val haptics = LocalHapticFeedback.current
+    LaunchedEffect(key1 = isRecording) {
+        if (isRecording) {
+            haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+            delay(100)
+            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+        }
+    }
     Box(modifier = Modifier.fillMaxSize() then modifier) {
         //center
         Column(modifier = Modifier.align(Alignment.Center)) {
@@ -118,7 +133,7 @@ fun RecordingTimer(
         Text(
             text = time,
             fontSize = 40.sp,
-            color = MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = .75f)
         )
     }
 }
@@ -159,11 +174,19 @@ fun RecordAudioButton(
     val circleColor = MaterialTheme.colorScheme.primary
     val infiniteTransition = rememberInfiniteTransition(label = "")
     val circleEffectRadius by infiniteTransition.animateFloat(
-        initialValue = 185f,
-        targetValue = 250f,
+        initialValue = 0f,
+        targetValue = 100f,
         animationSpec = infiniteRepeatable(
             animation = tween(1500, delayMillis = 150),
             repeatMode = RepeatMode.Restart
+        ), label = ""
+    )
+    val recordingRadius by infiniteTransition.animateFloat(
+        initialValue = 100f,
+        targetValue = 150f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(750, delayMillis = 200),
+            repeatMode = RepeatMode.Reverse
         ), label = ""
     )
     val circleAlpha by infiniteTransition.animateFloat(
@@ -179,24 +202,47 @@ fun RecordAudioButton(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+
         OutlinedButton(
             onClick = {
                 startRecording()
             },
-            border = BorderStroke(3.dp, MaterialTheme.colorScheme.primary),
+            border = BorderStroke(3.dp, Color.Transparent),
             enabled = recordingAllowed,
             modifier = Modifier
                 .size(125.dp)
-                .drawBehind {
-//                    initial = (size.minDimension / 2)
-                    drawCircle(
-                        color = circleColor,
-                        alpha = if (!isRecording) circleAlpha else 0f,
-                        radius = if (!isRecording) circleEffectRadius else size.minDimension / 2.0f,
-                        style = Stroke(
-                            width = 2.dp.toPx(),
-                        ),
-                    )
+                .drawWithCache {
+                    onDrawBehind {
+                        val radius = circleEffectRadius.plus(size.minDimension / 2)
+                        val lightRedColor = circleColor.copy(red = 0.4f)
+                        if (isRecording) {
+                            drawCircle(
+                                Brush.radialGradient(
+                                    listOf(lightRedColor, Color.Transparent),
+                                    radius = recordingRadius,
+                                    tileMode = TileMode.Clamp
+                                ),
+                                radius = size.minDimension / 2
+                            )
+                        } else {
+                            drawCircle(
+                                color = circleColor,
+                                alpha = 1.0f,
+                                style = Stroke(
+                                    width = 3.dp.toPx(),
+                                )
+                            )
+                            drawCircle(
+                                color = circleColor,
+                                alpha = circleAlpha,
+                                radius = radius,
+                                style = Stroke(
+                                    width = 2.dp.toPx(),
+                                ),
+                            )
+                        }
+
+                    }
                 },
             shape = CircleShape
         ) {
@@ -217,7 +263,7 @@ fun Prev() {
         Surface(color = MaterialTheme.colorScheme.background) {
             RecordContent(
                 modifier = Modifier,
-                isRecording = true,
+                isRecording = false,
                 recordingAllowed = true,
                 recordingTime = "01",
                 navigateToPlaylistEnabled = true,
