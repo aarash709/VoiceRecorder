@@ -2,32 +2,37 @@ package com.recorder.feature.playlist
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.RadioButtonChecked
 import androidx.compose.material.icons.filled.RadioButtonUnchecked
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.core.common.model.Voice
 import com.recorder.core.designsystem.theme.VoiceRecorderTheme
-import timber.log.Timber
 
 @Composable
 fun PlaylistItem(
@@ -43,110 +48,103 @@ fun PlaylistItem(
 ) {
     Surface(
         modifier = Modifier.animateContentSize(),
-        onClick = {
-            if (!voice.isPlaying) {
-                onVoiceClicked(voice)
-                Timber.e("onclick")
-            }
-            else {
-                onStop()
-            }
-        },
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surface,
     ) {
-        val textColor = if (voice.isPlaying) MaterialTheme.colorScheme.primary
-        else LocalContentColor.current
-        Row(
-            modifier = modifier
-                .fillMaxWidth()
-                .padding(all = 16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(
-                    modifier = Modifier.animateContentSize(),
-                    verticalArrangement = Arrangement.spacedBy(0.dp),//janky animation if set to > 0
-                ) {
-                    Text(
-                        text = voice.title,
-                        color = textColor,
-                        fontSize = 16.sp
-                    )
-                    Row {
+        var newSliderValue by remember {
+            mutableFloatStateOf(0f)
+        }
+        val subTextColor = MaterialTheme.colorScheme.onSurface.copy(
+            alpha = 1.0f,
+            red = .5f,
+            green = .5f,
+            blue = .5f
+        )
+        Column() {
+            Row(
+                modifier = modifier
+                    .fillMaxWidth()
+                    .padding(all = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Column(
+                        modifier = Modifier.animateContentSize(),
+                        verticalArrangement = Arrangement.spacedBy(0.dp),//janky animation if set to > 0
+                    ) {
                         Text(
-                            text = voice.recordTime,
-                            fontSize = 12.sp,
-                            color = textColor.copy(alpha = 0.7f)
+                            text = voice.title,
+                            fontSize = 16.sp
+                        )
+                        Row {
+                            Text(
+                                text = voice.recordTime,
+                                fontSize = 12.sp,
+                                color = subTextColor
+                            )
+                        }
+                    }
+
+                    AnimatedVisibility(
+                        visible = voice.isPlaying,
+                        label = "play icon",
+                        enter = fadeIn(),
+                        exit = fadeOut()
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.GraphicEq,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier
+                                .padding(start = 8.dp)
+                                .clip(CircleShape)
+                                .clickable {
+
+                                },
+                            contentDescription = ""
                         )
                     }
                 }
-
-                AnimatedVisibility(
-                    visible = voice.isPlaying,
-                    label = "play icon"
+                Row(
+                    modifier = Modifier,
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-//                    Row {
-//                        Icon(
-//                            imageVector = Icons.Default.GraphicEq,
-//                            tint = MaterialTheme.colorScheme.onSurface,
-//                            modifier = Modifier
-//                                .size(60.dp)
-//                                .padding(all = 8.dp)
-//                                .clip(CircleShape)
-//                                .clickable {
-//
-//                                },
-//                            contentDescription = ""
-//                        )
-                        Slider(
-                            value = progress,
-                            onValueChange = { onProgressChange(it) },
-                            modifier = Modifier,
-                            valueRange = 0f..duration,
-                            steps = 0,
-                            onValueChangeFinished = {},
-                        )
-                        AnimatedVisibility(
-                            voice.isPlaying,
-                            enter = expandVertically(),
-                            exit = shrinkVertically()
-                        ) {
-                        }
-//                    }
-
+                    Text(
+                        text = voice.duration,
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(end = 8.dp),
+                        color = subTextColor
+                    )
+                    AnimatedVisibility(isInEditMode && !voice.isPlaying) {
+                        if (isSelected)
+                            Icon(
+                                imageVector = Icons.Default.RadioButtonChecked,
+                                contentDescription = null,
+                                modifier = Modifier,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        else
+                            Icon(
+                                imageVector = Icons.Default.RadioButtonUnchecked,
+                                contentDescription = null,
+                                modifier = Modifier,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                    }
                 }
             }
-            Row(
-                modifier = Modifier,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = voice.duration,
-                    fontSize = 12.sp,
-                    color = textColor.copy(alpha = 0.7f),
-                    modifier = Modifier.padding(end = 8.dp)
-                )
-                AnimatedVisibility(isInEditMode && !voice.isPlaying) {
-                    if (isSelected)
-                        Icon(
-                            imageVector = Icons.Default.RadioButtonChecked,
-                            contentDescription = null,
-                            modifier = Modifier,
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    else
-                        Icon(
-                            imageVector = Icons.Default.RadioButtonUnchecked,
-                            contentDescription = null,
-                            modifier = Modifier,
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                }
+            AnimatedVisibility(visible = voice.isPlaying) {
+//                Slider(
+//                    value = progress,
+//                    onValueChange = { newSliderValue = it },
+//                    modifier = Modifier
+//                        .padding(horizontal = 16.dp),
+//                    valueRange = 0f..duration,
+//                    steps = 0,
+//                    onValueChangeFinished = { onProgressChange(newSliderValue) },
+//                )
             }
         }
-
     }
 }
 
@@ -167,6 +165,7 @@ private fun ItemPlayingPreview() {
         )
     }
 }
+
 @Preview
 @Composable
 private fun ItemPreview() {

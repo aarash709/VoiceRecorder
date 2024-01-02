@@ -337,9 +337,9 @@ fun PlaylistContent(
                 ) {
                     itemsIndexed(
                         items = voices,
-                        key = { i, it ->
-                            i
-                        }) { i, voice ->
+                        key = { index, _ ->
+                            index
+                        }) { index, voice ->
                         val selected by remember(voices) {
                             derivedStateOf {
                                 voice.title in selectedVoices
@@ -356,19 +356,20 @@ fun PlaylistContent(
                             } else {
                                 Modifier.combinedClickable(
                                     onLongClick = {
-                                        selectedVoices += voices[i].title
+                                        selectedVoices += voices[index].title
                                     },
                                     onClick = {
-//                                        onVoiceClicked(i, voice)
-//                                        voice = voice
+                                        if (!voice.isPlaying) {
+                                            onVoiceClicked(index, voice)
+                                            Timber.e("onclick")
+                                        } else {
+                                            onStop()
+                                        }
                                     }
                                 )
                             },
                             voice = voice,
-                            onVoiceClicked = { clickedVoice ->
-                                onVoiceClicked(i, clickedVoice)
-//                                voice = clickedVoice
-                            },
+                            onVoiceClicked = { _ -> },
                             onStop = { onStop() },
                             progress = progress,
                             duration = duration,
