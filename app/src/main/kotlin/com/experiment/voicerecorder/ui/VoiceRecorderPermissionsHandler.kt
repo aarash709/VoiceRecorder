@@ -1,4 +1,4 @@
-package com.experiment.voicerecorder
+package com.experiment.voicerecorder.ui
 
 import android.Manifest
 import android.os.Build
