@@ -2,8 +2,6 @@ package com.recorder.feature.playlist
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -49,12 +47,12 @@ fun PlaylistItem(
     isInEditMode: Boolean,
     isSelected: Boolean,
     onProgressChange: (Float) -> Unit,
-    onVoiceClicked: (Voice) -> Unit,
     onStop: () -> Unit,
 ) {
     Surface(
-        modifier = Modifier.animateContentSize(),
-        shape = RoundedCornerShape(16.dp),
+        modifier = Modifier
+            .animateContentSize()
+            .clip(RoundedCornerShape(16.dp)) then modifier,
         color = MaterialTheme.colorScheme.surface,
     ) {
         var newSliderValue by remember {
@@ -66,11 +64,10 @@ fun PlaylistItem(
             green = .5f,
             blue = .5f
         )
-        Column(modifier = Modifier.padding(vertical = 16.dp)) {
+        Column(modifier = Modifier.padding(all = 16.dp)) {
             Row(
-                modifier = modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
+                modifier = Modifier
+                    .fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
@@ -92,12 +89,7 @@ fun PlaylistItem(
                         }
                     }
 
-                    AnimatedVisibility(
-                        visible = voice.isPlaying,
-                        label = "play icon",
-                        enter = fadeIn(),
-                        exit = fadeOut()
-                    ) {
+                    if (voice.isPlaying) {
                         Icon(
                             imageVector = Icons.Default.GraphicEq,
                             tint = MaterialTheme.colorScheme.primary,
@@ -115,7 +107,7 @@ fun PlaylistItem(
                     Text(
                         text = voice.duration,
                         fontSize = 12.sp,
-                        modifier = Modifier.padding(end = 8.dp),
+                        modifier = Modifier.padding(horizontal = 8.dp),
                         color = subTextColor
                     )
                     AnimatedVisibility(isInEditMode && !voice.isPlaying) {
@@ -150,11 +142,13 @@ fun PlaylistItem(
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        IconButton(onClick = { /*TODO*/ }) {
+                        IconButton(onClick = { /*onPause()*/ }) {
                             Icon(
                                 imageVector = Icons.Default.PauseCircleOutline,
                                 modifier = Modifier.size(50.dp),
+                                tint = MaterialTheme.colorScheme.primary,
                                 contentDescription = "pause icon"
                             )
                         }
@@ -163,6 +157,7 @@ fun PlaylistItem(
                             Icon(
                                 imageVector = Icons.Outlined.StopCircle,
                                 modifier = Modifier.size(50.dp),
+                                tint = MaterialTheme.colorScheme.primary,
                                 contentDescription = "stop icon"
                             )
                         }
@@ -185,7 +180,6 @@ private fun ItemPlayingPreview() {
             isInEditMode = false,
             isSelected = false,
             onProgressChange = {},
-            onVoiceClicked = {},
             onStop = {},
         )
     }
@@ -203,7 +197,6 @@ private fun ItemPreview() {
             isInEditMode = false,
             isSelected = false,
             onProgressChange = {},
-            onVoiceClicked = {},
             onStop = {},
         )
     }

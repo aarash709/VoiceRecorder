@@ -165,9 +165,6 @@ fun PlaylistContent(
     save: () -> Unit,
     rename: (current: String, desired: String) -> Unit,
 ) {
-    var voice by remember {
-        mutableStateOf(Voice())
-    }
     var selectedVoices by remember {
         mutableStateOf(emptySet<String>())
     }
@@ -369,7 +366,6 @@ fun PlaylistContent(
                                 )
                             },
                             voice = voice,
-                            onVoiceClicked = { _ -> },
                             onStop = { onStop() },
                             progress = progress,
                             duration = duration,
