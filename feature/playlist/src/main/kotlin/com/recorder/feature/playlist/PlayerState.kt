@@ -1,4 +1,4 @@
-package com.experiment.voicerecorder
+package com.recorder.feature.playlist
 
 import android.content.ComponentName
 import androidx.compose.runtime.Composable

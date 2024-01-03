@@ -45,7 +45,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import com.core.common.model.Voice
-import com.experiment.voicerecorder.rememberPlayerState
 import com.recorder.core.designsystem.theme.VoiceRecorderTheme
 import kotlinx.coroutines.delay
 import timber.log.Timber
