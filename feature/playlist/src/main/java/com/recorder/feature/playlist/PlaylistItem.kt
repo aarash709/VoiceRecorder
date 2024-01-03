@@ -48,6 +48,7 @@ fun PlaylistItem(
     isSelected: Boolean,
     onProgressChange: (Float) -> Unit,
     onStop: () -> Unit,
+    onPause: () -> Unit,
 ) {
     Surface(
         modifier = Modifier
@@ -144,7 +145,7 @@ fun PlaylistItem(
                         horizontalArrangement = Arrangement.Center,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        IconButton(onClick = { /*onPause()*/ }) {
+                        IconButton(onClick = { onPause() }) {
                             Icon(
                                 imageVector = Icons.Default.PauseCircleOutline,
                                 modifier = Modifier.size(50.dp),
@@ -181,6 +182,8 @@ private fun ItemPlayingPreview() {
             isSelected = false,
             onProgressChange = {},
             onStop = {},
+            onPause = {},
+
         )
     }
 }
@@ -198,6 +201,7 @@ private fun ItemPreview() {
             isSelected = false,
             onProgressChange = {},
             onStop = {},
+            onPause = {},
         )
     }
 }

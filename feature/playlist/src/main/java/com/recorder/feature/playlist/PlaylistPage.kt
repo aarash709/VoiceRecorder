@@ -104,7 +104,11 @@ fun Playlist(
     ) {
         PlaylistContent(
             voices = voiceList,
-            onPlayPause = { },
+            onPlayPause = {
+                playerState.browser?.run {
+                    pause()
+                }
+            },
             onStop = {
                 playerState.browser?.run {
                     stop()
@@ -134,12 +138,12 @@ fun Playlist(
             onProgressChange = { desireePosition ->
                 lastProgress = desireePosition
             },
-            delete = { titles ->
+            onDeleteVoices = { titles ->
                 //can delete multiple
                 viewModel.deleteVoice(titles.toList(), context)
 
             },
-            save = {
+            onSaveVoiceFile = {
                 //save to shared storage: eg. recording or music or downloads folder
             },
             rename = { current, desired ->
@@ -161,8 +165,8 @@ fun PlaylistContent(
     onStop: () -> Unit,
     onVoiceClicked: (Int, Voice) -> Unit,
     onBackPressed: () -> Unit,
-    delete: (Set<String>) -> Unit,
-    save: () -> Unit,
+    onDeleteVoices: (Set<String>) -> Unit,
+    onSaveVoiceFile: () -> Unit,
     rename: (current: String, desired: String) -> Unit,
 ) {
     var selectedVoices by remember {
@@ -289,7 +293,7 @@ fun PlaylistContent(
                         renameTextFieldValue = it
                     },
                     delete = {
-                        delete(it)
+                        onDeleteVoices(it)
                         selectedVoices = emptySet()
                     })
             }
@@ -373,7 +377,8 @@ fun PlaylistContent(
                             isSelected = selected,
                             onProgressChange = { progress ->
                                 onProgressChange(progress)
-                            }
+                            },
+                            onPause = { onPlayPause() },
                         )
                     }
                 }
@@ -400,8 +405,8 @@ fun PlaylistPagePreview() {
                 progress = 0.0f,
                 duration = 0.0f,
                 onProgressChange = {},
-                delete = {},
-                save = {},
+                onDeleteVoices = {},
+                onSaveVoiceFile = {},
                 rename = { s1, s2 -> },
             )
         }
