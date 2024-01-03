@@ -7,16 +7,23 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.GraphicEq
+import androidx.compose.material.icons.filled.PauseCircleOutline
 import androidx.compose.material.icons.filled.RadioButtonChecked
 import androidx.compose.material.icons.filled.RadioButtonUnchecked
+import androidx.compose.material.icons.outlined.StopCircle
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -59,11 +66,11 @@ fun PlaylistItem(
             green = .5f,
             blue = .5f
         )
-        Column() {
+        Column(modifier = Modifier.padding(vertical = 16.dp)) {
             Row(
                 modifier = modifier
                     .fillMaxWidth()
-                    .padding(all = 16.dp),
+                    .padding(horizontal = 16.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
@@ -130,15 +137,37 @@ fun PlaylistItem(
                 }
             }
             AnimatedVisibility(visible = voice.isPlaying) {
-//                Slider(
-//                    value = progress,
-//                    onValueChange = { newSliderValue = it },
-//                    modifier = Modifier
-//                        .padding(horizontal = 16.dp),
-//                    valueRange = 0f..duration,
-//                    steps = 0,
-//                    onValueChangeFinished = { onProgressChange(newSliderValue) },
-//                )
+                Column {
+                    Slider(
+                        value = progress,
+                        onValueChange = { newSliderValue = it },
+                        modifier = Modifier
+                            .padding(horizontal = 0.dp),
+                        valueRange = 0f..duration,
+                        steps = 0,
+                        onValueChangeFinished = { onProgressChange(newSliderValue) },
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center,
+                    ) {
+                        IconButton(onClick = { /*TODO*/ }) {
+                            Icon(
+                                imageVector = Icons.Default.PauseCircleOutline,
+                                modifier = Modifier.size(50.dp),
+                                contentDescription = "pause icon"
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(24.dp))
+                        IconButton(onClick = { onStop() }) {
+                            Icon(
+                                imageVector = Icons.Outlined.StopCircle,
+                                modifier = Modifier.size(50.dp),
+                                contentDescription = "stop icon"
+                            )
+                        }
+                    }
+                }
             }
         }
     }
