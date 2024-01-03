@@ -7,4 +7,4 @@ val dark90 = Color(0xFF131313)
 val darkGraySurface = Color(0xFF1E1E1E)
 val lightGraySurface = Color(0xFFE1E1E1)
 
-val primaryColor = Color.Red.copy(red = 0.6f)
+val primaryColor = Color(0xFF990F0F)

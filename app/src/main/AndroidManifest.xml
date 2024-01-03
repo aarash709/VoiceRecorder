@@ -6,6 +6,8 @@
     <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
     <uses-permission
         android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="29" />
@@ -18,9 +20,9 @@
     <application
         android:name=".VoiceRecorderApplication"
         android:allowBackup="true"
-        android:icon="@drawable/ic_record"
+        android:icon="@drawable/baseline_keyboard_voice_24"
         android:label="@string/app_name"
-        android:roundIcon="@drawable/ic_record"
+        android:roundIcon="@drawable/baseline_keyboard_voice_24"
         android:supportsRtl="true"
         android:theme="@style/Theme.VoiceRecorder">
         <activity
@@ -38,7 +40,7 @@
         <service
             android:name="com.recorder.service.RecorderService"
             android:exported="false"
-            android:foregroundServiceType="microphone" />
+            android:foregroundServiceType="microphone"/>
         <service
             android:name="com.recorder.service.PlayerService"
             android:exported="false"
