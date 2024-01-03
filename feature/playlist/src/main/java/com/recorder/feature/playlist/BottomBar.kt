@@ -6,7 +6,9 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -37,7 +39,40 @@ import androidx.compose.ui.unit.sp
 import com.recorder.core.designsystem.theme.VoiceRecorderTheme
 
 @Composable
-fun PlaylistButtonBar(
+fun PlaylistBottomBar(
+    isInEditMode: Boolean,
+    showRenameButton: Boolean,
+    selectedVoices: Set<String>,
+    onShowRenameSheet: (Boolean) -> Unit,
+    renameTextFieldValue: (TextFieldValue) -> Unit,
+    onDeleteVoices: (Set<String>) -> Unit,
+) {
+    AnimatedVisibility(
+        visible = isInEditMode,
+        enter = slideInVertically(
+            initialOffsetY = { height ->
+                height
+            }) + fadeIn(),
+        exit = slideOutVertically(
+            targetOffsetY = { height ->
+                height
+            }
+        ) + fadeOut()
+    ) {
+        PlaylistButtonBarContent(
+            showRenameButton = showRenameButton,
+            selectedVoices = selectedVoices,
+            showRenameSheet = { onShowRenameSheet(it) },
+            renameTextFieldValue = {
+                renameTextFieldValue(it)
+            },
+            delete = {
+                onDeleteVoices(it)
+            })
+    }
+}
+@Composable
+fun PlaylistButtonBarContent(
     showRenameButton: Boolean,
     selectedVoices: Set<String>,
     showRenameSheet: (Boolean) -> Unit,
@@ -119,7 +154,7 @@ fun PlaylistButtonBar(
 fun BottomBarPreview() {
     VoiceRecorderTheme {
         Surface(color = MaterialTheme.colorScheme.background) {
-            PlaylistButtonBar(
+            PlaylistButtonBarContent(
                 showRenameButton = true,
                 selectedVoices = setOf(),
                 showRenameSheet = {},

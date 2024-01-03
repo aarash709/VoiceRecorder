@@ -3,12 +3,6 @@ package com.recorder.feature.playlist
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -21,15 +15,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ArrowBack
-import androidx.compose.material.icons.outlined.ChecklistRtl
-import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -104,31 +91,22 @@ fun Playlist(
     ) {
         PlaylistContent(
             voices = voiceList,
-            onPlayPause = {
-                playerState.browser?.run {
-                    pause()
-                }
-            },
-            onStop = {
-                playerState.browser?.run {
-                    stop()
-                }
-            },
+            onPlayPause = { playerState.browser?.run { pause() } },
+            onStop = { playerState.browser?.run { stop() } },
             onVoiceClicked = { voiceIndex, voice ->
-                playingVoiceIndex = voiceIndex
-//                onVoiceClicked(voiceIndex, voice)
                 Timber.e("on voice clicked")
+                playingVoiceIndex = voiceIndex
                 val metadata = MediaMetadata.Builder()
                     .setTitle(voice.title)
                     .setIsPlayable(true).build()
-                val mediaitem = MediaItem.Builder()
+                val mediaItem = MediaItem.Builder()
                     .setMediaMetadata(metadata)
                     .setUri(voice.path)
                     .setMediaId(voice.title)
                     .build()
                 playerState.browser?.run {
-                    Timber.e("item id to play:${mediaitem.mediaId}")
-                    setMediaItem(mediaitem)
+                    Timber.e("item id to play:${mediaItem.mediaId}")
+                    setMediaItem(mediaItem)
                     play()
                 }
             },
@@ -141,20 +119,24 @@ fun Playlist(
             onDeleteVoices = { titles ->
                 //can delete multiple
                 viewModel.deleteVoice(titles.toList(), context)
-
             },
             onSaveVoiceFile = {
+                // TODO: implement save functionality
                 //save to shared storage: eg. recording or music or downloads folder
             },
             rename = { current, desired ->
                 viewModel.renameVoice(current, desired, context)
-                viewModel.getVoices(context)
+                viewModel.getVoices(context) //refresh list
             },
         )
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalFoundationApi::class
+)
 @Composable
 fun PlaylistContent(
     voices: List<Voice>,
@@ -203,8 +185,9 @@ fun PlaylistContent(
     LaunchedEffect(key1 = isAllSelected) {
         if (isAllSelected) {
             //make sure there is no duplicate selected voice
-            selectedVoices = emptySet()
             selectedVoices += voices.map { it.title }
+        } else {
+            selectedVoices = emptySet()
         }
     }
     BackHandler(isInEditMode) {
@@ -216,87 +199,23 @@ fun PlaylistContent(
         modifier = Modifier,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
-            MediumTopAppBar(
-                title = {
-                    AnimatedContent(
-                        targetState = isInEditMode,
-                        label = "Title Animation"
-                    ) { inEditMode ->
-                        if (inEditMode)
-                            Text(text = "${selectedVoices.count()} item selected")
-                        else {
-                            Text(
-                                text = "Recordings",
-                            )
-                        }
-                    }
-                },
-                navigationIcon = {
-                    AnimatedContent(
-                        targetState = isInEditMode,
-                        label = "Top bar Icon"
-                    ) { isInEditMode ->
-                        if (isInEditMode) {
-                            IconButton(onClick = { selectedVoices = emptySet() }) {
-                                Icon(
-                                    imageVector = Icons.Outlined.Close,
-                                    tint = MaterialTheme.colorScheme.onBackground,
-                                    contentDescription = "Clear selection Button"
-                                )
-                            }
-                        } else {
-                            IconButton(onClick = { onBackPressed() }) {
-                                Icon(
-                                    imageVector = Icons.Outlined.ArrowBack,
-                                    tint = MaterialTheme.colorScheme.onBackground,
-                                    contentDescription = "back icon"
-                                )
-                            }
-                        }
-                    }
-                },
-                actions = {
-                    AnimatedVisibility(visible = isInEditMode) {
-                        IconButton(onClick = { isAllSelected = !isAllSelected }) {
-                            Icon(
-                                imageVector = Icons.Outlined.ChecklistRtl,
-                                contentDescription = "Select all button"
-                            )
-                        }
-                    }
-                },
-                colors = TopAppBarDefaults
-                    .mediumTopAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.background
-                    ),
-                scrollBehavior = scrollBehavior
+            PlaylistTopBar(
+                isInEditMode = isInEditMode,
+                selectedVoices = selectedVoices,
+                scrollBehavior = scrollBehavior,
+                onIsAllSelected = { isAllSelected = !isAllSelected },
+                onSelectedVoiceUpdate = { selectedVoices = emptySet() },
+                onBackPressed = { onBackPressed() },
             )
         },
         bottomBar = {
-            AnimatedVisibility(
-                visible = isInEditMode,
-                enter = slideInVertically(
-                    initialOffsetY = { height ->
-                        height
-                    }) + fadeIn(),
-                exit = slideOutVertically(
-                    targetOffsetY = { height ->
-                        height
-                    }
-                ) + fadeOut()
-            ) {
-                PlaylistButtonBar(
-                    showRenameButton = showRenameButton,
-                    selectedVoices = selectedVoices,
-                    showRenameSheet = { showRenameSheet = it },
-                    renameTextFieldValue = {
-                        renameTextFieldValue = it
-                    },
-                    delete = {
-                        onDeleteVoices(it)
-                        selectedVoices = emptySet()
-                    })
-            }
+            PlaylistBottomBar(
+                isInEditMode = isInEditMode,
+                showRenameButton = showRenameButton,
+                selectedVoices = selectedVoices,
+                onShowRenameSheet = { showRenameSheet = it },
+                renameTextFieldValue = { renameTextFieldValue = it },
+                onDeleteVoices = { onDeleteVoices(it) })
         }
     ) { paddingValues ->
         Column(
@@ -387,7 +306,6 @@ fun PlaylistContent(
     }
 
 }
-
 
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_NO)
