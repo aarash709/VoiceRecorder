@@ -21,7 +21,6 @@ import androidx.compose.material.icons.outlined.StopCircle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -131,15 +130,16 @@ fun PlaylistItem(
             }
             AnimatedVisibility(visible = voice.isPlaying) {
                 Column {
-                    Slider(
-                        value = progress,
-                        onValueChange = { newSliderValue = it },
-                        modifier = Modifier
-                            .padding(horizontal = 0.dp),
-                        valueRange = 0f..duration,
-                        steps = 0,
-                        onValueChangeFinished = { onProgressChange(newSliderValue) },
-                    )
+                    // TODO: investigate "check error" crash
+//                    Slider(
+//                        value = progress,
+//                        onValueChange = { newSliderValue = it },
+//                        modifier = Modifier
+//                            .padding(horizontal = 0.dp),
+//                        valueRange = 0f..duration,
+//                        steps = 0,
+//                        onValueChangeFinished = { onProgressChange(newSliderValue) },
+//                    )
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.Center,
