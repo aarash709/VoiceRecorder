@@ -52,7 +52,8 @@ fun PlaylistItem(
     Surface(
         modifier = Modifier
             .animateContentSize()
-            .clip(RoundedCornerShape(16.dp)) then modifier,
+            .clip(RoundedCornerShape(16.dp))
+                then modifier,
         color = MaterialTheme.colorScheme.surface,
     ) {
         var newSliderValue by remember {
@@ -105,7 +106,7 @@ fun PlaylistItem(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        text = voice.duration,
+                        text = if (voice.isPlaying) "${progress}/${voice.duration}" else voice.duration,
                         fontSize = 12.sp,
                         modifier = Modifier.padding(horizontal = 8.dp),
                         color = subTextColor
@@ -184,7 +185,7 @@ private fun ItemPlayingPreview() {
             onStop = {},
             onPause = {},
 
-        )
+            )
     }
 }
 

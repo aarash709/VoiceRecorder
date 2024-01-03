@@ -111,7 +111,7 @@ fun Playlist(
                 }
             },
             onBackPressed = { onBackPressed() },
-            progress = lastProgress,
+            progress = progress,
             duration = duration,
             onProgressChange = { desireePosition ->
                 lastProgress = desireePosition

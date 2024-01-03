@@ -29,6 +29,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import kotlin.math.roundToInt
 
 @Composable
 fun rememberPlayerState(): PlayerState {
@@ -92,7 +93,8 @@ class PlayerState(
         initialValue = false
     )
     val progress = flow {
-        emit(progress)
+        val seconds= (progress / 1000).roundToInt().toFloat()
+        emit(seconds)
     }.stateIn(
         scope = coroutineScope,
         started = SharingStarted.WhileSubscribed(1_000),
@@ -155,6 +157,7 @@ fun PlayerStateEffect(
                                             when (playbackState) {
                                                 Player.STATE_IDLE -> {
                                                     Timber.e("state IDLE...")
+                                                    progress(0L)
                                                     isVoicePlaying(isPlaying)
                                                     currentDuration(duration)
                                                 }
