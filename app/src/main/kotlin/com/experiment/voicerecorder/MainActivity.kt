@@ -11,6 +11,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.runtime.LaunchedEffect
 import androidx.core.app.ActivityCompat
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.experiment.voicerecorder.ui.RecorderApp
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.recorder.core.designsystem.theme.VoiceRecorderTheme
@@ -31,6 +32,7 @@ class MainActivity : ComponentActivity() {
             ),
             0
         )
+        installSplashScreen()
         enableEdgeToEdge()
         setContent {
             val isDarkTheme = isSystemInDarkTheme()
