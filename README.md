@@ -10,7 +10,7 @@ A  simple work in progress (🚧) voice recorder android app.
 ### Stack
 * Jetpack Compose UI
 * AndroidX Navigation
-* AndroidX MediaRecorder(audio recordign)
+* AndroidX MediaRecorder(audio recording)
 * AndroidX Media3(playback service)
 
 # License
