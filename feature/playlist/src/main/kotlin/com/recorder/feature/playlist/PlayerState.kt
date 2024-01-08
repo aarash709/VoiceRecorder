@@ -50,7 +50,7 @@ fun rememberPlayerState(): PlayerState {
     }
     PlayerStateEffect(
         lifecycleOwner = lifecycleOwner,
-        getBrowser = {
+        onGetBrowser = {
             Timber.e("setting browser...")
             browser = it
         },
@@ -122,7 +122,7 @@ class PlayerState(
 @Composable
 fun PlayerStateEffect(
     lifecycleOwner: LifecycleOwner,
-    getBrowser: (MediaBrowser?) -> Unit,
+    onGetBrowser: (MediaBrowser?) -> Unit,
     progress: (Long) -> Unit,
     currentDuration: (Long) -> Unit,
     isVoicePlaying: (Boolean) -> Unit,
@@ -136,6 +136,7 @@ fun PlayerStateEffect(
         mutableStateOf<MediaBrowser?>(null)
     }
     DisposableEffect(lifecycleOwner) {
+        Timber.e("Disposable trigger")
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_START) {
                 val sessionToken = SessionToken(
@@ -146,7 +147,7 @@ fun PlayerStateEffect(
                     MediaBrowser.Builder(context, sessionToken).buildAsync().apply {
                         addListener({
                             browser = if (browserFuture!!.isDone) browserFuture?.get() else null
-                            getBrowser(browser)
+                            onGetBrowser(browser)
                             browser?.apply {
                                 isVoicePlaying(isPlaying)
                                 addListener(
@@ -226,10 +227,12 @@ fun PlayerStateEffect(
             // TODO: check if this works as intended
             if (event == Lifecycle.Event.ON_STOP) {
                 MediaBrowser.releaseFuture(browserFuture!!)
+                Timber.e("release future")
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose {
+            Timber.e("on dispose")
             lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
