@@ -89,7 +89,7 @@ class PlayerState(
         emit(isPlaying)
     }.stateIn(
         scope = coroutineScope,
-        started = SharingStarted.WhileSubscribed(1_000),
+        started = SharingStarted.WhileSubscribed(0),
         initialValue = false
     )
     val progress = flow {
@@ -110,6 +110,9 @@ class PlayerState(
 
     init {
         Timber.e("init state")
+        Timber.e("init playing :${isVoicePlaying.value}")
+        Timber.e("init progress :${this.progress.value}")
+        Timber.e("init voiceDuration :${voiceDuration.value}")
         if (browser == null) {
             Timber.e("browser is NULL")
         } else {
@@ -149,7 +152,10 @@ fun PlayerStateEffect(
                             browser = if (browserFuture!!.isDone) browserFuture?.get() else null
                             onGetBrowser(browser)
                             browser?.apply {
+                                Timber.e("on BROWSER")
                                 isVoicePlaying(isPlaying)
+                                progress(currentPosition)
+                                currentDuration(duration)
                                 addListener(
                                     object : Player.Listener {
                                         override fun onPlaybackStateChanged(
