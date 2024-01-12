@@ -85,8 +85,6 @@ dependencies {
     implementation(libs.androidx.activityCompose)
     implementation(libs.androidx.navigationCompose)
 
-//    implementation "com.google.accompanist:accompanist-drawablepainter:$accompanist_version"
-    implementation(libs.accompanist.navigationAnimation)
     implementation(libs.accompanist.permissions)
 
     implementation(libs.coilCompose)
