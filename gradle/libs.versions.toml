@@ -1,17 +1,17 @@
 [versions]
-kotlin = "1.9.20"
+kotlin = "1.9.22"
 androidGradle = "8.2.1"
 composeBom = "2023.10.01"
-androidxActivity = "1.8.1"
+androidxActivity = "1.8.2"
 androidxCompose = "1.4.3"
-androidxComposeCompiler = "1.5.5"
+androidxComposeCompiler = "1.5.8"
 androidxCore = "1.12.0"
 androidxAppcompat = "1.6.1"
 andoidxWindow = "1.2.0"
 andoidxWork = "2.9.0"
-andoidxNavigation = "2.7.5"
-andoidxLifecycle = "2.6.2"
-androidxActivityCompose = "1.8.1"
+andoidxNavigation = "2.7.6"
+andoidxLifecycle = "2.7.0"
+androidxActivityCompose = "1.8.2"
 androidxHiltWork = "1.1.0"
 androidxRoom = "2.6.1"
 androidxSplashScreen = "1.0.1"
@@ -21,6 +21,8 @@ androidxTestExtJunit = "1.1.5"
 accompanist = "0.32.0"
 kotlinxSerialization = "1.6.0"
 kotlinxCoroutines = "1.7.3"
+androidxMedia3 = "1.2.0"
+material = "1.10.0"
 hiltNavigationCompose = "1.1.0"
 hiltAndroid = "2.48.1"
 timberLogger = "5.0.1"
@@ -32,8 +34,6 @@ gradleSecret = "2.0.1"
 junit4 = "4.13.2"
 espresso-core = "3.5.1"
 appcompat = "1.6.1"
-material = "1.10.0"
-androidxMedia3 = "1.2.0"
 detekt = "1.23.4"
 kotlinter = "4.0.0"
 
@@ -74,14 +74,11 @@ androidx-roomRuntime = { group = "androidx.room", name = "room-runtime", version
 androidx-media = { group = "androidx.media", name = "media", version.ref = "androidxMedia" }
 androidx-media3-exoPlayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "androidxMedia3" }
 androidx-media3-mediasession = { group = "androidx.media3", name = "media3-session", version.ref = "androidxMedia3" }
+material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 kotlix-Serialization = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 kotlix-CoroutinesCore = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
 kotlix-CoroutinesTest = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinxCoroutines" }
 kotlix-CoroutinesAndroid = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "kotlinxCoroutines" }
-accompanist-NavigationAnimation = { group = "com.google.accompanist", name = "accompanist-navigation-animation", version.ref = "accompanist" }
-accompanist-FlowLayout = { group = "com.google.accompanist", name = "accompanist-flowlayout", version.ref = "accompanist" }
-accompanist-placeholder = { group = "com.google.accompanist", name = "accompanist-placeholder-material", version.ref = "accompanist" }
-accompanist-SystemUIController = { group = "com.google.accompanist", name = "accompanist-systemuicontroller", version.ref = "accompanist" }
 accompanist-permissions = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "accompanist" }
 timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "timberLogger" }
 hilt_NavigationCompose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
@@ -103,7 +100,6 @@ junit4 = { group = "junit", name = "junit", version.ref = "junit4" }
 androidx-test-extJunit = { group = "androidx.test.ext", name = "junit", version.ref = "androidxTestExtJunit" }
 espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espresso-core" }
 appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
-material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 detekt-formatting = { group = "io.gitlab.arturbosch.detekt", name = "detekt-formatting", version.ref = "detekt" }
 
 
