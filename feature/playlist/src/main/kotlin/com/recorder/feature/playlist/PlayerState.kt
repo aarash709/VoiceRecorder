@@ -2,7 +2,6 @@ package com.recorder.feature.playlist
 
 import android.content.ComponentName
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -12,9 +11,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.session.MediaBrowser
@@ -93,7 +91,7 @@ class PlayerState(
         initialValue = false
     )
     val progress = flow {
-        val seconds= (progress / 1000).roundToInt().toFloat()
+        val seconds = (progress / 1000).roundToInt().toFloat()
         emit(seconds)
     }.stateIn(
         scope = coroutineScope,
@@ -138,108 +136,98 @@ fun PlayerStateEffect(
     var browser by remember {
         mutableStateOf<MediaBrowser?>(null)
     }
-    DisposableEffect(lifecycleOwner) {
-        Timber.e("Disposable trigger")
-        val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_START) {
-                val sessionToken = SessionToken(
-                    context,
-                    ComponentName(context, PlayerService::class.java)
-                )
-                browserFuture =
-                    MediaBrowser.Builder(context, sessionToken).buildAsync().apply {
-                        addListener({
-                            browser = if (browserFuture!!.isDone) browserFuture?.get() else null
-                            onGetBrowser(browser)
-                            browser?.apply {
-                                Timber.e("on BROWSER")
-                                isVoicePlaying(isPlaying)
-                                progress(currentPosition)
-                                currentDuration(duration)
-                                addListener(
-                                    object : Player.Listener {
-                                        override fun onPlaybackStateChanged(
-                                            playbackState: Int,
-                                        ) {
-                                            when (playbackState) {
-                                                Player.STATE_IDLE -> {
-                                                    Timber.e("state IDLE...")
-                                                    progress(0L)
-                                                    isVoicePlaying(isPlaying)
-                                                    currentDuration(duration)
-                                                }
+    LifecycleStartEffect(key1 = lifecycleOwner) {
+        Timber.e("ON START EFFECT")
+        val sessionToken = SessionToken(
+            context,
+            ComponentName(context, PlayerService::class.java)
+        )
+        browserFuture =
+            MediaBrowser.Builder(context, sessionToken).buildAsync().apply {
+                addListener({
+                    browser = if (browserFuture!!.isDone) browserFuture?.get() else null
+                    onGetBrowser(browser)
+                    browser?.apply {
+                        Timber.e("on BROWSER SET")
+                        isVoicePlaying(isPlaying)
+                        progress(currentPosition)
+                        currentDuration(duration)
+                        addListener(
+                            object : Player.Listener {
+                                override fun onPlaybackStateChanged(
+                                    playbackState: Int,
+                                ) {
+                                    when (playbackState) {
+                                        Player.STATE_IDLE -> {
+                                            Timber.e("state IDLE...")
+                                            progress(0L)
+                                            isVoicePlaying(isPlaying)
+                                            currentDuration(duration)
+                                        }
 
-                                                Player.STATE_ENDED -> {
-                                                    Timber.e("state ENDED...")
-                                                    isVoicePlaying(isPlaying)
-                                                    progress(0L)
-                                                    currentDuration(0L)
-                                                }
+                                        Player.STATE_ENDED -> {
+                                            Timber.e("state ENDED...")
+                                            isVoicePlaying(isPlaying)
+                                            progress(0L)
+                                            currentDuration(0L)
+                                        }
 
-                                                Player.STATE_BUFFERING -> {
-                                                    Timber.e("state BUFFERING...")
-                                                }
+                                        Player.STATE_BUFFERING -> {
+                                            Timber.e("state BUFFERING...")
+                                        }
 
-                                                Player.STATE_READY -> {
-                                                    Timber.e("state READY...")
-                                                    isVoicePlaying(isPlaying)
-                                                    currentDuration(duration)
-                                                    scope.launch {
-                                                        while (isPlaying) {
-                                                            progress(currentPosition)
-                                                            Timber.e("position sett:$currentPosition")
-                                                            delay(1_000L)
-                                                        }
-                                                    }
+                                        Player.STATE_READY -> {
+                                            Timber.e("state READY...")
+                                            isVoicePlaying(isPlaying)
+                                            currentDuration(duration)
+                                            scope.launch {
+                                                while (isPlaying) {
+                                                    progress(currentPosition)
+                                                    Timber.e("position sett:$currentPosition")
+                                                    delay(1_000L)
                                                 }
                                             }
-                                            super.onPlaybackStateChanged(
-                                                playbackState
-                                            )
                                         }
+                                    }
+                                    super.onPlaybackStateChanged(
+                                        playbackState
+                                    )
+                                }
 
-                                        override fun onPlayWhenReadyChanged(
-                                            playWhenReady: Boolean,
-                                            reason: Int,
-                                        ) {
-                                            Timber.e("play when ready:$playWhenReady")
-                                            isVoicePlaying(isPlaying)
-                                            super.onPlayWhenReadyChanged(
-                                                playWhenReady,
-                                                reason
-                                            )
-                                        }
+                                override fun onPlayWhenReadyChanged(
+                                    playWhenReady: Boolean,
+                                    reason: Int,
+                                ) {
+                                    Timber.e("play when ready:$playWhenReady")
+                                    isVoicePlaying(isPlaying)
+                                    super.onPlayWhenReadyChanged(
+                                        playWhenReady,
+                                        reason
+                                    )
+                                }
 
-                                        override fun onIsPlayingChanged(isPlaying: Boolean) {
-                                            Timber.e("is playing change: $isPlaying")
-                                            isVoicePlaying(isPlaying)
-                                            if (isPlaying.not())
-                                                progress(0L)
-                                            super.onIsPlayingChanged(isPlaying)
-                                        }
+                                override fun onIsPlayingChanged(isPlaying: Boolean) {
+                                    Timber.e("is playing change: $isPlaying")
+                                    isVoicePlaying(isPlaying)
+                                    if (isPlaying.not())
+                                        progress(0L)
+                                    super.onIsPlayingChanged(isPlaying)
+                                }
 
 
-                                        override fun onPlayerError(error: PlaybackException) {
-                                            super.onPlayerError(error)
-                                            Timber.e(error.message)
-                                            browser?.stop()
-                                        }
+                                override fun onPlayerError(error: PlaybackException) {
+                                    super.onPlayerError(error)
+                                    Timber.e(error.message)
+                                    browser?.stop()
+                                }
 
-                                    })
-                            }
-                        }, MoreExecutors.directExecutor())
+                            })
                     }
+                }, MoreExecutors.directExecutor())
             }
-            // TODO: check if this works as intended
-            if (event == Lifecycle.Event.ON_STOP) {
-                MediaBrowser.releaseFuture(browserFuture!!)
-                Timber.e("release future")
-            }
-        }
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose {
-            Timber.e("on dispose")
-            lifecycleOwner.lifecycle.removeObserver(observer)
+        onStopOrDispose {
+            Timber.e("ON STOP OR DISPOSE")
+            MediaBrowser.releaseFuture(browserFuture!!)
         }
     }
 }
