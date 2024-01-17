@@ -11,7 +11,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
-import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
@@ -31,9 +30,8 @@ import kotlin.math.roundToInt
 
 @Composable
 fun rememberPlayerState(): PlayerState {
-    val lifecycleOwner = LocalLifecycleOwner.current
     val scope = rememberCoroutineScope()
-
+    val lifecycleOwner = LocalLifecycleOwner.current
     var progress by remember {
         mutableFloatStateOf(0f)
     }
@@ -46,8 +44,19 @@ fun rememberPlayerState(): PlayerState {
     var browser by remember {
         mutableStateOf<MediaBrowser?>(null)
     }
+    val playerState =
+        remember(isPlaying, progress, currentDuration, browser, scope) {
+            PlayerState(
+                browser = browser,
+                isPlaying = isPlaying,
+                progress = progress,
+                duration = currentDuration,
+                coroutineScope = scope
+            )
+        }
     PlayerStateEffect(
-        lifecycleOwner = lifecycleOwner,
+        key1 = lifecycleOwner,
+        key2 = "",
         onGetBrowser = {
             Timber.e("setting browser...")
             browser = it
@@ -64,15 +73,7 @@ fun rememberPlayerState(): PlayerState {
             isPlaying = it
         }
     )
-    return remember(isPlaying, progress, currentDuration, browser, scope) {
-        PlayerState(
-            browser = browser,
-            isPlaying = isPlaying,
-            progress = progress,
-            duration = currentDuration,
-            coroutineScope = scope
-        )
-    }
+    return playerState
 }
 
 @Stable
@@ -84,10 +85,10 @@ class PlayerState(
     coroutineScope: CoroutineScope,
 ) {
     val isVoicePlaying = flow {
-        emit(isPlaying)
+            emit(isPlaying)
     }.stateIn(
         scope = coroutineScope,
-        started = SharingStarted.WhileSubscribed(0),
+        started = SharingStarted.WhileSubscribed(5_000),
         initialValue = false
     )
     val progress = flow {
@@ -95,20 +96,20 @@ class PlayerState(
         emit(seconds)
     }.stateIn(
         scope = coroutineScope,
-        started = SharingStarted.WhileSubscribed(1_000),
+        started = SharingStarted.WhileSubscribed(5_000),
         initialValue = 0f
     )
     val voiceDuration = flow {
         emit(duration)
     }.stateIn(
         scope = coroutineScope,
-        started = SharingStarted.WhileSubscribed(1_000),
+        started = SharingStarted.WhileSubscribed(5_000),
         initialValue = 0f
     )
 
     init {
         Timber.e("init state")
-        Timber.e("init playing :${isVoicePlaying.value}")
+        Timber.e("init playing :${isVoicePlaying}")
         Timber.e("init progress :${this.progress.value}")
         Timber.e("init voiceDuration :${voiceDuration.value}")
         if (browser == null) {
@@ -122,7 +123,8 @@ class PlayerState(
 
 @Composable
 fun PlayerStateEffect(
-    lifecycleOwner: LifecycleOwner,
+    key1: Any?,
+    key2: Any?,
     onGetBrowser: (MediaBrowser?) -> Unit,
     progress: (Long) -> Unit,
     currentDuration: (Long) -> Unit,
@@ -136,7 +138,7 @@ fun PlayerStateEffect(
     var browser by remember {
         mutableStateOf<MediaBrowser?>(null)
     }
-    LifecycleStartEffect(key1 = lifecycleOwner) {
+    LifecycleStartEffect(key1 = key1, key2 = key2) {
         Timber.e("ON START EFFECT")
         val sessionToken = SessionToken(
             context,

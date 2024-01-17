@@ -30,6 +30,7 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -53,27 +54,35 @@ import timber.log.Timber
 fun Playlist(
     onBackPressed: () -> Unit,
 ) {
+    val scope = rememberCoroutineScope()
     val viewModel = hiltViewModel<PlaylistViewModel>()
     val playerState = rememberPlayerState()
+    val browser = playerState.browser
     val context = LocalContext.current
     var playingVoiceIndex by remember {
-        mutableIntStateOf(-1)
+        mutableIntStateOf(1)
     }
     val voiceList by viewModel.voices.collectAsStateWithLifecycle()
-    LaunchedEffect(key1 = Unit, block = {
-        viewModel.getVoices(context)
-    })
     val isPlaying by playerState.isVoicePlaying.collectAsStateWithLifecycle()
     val progress by playerState.progress.collectAsStateWithLifecycle()
     val duration by playerState.voiceDuration.collectAsStateWithLifecycle()
     var lastProgress by remember(progress) {
         mutableFloatStateOf(progress)
     }
-    LaunchedEffect(key1 = isPlaying) {
-        viewModel.updateVoiceList(
-            selectedVoiceIndex = playingVoiceIndex,
-            isPlaying = isPlaying
-        )
+    LaunchedEffect(key1 = isPlaying, block = {
+        Timber.e("ui is playing: $isPlaying")
+    })
+    LaunchedEffect(key1 = isPlaying, playerState.browser?.currentPosition) {
+        Timber.e("ui Main is playing: $isPlaying")
+        if (isPlaying) {
+            viewModel.updateVoiceList(
+                selectedVoiceIndex = 1,
+                isPlaying = true
+            )
+        } else {
+            Timber.e("getting voices")
+            viewModel.getVoices(context)
+        }
     }
     LaunchedEffect(key1 = lastProgress) {
         if (progress != lastProgress) {
@@ -90,8 +99,8 @@ fun Playlist(
     ) {
         PlaylistContent(
             voices = voiceList,
-            onPlayPause = { playerState.browser?.run { pause() } },
-            onStop = { playerState.browser?.run { stop() } },
+            onPlayPause = { browser?.run { pause() } },
+            onStop = { browser?.run { stop() } },
             onVoiceClicked = { voiceIndex, voice ->
                 Timber.e("on voice clicked")
                 playingVoiceIndex = voiceIndex
@@ -103,7 +112,7 @@ fun Playlist(
                     .setUri(voice.path)
                     .setMediaId(voice.title)
                     .build()
-                playerState.browser?.run {
+                browser?.run {
                     Timber.e("item id to play:${mediaItem.mediaId}")
                     setMediaItem(mediaItem)
                     play()
