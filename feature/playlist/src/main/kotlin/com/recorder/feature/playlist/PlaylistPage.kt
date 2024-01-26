@@ -55,13 +55,11 @@ fun Playlist(
     onBackPressed: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
     val viewModel = hiltViewModel<PlaylistViewModel>()
     val playerState = rememberPlayerState()
     val browser = playerState.browser
-    val context = LocalContext.current
-    var playingVoiceIndex by remember {
-        mutableIntStateOf(1)
-    }
+
     val voiceList by viewModel.voices.collectAsStateWithLifecycle()
     val isPlaying by playerState.isVoicePlaying.collectAsStateWithLifecycle()
     val progress by playerState.progress.collectAsStateWithLifecycle()
@@ -69,14 +67,24 @@ fun Playlist(
     var lastProgress by remember(progress) {
         mutableFloatStateOf(progress)
     }
+    var playingVoiceIndex by rememberSaveable(isPlaying, playerState.browser?.currentPosition) {
+        mutableIntStateOf(
+            if (isPlaying) {
+                voiceList.indexOf(voiceList.firstOrNull { it.title == playerState.browser?.currentMediaItem?.mediaId })
+            } else {
+                -1
+            }
+        )
+    }
     LaunchedEffect(key1 = isPlaying, block = {
         Timber.e("ui is playing: $isPlaying")
     })
     LaunchedEffect(key1 = isPlaying, playerState.browser?.currentPosition) {
         Timber.e("ui Main is playing: $isPlaying")
-        if (isPlaying) {
+        Timber.e("ui index: $playingVoiceIndex")
+        if (isPlaying && voiceList.isNotEmpty()) {
             viewModel.updateVoiceList(
-                selectedVoiceIndex = 1,
+                selectedVoiceIndex = playingVoiceIndex,
                 isPlaying = true
             )
         } else {

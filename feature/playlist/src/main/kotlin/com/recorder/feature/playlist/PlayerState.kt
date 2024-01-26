@@ -108,10 +108,6 @@ class PlayerState(
     )
 
     init {
-        Timber.e("init state")
-        Timber.e("init playing :${isVoicePlaying}")
-        Timber.e("init progress :${this.progress.value}")
-        Timber.e("init voiceDuration :${voiceDuration.value}")
         if (browser == null) {
             Timber.e("browser is NULL")
         } else {
@@ -152,7 +148,12 @@ fun PlayerStateEffect(
                     browser?.apply {
                         Timber.e("on BROWSER SET")
                         isVoicePlaying(isPlaying)
-                        progress(currentPosition)
+                        scope.launch {
+                            while (isPlaying) {
+                                progress(currentPosition)
+                                delay(1_000L)
+                            }
+                        }
                         currentDuration(duration)
                         addListener(
                             object : Player.Listener {
