@@ -29,6 +29,14 @@ class PlayerService : MediaLibraryService() {
             return super.onConnect(session, controller)
         }
 
+        override fun onDisconnected(
+            session: MediaSession,
+            controller: MediaSession.ControllerInfo
+        ) {
+            super.onDisconnected(session, controller)
+            Timber.e("on Disconnect")
+        }
+
 
         override fun onGetItem(
             session: MediaLibrarySession,

@@ -41,7 +41,7 @@ import com.recorder.core.designsystem.theme.VoiceRecorderTheme
 fun PlaylistItem(
     modifier: Modifier = Modifier,
     voice: Voice,
-    progress: Float,
+    progress: String,
     duration: Float,
     isInEditMode: Boolean,
     isSelected: Boolean,
@@ -177,7 +177,7 @@ private fun ItemPlayingPreview() {
         PlaylistItem(
             voice = VoicesSampleData[1],
             modifier = Modifier,
-            progress = 12.13f,
+            progress = "02:13",
             duration = 14.15f,
             isInEditMode = false,
             isSelected = false,
@@ -196,7 +196,7 @@ private fun ItemPreview() {
         PlaylistItem(
             voice = VoicesSampleData.first(),
             modifier = Modifier,
-            progress = 12.13f,
+            progress = "12:13",
             duration = 14.15f,
             isInEditMode = false,
             isSelected = false,
