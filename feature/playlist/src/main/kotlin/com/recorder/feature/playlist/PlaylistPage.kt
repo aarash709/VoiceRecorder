@@ -26,7 +26,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,7 +46,6 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import com.core.common.model.Voice
 import com.recorder.core.designsystem.theme.VoiceRecorderTheme
-import kotlinx.coroutines.delay
 import timber.log.Timber
 
 @Composable
@@ -64,9 +62,9 @@ fun Playlist(
     val isPlaying by playerState.isVoicePlaying.collectAsStateWithLifecycle()
     val progress by playerState.progress.collectAsStateWithLifecycle()
     val duration by playerState.voiceDuration.collectAsStateWithLifecycle()
-    var lastProgress by remember(progress) {
-        mutableFloatStateOf(progress)
-    }
+//    var lastProgress by remember(progress) {
+//        mutableFloatStateOf(progress)
+//    }
     var playingVoiceIndex by rememberSaveable(isPlaying, playerState.browser?.currentPosition) {
         mutableIntStateOf(
             if (isPlaying) {
@@ -92,14 +90,14 @@ fun Playlist(
             viewModel.getVoices(context)
         }
     }
-    LaunchedEffect(key1 = lastProgress) {
-        if (progress != lastProgress) {
-            delay(50)
-            playerState.browser?.run {
-                seekTo(lastProgress.toLong())
-            }
-        }
-    }
+//    LaunchedEffect(key1 = lastProgress) {
+//        if (progress != lastProgress) {
+//            delay(50)
+//            playerState.browser?.run {
+//                seekTo(lastProgress.toLong())
+//            }
+//        }
+//    }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -130,7 +128,7 @@ fun Playlist(
             progress = progress,
             duration = duration,
             onProgressChange = { desireePosition ->
-                lastProgress = desireePosition
+//                lastProgress = desireePosition
             },
             onDeleteVoices = { titles ->
                 //can delete multiple
@@ -156,7 +154,7 @@ fun Playlist(
 @Composable
 fun PlaylistContent(
     voices: List<Voice>,
-    progress: Float,
+    progress: String,
     duration: Float,
     onProgressChange: (Float) -> Unit,
     onPlayPause: () -> Unit,
@@ -336,7 +334,7 @@ fun PlaylistPagePreview() {
                 onVoiceClicked = { i, voice ->
                 },
                 onBackPressed = {},
-                progress = 0.0f,
+                progress = "",
                 duration = 0.0f,
                 onProgressChange = {},
                 onDeleteVoices = {},

@@ -16,6 +16,9 @@ import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.session.MediaBrowser
 import androidx.media3.session.SessionToken
+import com.core.common.doubleDigitFormat
+import com.core.common.getMinutes
+import com.core.common.getSeconds
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.recorder.service.PlayerService
@@ -26,14 +29,13 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import kotlin.math.roundToInt
 
 @Composable
 fun rememberPlayerState(): PlayerState {
     val scope = rememberCoroutineScope()
     val lifecycleOwner = LocalLifecycleOwner.current
     var progress by remember {
-        mutableFloatStateOf(0f)
+        mutableStateOf("00:00")
     }
     var currentDuration by remember {
         mutableFloatStateOf(0f)
@@ -61,9 +63,11 @@ fun rememberPlayerState(): PlayerState {
             Timber.e("setting browser...")
             browser = it
         },
-        progress = {
-            progress = it.toFloat()
-            Timber.e("positio read: $it")
+        progress = {currentPositionMillis->
+            val seconds = getSeconds(currentPositionMillis).doubleDigitFormat()
+            val minutes = getMinutes(currentPositionMillis).doubleDigitFormat()
+            progress = "$minutes:$seconds"
+            Timber.e("positio read: $currentPositionMillis")
         },
         currentDuration = {
             currentDuration = it.toFloat()
@@ -80,7 +84,7 @@ fun rememberPlayerState(): PlayerState {
 class PlayerState(
     val browser: MediaBrowser?,
     isPlaying: Boolean,
-    progress: Float,
+    progress: String,
     duration: Float,
     coroutineScope: CoroutineScope,
 ) {
@@ -92,12 +96,11 @@ class PlayerState(
         initialValue = false
     )
     val progress = flow {
-        val seconds = (progress / 1000).roundToInt().toFloat()
-        emit(seconds)
+        emit(progress)
     }.stateIn(
         scope = coroutineScope,
         started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = 0f
+        initialValue = ""
     )
     val voiceDuration = flow {
         emit(duration)
