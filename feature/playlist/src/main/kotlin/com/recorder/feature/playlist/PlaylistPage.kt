@@ -46,7 +46,6 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import com.core.common.model.Voice
 import com.recorder.core.designsystem.theme.VoiceRecorderTheme
-import timber.log.Timber
 
 @Composable
 fun Playlist(
@@ -74,19 +73,13 @@ fun Playlist(
             }
         )
     }
-    LaunchedEffect(key1 = isPlaying, block = {
-        Timber.e("ui is playing: $isPlaying")
-    })
     LaunchedEffect(key1 = isPlaying, playerState.browser?.currentPosition) {
-        Timber.e("ui Main is playing: $isPlaying")
-        Timber.e("ui index: $playingVoiceIndex")
         if (isPlaying && voiceList.isNotEmpty()) {
             viewModel.updateVoiceList(
                 selectedVoiceIndex = playingVoiceIndex,
                 isPlaying = true
             )
         } else {
-            Timber.e("getting voices")
             viewModel.getVoices(context)
         }
     }
@@ -108,7 +101,6 @@ fun Playlist(
             onPlayPause = { browser?.run { pause() } },
             onStop = { browser?.run { stop() } },
             onVoiceClicked = { voiceIndex, voice ->
-                Timber.e("on voice clicked")
                 playingVoiceIndex = voiceIndex
                 val metadata = MediaMetadata.Builder()
                     .setTitle(voice.title)
@@ -119,7 +111,6 @@ fun Playlist(
                     .setMediaId(voice.title)
                     .build()
                 browser?.run {
-                    Timber.e("item id to play:${mediaItem.mediaId}")
                     setMediaItem(mediaItem)
                     play()
                 }
@@ -127,7 +118,7 @@ fun Playlist(
             onBackPressed = { onBackPressed() },
             progress = progress,
             duration = duration,
-            onProgressChange = { desireePosition ->
+            onProgressChange = { _ ->
 //                lastProgress = desireePosition
             },
             onDeleteVoices = { titles ->
@@ -295,7 +286,6 @@ fun PlaylistContent(
                                     onClick = {
                                         if (!voice.isPlaying) {
                                             onVoiceClicked(index, voice)
-                                            Timber.e("onclick")
                                         } else {
                                             onStop()
                                         }
@@ -331,7 +321,7 @@ fun PlaylistPagePreview() {
                 VoicesSampleData,
                 onPlayPause = {},
                 onStop = {},
-                onVoiceClicked = { i, voice ->
+                onVoiceClicked = { _, _ ->
                 },
                 onBackPressed = {},
                 progress = "",
@@ -339,7 +329,7 @@ fun PlaylistPagePreview() {
                 onProgressChange = {},
                 onDeleteVoices = {},
                 onSaveVoiceFile = {},
-                rename = { s1, s2 -> },
+                rename = { _, _ -> },
             )
         }
     }
