@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -33,21 +32,19 @@ class PlaylistViewModel @Inject constructor(
         viewModelScope.launch {
             _voices.update { storage.getVoices(context) ?: listOf() }
         }
-
     }
 
     fun updateVoiceList(selectedVoiceIndex: Int, isPlaying: Boolean = false) {
         viewModelScope.launch {
-            Timber.e("Updating VM list")
             _voices.update { voices ->
                 voices.mapIndexed { index, voice ->
                     when {
                         index == selectedVoiceIndex && isPlaying -> {
-                            voice.copy(isPlaying = isPlaying)
+                            voice.copy(isPlaying = true)
                         }
 
                         index == selectedVoiceIndex && !isPlaying -> {
-                            voice.copy(isPlaying = isPlaying)
+                            voice.copy(isPlaying = false)
                         }
 
                         else -> voice.copy(isPlaying = false)

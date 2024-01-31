@@ -6,7 +6,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.recorder.feature.playlist.recordings
+import com.recorder.feature.playlist.playlist
 import com.recorder.feature.playlist.toRecordings
 import com.recorder.feature.record.RECORDER_ROUTE
 import com.recorder.feature.record.recorder
@@ -30,7 +30,7 @@ fun VoiceRecorderNavigation(
             navController.toRecordings()
         })
 
-        recordings(
+        playlist(
             onBackPressed = { navController.popBackStack() },
         )
     }

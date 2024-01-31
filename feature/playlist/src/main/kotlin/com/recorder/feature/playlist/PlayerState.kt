@@ -34,6 +34,7 @@ import timber.log.Timber
 fun rememberPlayerState(): PlayerState {
     val scope = rememberCoroutineScope()
     val lifecycleOwner = LocalLifecycleOwner.current
+
     var progress by remember {
         mutableStateOf("00:00")
     }
@@ -60,20 +61,17 @@ fun rememberPlayerState(): PlayerState {
         key1 = lifecycleOwner,
         key2 = "",
         onGetBrowser = {
-            Timber.e("setting browser...")
             browser = it
         },
         progress = {currentPositionMillis->
             val seconds = getSeconds(currentPositionMillis).doubleDigitFormat()
             val minutes = getMinutes(currentPositionMillis).doubleDigitFormat()
             progress = "$minutes:$seconds"
-            Timber.e("positio read: $currentPositionMillis")
         },
         currentDuration = {
             currentDuration = it.toFloat()
         },
         isVoicePlaying = {
-            Timber.e("isplaying: $it")
             isPlaying = it
         }
     )
@@ -109,15 +107,6 @@ class PlayerState(
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = 0f
     )
-
-    init {
-        if (browser == null) {
-            Timber.e("browser is NULL")
-        } else {
-            Timber.e("browser is SET...")
-        }
-    }
-
 }
 
 @Composable
@@ -138,7 +127,6 @@ fun PlayerStateEffect(
         mutableStateOf<MediaBrowser?>(null)
     }
     LifecycleStartEffect(key1 = key1, key2 = key2) {
-        Timber.e("ON START EFFECT")
         val sessionToken = SessionToken(
             context,
             ComponentName(context, PlayerService::class.java)
@@ -149,7 +137,6 @@ fun PlayerStateEffect(
                     browser = if (browserFuture!!.isDone) browserFuture?.get() else null
                     onGetBrowser(browser)
                     browser?.apply {
-                        Timber.e("on BROWSER SET")
                         isVoicePlaying(isPlaying)
                         scope.launch {
                             while (isPlaying) {
@@ -232,7 +219,6 @@ fun PlayerStateEffect(
                 }, MoreExecutors.directExecutor())
             }
         onStopOrDispose {
-            Timber.e("ON STOP OR DISPOSE")
             MediaBrowser.releaseFuture(browserFuture!!)
         }
     }

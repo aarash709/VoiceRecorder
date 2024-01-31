@@ -131,7 +131,7 @@ fun PlaylistItem(
             }
             AnimatedVisibility(visible = voice.isPlaying) {
                 Column {
-                    // TODO: investigate "check error" crash
+                    // TODO: investigate "check error" crash when animating a slider
 //                    Slider(
 //                        value = progress,
 //                        onValueChange = { newSliderValue = it },
@@ -172,26 +172,7 @@ fun PlaylistItem(
 
 @Preview
 @Composable
-private fun ItemPlayingPreview() {
-    VoiceRecorderTheme {
-        PlaylistItem(
-            voice = VoicesSampleData[1],
-            modifier = Modifier,
-            progress = "02:13",
-            duration = 14.15f,
-            isInEditMode = false,
-            isSelected = false,
-            onProgressChange = {},
-            onStop = {},
-            onPause = {},
-
-            )
-    }
-}
-
-@Preview
-@Composable
-private fun ItemPreview() {
+private fun PlaylistItemPreview() {
     VoiceRecorderTheme {
         PlaylistItem(
             voice = VoicesSampleData.first(),
