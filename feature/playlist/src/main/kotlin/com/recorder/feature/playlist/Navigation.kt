@@ -13,7 +13,7 @@ fun NavController.toRecordings(navOptions: NavOptions? = null) {
     navigate(RECORDING_ROUTE, navOptions)
 }
 
-fun NavGraphBuilder.recordings(
+fun NavGraphBuilder.playlist(
     onBackPressed: () -> Unit,
 ) {
     composable(
