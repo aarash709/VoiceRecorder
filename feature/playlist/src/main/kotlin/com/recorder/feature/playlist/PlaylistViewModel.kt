@@ -32,7 +32,6 @@ class PlaylistViewModel @Inject constructor(
         viewModelScope.launch {
             _voices.update { storage.getVoices(context) ?: listOf() }
         }
-
     }
 
     fun updateVoiceList(selectedVoiceIndex: Int, isPlaying: Boolean = false) {
@@ -41,11 +40,11 @@ class PlaylistViewModel @Inject constructor(
                 voices.mapIndexed { index, voice ->
                     when {
                         index == selectedVoiceIndex && isPlaying -> {
-                            voice.copy(isPlaying = isPlaying)
+                            voice.copy(isPlaying = true)
                         }
 
                         index == selectedVoiceIndex && !isPlaying -> {
-                            voice.copy(isPlaying = isPlaying)
+                            voice.copy(isPlaying = false)
                         }
 
                         else -> voice.copy(isPlaying = false)

@@ -1,7 +1,6 @@
 package com.core.common
 
 import android.content.Context
-import android.media.MediaMetadataRetriever
 import com.core.common.model.Voice
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -12,8 +11,6 @@ import java.util.Date
 import java.util.Locale
 
 class Storage {
-
-    private val metadataRetriever: MediaMetadataRetriever = MediaMetadataRetriever()
 
     fun getPath(context: Context): String {
         return context.getExternalFilesDir(null)?.path.toString()
