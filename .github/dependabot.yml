@@ -8,9 +8,9 @@ updates:
   - package-ecosystem: "gradle" # See documentation for possible values
     directory: "/" # Location of package manifests
     labels: [ "version update" ]
+    registries: "*"
     schedule:
       interval: "weekly"
-      registries: "*"
     open-pull-requests-limit: 10
   - package-ecosystem: "github-actions"
     directory: "/"
