@@ -32,6 +32,9 @@ class PlayerService : MediaLibraryService() {
             controller: MediaSession.ControllerInfo,
         ) {
             super.onDisconnected(session, controller)
+            if (session.player.isPlaying.not()){
+                session.player.release()
+            }
         }
 
 
