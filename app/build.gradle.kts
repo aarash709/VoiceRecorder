@@ -87,8 +87,6 @@ dependencies {
 
     implementation(libs.accompanist.permissions)
 
-    implementation(libs.coilCompose)
-
     implementation(libs.hilt.android)
     kapt(libs.hilt.kaptCompiler)
 
