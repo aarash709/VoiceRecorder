@@ -1,23 +1,19 @@
 package com.recorder.feature.playlist
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.GraphicEq
-import androidx.compose.material.icons.filled.PauseCircleOutline
+import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.RadioButtonChecked
 import androidx.compose.material.icons.filled.RadioButtonUnchecked
-import androidx.compose.material.icons.outlined.StopCircle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -89,17 +85,6 @@ fun PlaylistItem(
                             )
                         }
                     }
-
-                    if (voice.isPlaying) {
-                        Icon(
-                            imageVector = Icons.Default.GraphicEq,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier
-                                .padding(start = 8.dp)
-                                .clip(CircleShape),
-                            contentDescription = ""
-                        )
-                    }
                 }
                 Row(
                     modifier = Modifier,
@@ -146,22 +131,30 @@ fun PlaylistItem(
                         horizontalArrangement = Arrangement.Center,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        IconButton(onClick = { onPause() }) {
-                            Icon(
-                                imageVector = Icons.Default.PauseCircleOutline,
-                                modifier = Modifier.size(50.dp),
-                                tint = MaterialTheme.colorScheme.primary,
-                                contentDescription = "pause icon"
-                            )
-                        }
-                        Spacer(modifier = Modifier.width(24.dp))
-                        IconButton(onClick = { onStop() }) {
-                            Icon(
-                                imageVector = Icons.Outlined.StopCircle,
-                                modifier = Modifier.size(50.dp),
-                                tint = MaterialTheme.colorScheme.primary,
-                                contentDescription = "stop icon"
-                            )
+                        AnimatedContent(
+                            targetState = voice.isPlaying,
+                            label = "Play-Pause"
+                        ) { isPlaying ->
+                            if (isPlaying) {
+                                IconButton(onClick = { onPause() }) {
+                                    Icon(
+                                        imageVector = Icons.Default.Pause,
+                                        modifier = Modifier.size(50.dp),
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        contentDescription = "pause icon"
+                                    )
+                                }
+                            } else {
+                                IconButton(onClick = { onPause() }) {
+                                    Icon(
+                                        imageVector = Icons.Default.Pause,
+                                        modifier = Modifier.size(50.dp),
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        contentDescription = "pause icon"
+                                    )
+                                }
+                            }
+
                         }
                     }
                 }
@@ -172,10 +165,28 @@ fun PlaylistItem(
 
 @Preview
 @Composable
-private fun PlaylistItemPreview() {
+private fun ListItemPreview() {
     VoiceRecorderTheme {
         PlaylistItem(
             voice = VoicesSampleData.first(),
+            modifier = Modifier,
+            progress = "12:13",
+            duration = 14.15f,
+            isInEditMode = false,
+            isSelected = false,
+            onProgressChange = {},
+            onStop = {},
+            onPause = {},
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun ItemPlayingPreview() {
+    VoiceRecorderTheme {
+        PlaylistItem(
+            voice = VoicesSampleData.first().copy(isPlaying = true),
             modifier = Modifier,
             progress = "12:13",
             duration = 14.15f,
