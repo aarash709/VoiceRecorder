@@ -69,7 +69,7 @@ fun Playlist(
 
     val voiceList by viewModel.voices.collectAsStateWithLifecycle()
     val isPlaying by playerState.isVoicePlaying.collectAsStateWithLifecycle()
-    val progress by playerState.progress.collectAsStateWithLifecycle()
+//    val progress by playerState.progress.collectAsStateWithLifecycle()
     val duration by playerState.voiceDuration.collectAsStateWithLifecycle()
 //    var lastProgress by remember(progress) {
 //        mutableFloatStateOf(progress)
@@ -126,7 +126,7 @@ fun Playlist(
                 }
             },
             onBackPressed = { onBackPressed() },
-            progress = progress,
+            progress = 0.2f,
             duration = duration,
             onProgressChange = { _ ->
 //                lastProgress = desireePosition
@@ -155,7 +155,7 @@ fun Playlist(
 @Composable
 fun PlaylistContent(
     voices: List<Voice>,
-    progress: String,
+    progress: Float,
     duration: Float,
     onProgressChange: (Float) -> Unit,
     onPlayPause: () -> Unit,
@@ -168,6 +168,9 @@ fun PlaylistContent(
 ) {
     var selectedVoices by remember {
         mutableStateOf(emptySet<String>())
+    }
+    var selectedVoice by remember {
+        mutableStateOf("")
     }
     val isInEditMode by remember {
         derivedStateOf { selectedVoices.isNotEmpty() }
@@ -257,32 +260,23 @@ fun PlaylistContent(
                 .padding(paddingValues)
                 .nestedScroll(scrollBehavior.nestedScrollConnection),
         ) {
-            if (showRenameSheet) {
-                PlaylistBottomSheet(
-                    focusRequester = focusRequester,
-                    sheetState = sheetState,
-                    selectedVoices = selectedVoices,
-                    showRenameSheet = { showRenameSheet = it },
-                    renameTextFieldValue = renameTextFieldValue,
-                    onTextFieldValueChange = { renameTextFieldValue = it },
-                    rename = { current, desired ->
-                        rename(current, desired)
-                        selectedVoices = emptySet()
-                    }
-
-                )
-            }
+//            if (showRenameSheet) {
+//                PlaylistBottomSheet(
+//                    focusRequester = focusRequester,
+//                    sheetState = sheetState,
+//                    selectedVoices = selectedVoices,
+//                    showRenameSheet = { showRenameSheet = it },
+//                    renameTextFieldValue = renameTextFieldValue,
+//                    onTextFieldValueChange = { renameTextFieldValue = it },
+//                    rename = { current, desired ->
+//                        rename(current, desired)
+//                        selectedVoices = emptySet()
+//                    }
+//
+//                )
+//            }
             if (voices.isEmpty()) {
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = "No Recordings",
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                    )
-                }
+                EmptyListMessage()
             } else {
                 LazyColumn(
                     modifier = Modifier.padding(horizontal = 16.dp),
@@ -290,46 +284,49 @@ fun PlaylistContent(
                 ) {
                     itemsIndexed(
                         items = voices,
-                        key = { index, _ ->
-                            index
-                        }) { index, voice ->
+                        key = { index, _ -> index }) { index, voice ->
                         val selected by remember(voices) {
                             derivedStateOf {
-                                voice.title in selectedVoices
+                                selectedVoice == voice.title
                             }
                         }
                         PlaylistItem(
                             modifier =
-                            if (isInEditMode) {
-                                Modifier.clickable {
-                                    if (selected)
-                                        selectedVoices -= voice.title
-                                    else selectedVoices += voice.title
+
+                            Modifier.clickable {
+                                selectedVoice = if (selectedVoice == voice.title) {
+                                    Voice().title //empty string
+                                } else {
+                                    voice.title
                                 }
-                            } else {
-                                Modifier.combinedClickable(
-                                    onLongClick = {
-                                        if (!voice.isPlaying) selectedVoices += voices[index].title
-                                    },
-                                    onClick = {
-                                        if (!voice.isPlaying) {
-                                            onVoiceClicked(index, voice)
-                                        } else {
-                                            onStop()
-                                        }
-                                    }
-                                )
                             },
+//                            if (isInEditMode) {
+//                            }
+//                            } else {
+//                                Modifier.combinedClickable(
+//                                    onLongClick = {
+//                                        if (!voice.isPlaying) selectedVoices += voices[index].title
+//                                    },
+//                                    onClick = {
+//                                        if (!voice.isPlaying) {
+//                                            onVoiceClicked(index, voice)
+//                                        } else {
+//                                            onStop()
+//                                        }
+//                                    }
+//                                )
+//                            }
                             voice = voice,
-                            onStop = { onStop() },
                             progress = progress,
-                            duration = duration,
-                            isInEditMode = isInEditMode,
                             isSelected = selected,
                             onProgressChange = { progress ->
                                 onProgressChange(progress)
                             },
                             onPause = { onPlayPause() },
+//                            onStop = { onStop() },
+//                            duration = duration,
+//                            isInEditMode = isInEditMode,
+
                         )
                     }
                 }
@@ -337,6 +334,20 @@ fun PlaylistContent(
         }
     }
 
+}
+
+@Composable
+fun EmptyListMessage() {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = "Tap on record button to add a voice recording",
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+        )
+    }
 }
 
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
@@ -352,7 +363,7 @@ fun PlaylistPagePreview() {
                 onVoiceClicked = { _, _ ->
                 },
                 onBackPressed = {},
-                progress = "",
+                progress = 0.1f,
                 duration = 0.0f,
                 onProgressChange = {},
                 onDeleteVoices = {},

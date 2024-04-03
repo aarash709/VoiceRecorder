@@ -40,13 +40,13 @@ import com.recorder.core.designsystem.theme.VoiceRecorderTheme
 fun PlaylistItem(
     modifier: Modifier = Modifier,
     voice: Voice,
-    progress: String,
-    duration: Float,
-    isInEditMode: Boolean,
+    progress: Float,
     isSelected: Boolean,
     onProgressChange: (Float) -> Unit,
-    onStop: () -> Unit,
     onPause: () -> Unit,
+//    isInEditMode: Boolean,
+//    duration: Float,
+//    onStop: () -> Unit,
 ) {
     val subTextColor = MaterialTheme.colorScheme.onSurface.copy(
         alpha = 1.0f,
@@ -61,9 +61,6 @@ fun PlaylistItem(
                 then modifier,
         color = MaterialTheme.colorScheme.surface,
     ) {
-        var newSliderValue by remember {
-            mutableFloatStateOf(0f)
-        }
         Column(modifier = Modifier.padding(all = 16.dp)) {
             Title(
                 title = voice.title,
@@ -72,7 +69,7 @@ fun PlaylistItem(
             )
             AnimatedVisibility(visible = isSelected) {
                 Column {
-                    Slider(value = 0.2f, onValueChange = { })
+                    Slider(value = progress, onValueChange = { onProgressChange(it) })
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.Center,
@@ -143,9 +140,9 @@ fun PlaylistItem(
 ////                        modifier = Modifier
 ////                            .padding(horizontal = 0.dp),
 ////                        valueRange = 0f..duration,
-////                        steps = 0,
+////                       steps = 0,
 ////                        onValueChangeFinished = { onProgressChange(newSliderValue) },
-////                    )
+//                    )
 //
 //                }
 //            }
@@ -197,13 +194,13 @@ private fun ListItemPreview() {
         PlaylistItem(
             voice = VoicesSampleData.first(),
             modifier = Modifier,
-            progress = "12:13",
-            duration = 14.15f,
-            isInEditMode = false,
+            progress = 12f,
             isSelected = false,
             onProgressChange = {},
-            onStop = {},
             onPause = {},
+//            isInEditMode = false,
+//            onStop = {},
+//            duration = 14.15f,
         )
     }
 }
@@ -215,13 +212,13 @@ private fun SelectedItemPreview() {
         PlaylistItem(
             voice = VoicesSampleData.first().copy(isPlaying = true),
             modifier = Modifier,
-            progress = "12:13",
-            duration = 14.15f,
-            isInEditMode = false,
+            progress = 13f,
             isSelected = true,
             onProgressChange = {},
-            onStop = {},
             onPause = {},
+//            duration = 14.15f,
+//            isInEditMode = false,
+//            onStop = {},
         )
     }
 }
