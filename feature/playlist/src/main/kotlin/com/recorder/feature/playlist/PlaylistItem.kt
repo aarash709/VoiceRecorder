@@ -4,8 +4,10 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -21,10 +23,6 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,7 +31,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.core.common.model.Voice
-import com.google.android.material.slider.Slider
 import com.recorder.core.designsystem.theme.VoiceRecorderTheme
 
 @Composable
@@ -41,6 +38,7 @@ fun PlaylistItem(
     modifier: Modifier = Modifier,
     voice: Voice,
     progress: Float,
+    shouldExpand: Boolean,
     isSelected: Boolean,
     onProgressChange: (Float) -> Unit,
     onPause: () -> Unit,
@@ -62,12 +60,15 @@ fun PlaylistItem(
         color = MaterialTheme.colorScheme.surface,
     ) {
         Column(modifier = Modifier.padding(all = 16.dp)) {
-            Title(
-                title = voice.title,
-                recordTime = voice.recordTime,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            AnimatedVisibility(visible = isSelected) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                SelectionRadioButton(isSelected = isSelected, isPlaying = voice.isPlaying)
+                Title(
+                    title = voice.title,
+                    recordTime = voice.recordTime,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+            AnimatedVisibility(visible = shouldExpand) {
                 Column {
                     Slider(value = progress, onValueChange = { onProgressChange(it) })
                     Row(
@@ -103,34 +104,6 @@ fun PlaylistItem(
                     }
                 }
             }
-//            Row(
-//                modifier = Modifier
-//                    .fillMaxWidth(),
-//                verticalAlignment = Alignment.CenterVertically,
-//                horizontalArrangement = Arrangement.SpaceBetween
-//            ) {
-//                Row(
-//                    modifier = Modifier,
-//                    verticalAlignment = Alignment.CenterVertically,
-//                ) {
-//                    AnimatedVisibility(isInEditMode && !voice.isPlaying) {
-//                        if (isSelected)
-//                            Icon(
-//                                imageVector = Icons.Default.RadioButtonChecked,
-//                                contentDescription = null,
-//                                modifier = Modifier,
-//                                tint = MaterialTheme.colorScheme.primary
-//                            )
-//                        else
-//                            Icon(
-//                                imageVector = Icons.Default.RadioButtonUnchecked,
-//                                contentDescription = null,
-//                                modifier = Modifier,
-//                                tint = MaterialTheme.colorScheme.primary
-//                            )
-//                    }
-//                }
-//            }
 //            AnimatedVisibility(visible = voice.isPlaying) {
 //                Column {
 //                    // TODO: investigate "check error" crash when animating a slider
@@ -146,6 +119,31 @@ fun PlaylistItem(
 //
 //                }
 //            }
+        }
+    }
+}
+
+@Composable
+fun SelectionRadioButton(isSelected: Boolean, isPlaying: Boolean) {
+    Box(
+        modifier = Modifier,
+        contentAlignment = Alignment.Center
+    ) {
+        AnimatedVisibility(isSelected && !isPlaying) {
+            if (isSelected)
+                Icon(
+                    imageVector = Icons.Default.RadioButtonChecked,
+                    contentDescription = null,
+                    modifier = Modifier,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            else
+                Icon(
+                    imageVector = Icons.Default.RadioButtonUnchecked,
+                    contentDescription = null,
+                    modifier = Modifier,
+                    tint = MaterialTheme.colorScheme.primary
+                )
         }
     }
 }
@@ -195,7 +193,8 @@ private fun ListItemPreview() {
             voice = VoicesSampleData.first(),
             modifier = Modifier,
             progress = 12f,
-            isSelected = false,
+            shouldExpand = false,
+            isSelected = true,
             onProgressChange = {},
             onPause = {},
 //            isInEditMode = false,
@@ -213,7 +212,8 @@ private fun SelectedItemPreview() {
             voice = VoicesSampleData.first().copy(isPlaying = true),
             modifier = Modifier,
             progress = 13f,
-            isSelected = true,
+            shouldExpand = true,
+            isSelected = false,
             onProgressChange = {},
             onPause = {},
 //            duration = 14.15f,

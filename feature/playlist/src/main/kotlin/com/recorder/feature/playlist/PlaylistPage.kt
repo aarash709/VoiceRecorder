@@ -24,7 +24,6 @@ import androidx.compose.material.icons.outlined.KeyboardVoice
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -172,7 +171,7 @@ fun PlaylistContent(
     var selectedVoice by remember {
         mutableStateOf("")
     }
-    val isInEditMode by remember {
+    val isInSelectionMode by remember {
         derivedStateOf { selectedVoices.isNotEmpty() }
     }
     var isAllSelected by remember(selectedVoices) {
@@ -208,8 +207,8 @@ fun PlaylistContent(
             selectedVoices = emptySet()
         }
     }
-    BackHandler(isInEditMode) {
-        if (isInEditMode) {
+    BackHandler(isInSelectionMode) {
+        if (isInSelectionMode) {
             selectedVoices = emptySet()
         }
     }
@@ -218,7 +217,7 @@ fun PlaylistContent(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             PlaylistTopBar(
-                isInEditMode = isInEditMode,
+                isInEditMode = isInSelectionMode,
                 selectedVoices = selectedVoices,
                 scrollBehavior = scrollBehavior,
                 onIsAllSelected = { isAllSelected = !isAllSelected },
@@ -285,40 +284,51 @@ fun PlaylistContent(
                     itemsIndexed(
                         items = voices,
                         key = { index, _ -> index }) { index, voice ->
-                        val selected by remember(voices) {
+                        val isExpanded by remember(voices) {
                             derivedStateOf {
                                 selectedVoice == voice.title
                             }
                         }
+                        val isSelected by remember(voices) {
+                            derivedStateOf {
+                                voice.title in selectedVoices
+                            }
+                        }
                         PlaylistItem(
                             modifier =
-
-                            Modifier.clickable {
-                                selectedVoice = if (selectedVoice == voice.title) {
-                                    Voice().title //empty string
-                                } else {
-                                    voice.title
+                            if (isInSelectionMode) {
+                                Modifier.clickable {
+                                    if (isSelected)
+                                        selectedVoices -= voice.title
+                                    else selectedVoices += voice.title
                                 }
+                            } else {
+                                Modifier.combinedClickable(
+                                    onLongClick = {
+                                        if (!voice.isPlaying) {
+                                            selectedVoice = "" //shrink item first
+                                            selectedVoices += voices[index].title
+                                        }
+                                    },
+                                    onClick = {
+                                        selectedVoice = if (selectedVoice == voice.title) {
+                                            Voice().title //empty string; shrinks current expanded item
+                                        } else {
+                                            voice.title
+                                        }
+                                        //
+                                        if (!voice.isPlaying) {
+                                            onVoiceClicked(index, voice)
+                                        } else {
+                                            onStop()
+                                        }
+                                    }
+                                )
                             },
-//                            if (isInEditMode) {
-//                            }
-//                            } else {
-//                                Modifier.combinedClickable(
-//                                    onLongClick = {
-//                                        if (!voice.isPlaying) selectedVoices += voices[index].title
-//                                    },
-//                                    onClick = {
-//                                        if (!voice.isPlaying) {
-//                                            onVoiceClicked(index, voice)
-//                                        } else {
-//                                            onStop()
-//                                        }
-//                                    }
-//                                )
-//                            }
                             voice = voice,
                             progress = progress,
-                            isSelected = selected,
+                            shouldExpand = isExpanded,
+                            isSelected = isSelected,
                             onProgressChange = { progress ->
                                 onProgressChange(progress)
                             },
@@ -376,17 +386,17 @@ fun PlaylistPagePreview() {
 
 val VoicesSampleData = listOf(
     Voice("title", "", isPlaying = false, "00:01"),
-    Voice("title2", "", isPlaying = true, "00:10"),
-    Voice("title3", "", isPlaying = false, "02:21"),
-    Voice("title4", "", isPlaying = false, "05:01"),
-    Voice("title5", "", isPlaying = false, "00:41"),
-    Voice("title6", "", isPlaying = false, "08:01"),
-    Voice("title7", "", isPlaying = false, "10:05"),
-    Voice("title", "", isPlaying = false, "00:01"),
     Voice("title2", "", isPlaying = false, "00:10"),
     Voice("title3", "", isPlaying = false, "02:21"),
     Voice("title4", "", isPlaying = false, "05:01"),
     Voice("title5", "", isPlaying = false, "00:41"),
     Voice("title6", "", isPlaying = false, "08:01"),
-    Voice("title7", "", isPlaying = false, "10:05")
+    Voice("title7", "", isPlaying = false, "10:05"),
+    Voice("title8", "", isPlaying = false, "00:01"),
+    Voice("title9", "", isPlaying = false, "00:10"),
+    Voice("title10", "", isPlaying = false, "02:21"),
+    Voice("title11", "", isPlaying = false, "05:01"),
+    Voice("title12", "", isPlaying = false, "00:41"),
+    Voice("title13", "", isPlaying = false, "08:01"),
+    Voice("title14", "", isPlaying = false, "10:05")
 )
