@@ -42,16 +42,8 @@ fun PlaylistItem(
     isSelected: Boolean,
     onProgressChange: (Float) -> Unit,
     onPause: () -> Unit,
-//    isInEditMode: Boolean,
 //    duration: Float,
-//    onStop: () -> Unit,
 ) {
-    val subTextColor = MaterialTheme.colorScheme.onSurface.copy(
-        alpha = 1.0f,
-        red = .5f,
-        green = .5f,
-        blue = .5f
-    )
     Surface(
         modifier = Modifier
             .animateContentSize()
@@ -104,21 +96,6 @@ fun PlaylistItem(
                     }
                 }
             }
-//            AnimatedVisibility(visible = voice.isPlaying) {
-//                Column {
-//                    // TODO: investigate "check error" crash when animating a slider
-////                    Slider(
-////                        value = progress,
-////                        onValueChange = { newSliderValue = it },
-////                        modifier = Modifier
-////                            .padding(horizontal = 0.dp),
-////                        valueRange = 0f..duration,
-////                       steps = 0,
-////                        onValueChangeFinished = { onProgressChange(newSliderValue) },
-//                    )
-//
-//                }
-//            }
         }
     }
 }
@@ -197,8 +174,6 @@ private fun ListItemPreview() {
             isSelected = true,
             onProgressChange = {},
             onPause = {},
-//            isInEditMode = false,
-//            onStop = {},
 //            duration = 14.15f,
         )
     }
@@ -217,8 +192,6 @@ private fun SelectedItemPreview() {
             onProgressChange = {},
             onPause = {},
 //            duration = 14.15f,
-//            isInEditMode = false,
-//            onStop = {},
         )
     }
 }

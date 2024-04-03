@@ -333,10 +333,7 @@ fun PlaylistContent(
                                 onProgressChange(progress)
                             },
                             onPause = { onPlayPause() },
-//                            onStop = { onStop() },
 //                            duration = duration,
-//                            isInEditMode = isInEditMode,
-
                         )
                     }
                 }
