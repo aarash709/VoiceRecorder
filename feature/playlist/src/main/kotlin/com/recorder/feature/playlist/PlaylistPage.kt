@@ -5,6 +5,7 @@ import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -20,11 +21,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.KeyboardVoice
+import androidx.compose.material.icons.filled.Circle
+import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -44,6 +47,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.TextFieldValue
@@ -63,6 +67,8 @@ fun Playlist(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val viewModel = hiltViewModel<PlaylistViewModel>()
+    val recorderViewModel = hiltViewModel<RecordViewModel>()
+    val isRecording by recorderViewModel.isRecording.collectAsStateWithLifecycle()
     val playerState = rememberPlayerState()
     val browser = playerState.browser
 
@@ -108,7 +114,7 @@ fun Playlist(
         PlaylistContent(
             voices = voiceList,
             onPlayPause = { browser?.run { pause() } },
-            onRecord = {  },
+            onRecord = { recorderViewModel.onRecord(context) },
             onStop = { browser?.run { stop() } },
             onVoiceClicked = { voiceIndex, voice ->
                 playingVoiceIndex = voiceIndex
@@ -126,6 +132,7 @@ fun Playlist(
                 }
             },
             onBackPressed = { onBackPressed() },
+            isRecording = isRecording,
             progress = 0.2f,
             duration = duration,
             onProgressChange = { _ ->
@@ -157,6 +164,7 @@ fun PlaylistContent(
     voices: List<Voice>,
     progress: Float,
     duration: Float,
+    isRecording: Boolean,
     onProgressChange: (Float) -> Unit,
     onRecord: () -> Unit,
     onPlayPause: () -> Unit,
@@ -243,14 +251,36 @@ fun PlaylistContent(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.Center
                         ) {
-                            Icon(
-                                imageVector = Icons.Outlined.KeyboardVoice,
-                                modifier = Modifier
-                                    .clip(CircleShape)
-                                    .clickable { onRecord() }
-                                    .size(50.dp),
-                                contentDescription = "Recorder icon"
-                            )
+                            if (isRecording)
+                                Icon(
+                                    imageVector = Icons.Filled.Stop,
+                                    modifier = Modifier
+                                        .clip(CircleShape)
+                                        .border(
+                                            width = 1.dp,
+                                            color = Color.LightGray,
+                                            shape = CircleShape
+                                        )
+                                        .clickable { onRecord() }
+                                        .size(50.dp),
+                                    tint = Color.Red.copy(green = 0.2f),
+                                    contentDescription = "Recorder icon"
+                                )
+                            else
+                                Icon(
+                                    imageVector = Icons.Filled.Circle,
+                                    modifier = Modifier
+                                        .clip(CircleShape)
+                                        .border(
+                                            width = 1.dp,
+                                            color = Color.LightGray,
+                                            shape = CircleShape
+                                        )
+                                        .clickable { onRecord() }
+                                        .size(50.dp),
+                                    tint = Color.Red.copy(green = 0.2f),
+                                    contentDescription = "Recorder icon"
+                                )
                         }
                     },
                     tonalElevation = 0.dp
@@ -263,21 +293,42 @@ fun PlaylistContent(
                 .padding(paddingValues)
                 .nestedScroll(scrollBehavior.nestedScrollConnection),
         ) {
-//            if (showRenameSheet) {
-//                PlaylistBottomSheet(
-//                    focusRequester = focusRequester,
-//                    sheetState = sheetState,
-//                    selectedVoices = selectedVoices,
-//                    showRenameSheet = { showRenameSheet = it },
-//                    renameTextFieldValue = renameTextFieldValue,
-//                    onTextFieldValueChange = { renameTextFieldValue = it },
-//                    rename = { current, desired ->
-//                        rename(current, desired)
-//                        selectedVoices = emptySet()
-//                    }
-//
-//                )
-//            }
+            if (showRenameSheet) {
+                PlaylistBottomSheet(
+                    focusRequester = focusRequester,
+                    sheetState = sheetState,
+                    selectedVoices = selectedVoices,
+                    showRenameSheet = { showRenameSheet = it },
+                    renameTextFieldValue = renameTextFieldValue,
+                    onTextFieldValueChange = { renameTextFieldValue = it },
+                    rename = { current, desired ->
+                        rename(current, desired)
+                        selectedVoices = emptySet()
+                    }
+
+                )
+            }
+            if (isRecording) {
+                ModalBottomSheet(
+                    onDismissRequest = { /*TODO*/ },
+                    sheetState = sheetState
+                ) {
+                    Text(text = "text")
+                    Icon(
+                        imageVector = Icons.Filled.Stop,
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .border(
+                                width = 1.dp,
+                                color = Color.LightGray,
+                                shape = CircleShape
+                            )
+                            .clickable { onRecord() },
+                        tint = Color.Red.copy(green = 0.2f),
+                        contentDescription = "Recorder icon"
+                    )
+                }
+            }
             if (voices.isEmpty()) {
                 EmptyListMessage()
             } else {
@@ -377,6 +428,7 @@ fun PlaylistPagePreview() {
                 onBackPressed = {},
                 progress = 0.1f,
                 duration = 0.0f,
+                isRecording = false,
                 onProgressChange = {},
                 onDeleteVoices = {},
                 onSaveVoiceFile = {},
