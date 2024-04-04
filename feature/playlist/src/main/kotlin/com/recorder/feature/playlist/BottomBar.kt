@@ -5,6 +5,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
@@ -24,6 +25,7 @@ import androidx.compose.material.icons.outlined.DriveFileRenameOutline
 import androidx.compose.material.icons.outlined.SdStorage
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -71,6 +73,7 @@ fun PlaylistBottomBar(
             })
     }
 }
+
 @Composable
 fun PlaylistButtonBarContent(
     showRenameButton: Boolean,
@@ -79,6 +82,8 @@ fun PlaylistButtonBarContent(
     renameTextFieldValue: (TextFieldValue) -> Unit,
     delete: (Set<String>) -> Unit,
 ) {
+    val renameButtonColor =
+        if (!showRenameButton) LocalContentColor.current.copy(alpha = 0.5f) else LocalContentColor.current
     BottomAppBar(
         modifier = Modifier,
         containerColor = MaterialTheme.colorScheme.surface,
@@ -117,14 +122,11 @@ fun PlaylistButtonBarContent(
                 )
                 Text("Save", fontSize = 10.sp)
             }
-            AnimatedVisibility(
-                visible = showRenameButton,
-                enter = fadeIn() + slideInHorizontally { it },
-                exit = fadeOut() + slideOutHorizontally { it }) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .clickable {
+            Column(horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(8.dp))
+                    .clickable {
+                        if (showRenameButton) {
                             val value =
                                 selectedVoices.first()
                             renameTextFieldValue(
@@ -133,16 +135,17 @@ fun PlaylistButtonBarContent(
                                     selection = TextRange(value.length)
                                 )
                             )
-                            showRenameSheet(true)
                         }
-                        .padding(8.dp)) {
-                    Icon(
-                        modifier = Modifier,
-                        imageVector = Icons.Outlined.DriveFileRenameOutline,
-                        contentDescription = "Rename Button"
-                    )
-                    Text("Rename", fontSize = 10.sp)
-                }
+                        showRenameSheet(true)
+                    }
+                    .padding(8.dp)) {
+                Icon(
+                    modifier = Modifier,
+                    imageVector = Icons.Outlined.DriveFileRenameOutline,
+                    tint = renameButtonColor,
+                    contentDescription = "Rename Button"
+                )
+                Text("Rename", fontSize = 10.sp, color = renameButtonColor)
             }
         }
     }

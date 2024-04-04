@@ -108,6 +108,7 @@ fun Playlist(
         PlaylistContent(
             voices = voiceList,
             onPlayPause = { browser?.run { pause() } },
+            onRecord = {  },
             onStop = { browser?.run { stop() } },
             onVoiceClicked = { voiceIndex, voice ->
                 playingVoiceIndex = voiceIndex
@@ -157,6 +158,7 @@ fun PlaylistContent(
     progress: Float,
     duration: Float,
     onProgressChange: (Float) -> Unit,
+    onRecord: () -> Unit,
     onPlayPause: () -> Unit,
     onStop: () -> Unit,
     onVoiceClicked: (Int, Voice) -> Unit,
@@ -226,31 +228,33 @@ fun PlaylistContent(
             )
         },
         bottomBar = {
-            BottomAppBar(
-                actions = {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.KeyboardVoice,
-                            modifier = Modifier
-                                .clip(CircleShape)
-                                .clickable { /* TODO: Start recoding */ }
-                                .size(50.dp),
-                            contentDescription = "Recorder icon"
-                        )
-                    }
-                },
-                tonalElevation = 0.dp
-            )
-//            PlaylistBottomBar(
-//                isInEditMode = isInEditMode,
-//                showRenameButton = showRenameButton,
-//                selectedVoices = selectedVoices,
-//                onShowRenameSheet = { showRenameSheet = it },
-//                renameTextFieldValue = { renameTextFieldValue = it },
-//                onDeleteVoices = { onDeleteVoices(it) })
+            if (isInSelectionMode)
+                PlaylistBottomBar(
+                    isInEditMode = true,
+                    showRenameButton = showRenameButton,
+                    selectedVoices = selectedVoices,
+                    onShowRenameSheet = { showRenameSheet = it },
+                    renameTextFieldValue = { renameTextFieldValue = it },
+                    onDeleteVoices = { onDeleteVoices(it) })
+            else
+                BottomAppBar(
+                    actions = {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.KeyboardVoice,
+                                modifier = Modifier
+                                    .clip(CircleShape)
+                                    .clickable { onRecord() }
+                                    .size(50.dp),
+                                contentDescription = "Recorder icon"
+                            )
+                        }
+                    },
+                    tonalElevation = 0.dp
+                )
         }
     ) { paddingValues ->
         Column(
@@ -366,6 +370,7 @@ fun PlaylistPagePreview() {
             PlaylistContent(
                 VoicesSampleData,
                 onPlayPause = {},
+                onRecord = {},
                 onStop = {},
                 onVoiceClicked = { _, _ ->
                 },
