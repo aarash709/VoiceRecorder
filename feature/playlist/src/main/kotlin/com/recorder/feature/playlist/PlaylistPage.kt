@@ -133,7 +133,7 @@ fun Playlist(
             },
             onBackPressed = { onBackPressed() },
             isRecording = isRecording,
-            progress = progress,
+            progressSeconds = progress,
             duration = if (duration > 0f) duration else 0f,
             onProgressChange = { _ ->
 //                lastProgress = desireePosition
@@ -162,7 +162,7 @@ fun Playlist(
 @Composable
 fun PlaylistContent(
     voices: List<Voice>,
-    progress: Float,
+    progressSeconds: Long,
     duration: Float,
     isRecording: Boolean,
     onProgressChange: (Float) -> Unit,
@@ -375,7 +375,7 @@ fun PlaylistContent(
                                 )
                             },
                             voice = voice,
-                            progress = progress,
+                            progressSeconds = progressSeconds,
                             duration = duration,
                             shouldExpand =  isExpanded,
                             isSelected = isSelected,
@@ -422,7 +422,7 @@ fun PlaylistPagePreview() {
                 onPlay = { _, _ ->
                 },
                 onBackPressed = {},
-                progress = 0.1f,
+                progressSeconds = 0,
                 duration = 0.0f,
                 isRecording = false,
                 onProgressChange = {},

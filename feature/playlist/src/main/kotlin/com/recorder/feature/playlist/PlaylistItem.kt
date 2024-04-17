@@ -36,19 +36,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.core.common.model.Voice
 import com.recorder.core.designsystem.theme.VoiceRecorderTheme
+import kotlin.time.Duration.Companion.seconds
 
 @Composable
 fun PlaylistItem(
     modifier: Modifier = Modifier,
     voice: Voice,
-    progress: Float,
+    progressSeconds: Long,
     duration: Float,
     shouldExpand: Boolean,
     isSelected: Boolean,
     onProgressChange: (Float) -> Unit,
     onPlay: (Voice) -> Unit,
     onStop: () -> Unit,
-//    duration: Float,
 ) {
     Surface(
         modifier = Modifier
@@ -69,7 +69,22 @@ fun PlaylistItem(
             }
             AnimatedVisibility(visible = shouldExpand) {
                 Column {
-                    Slider(value = progress, onValueChange = { onProgressChange(it) }, valueRange = 0f..duration)
+                    Slider(
+                        value = progressSeconds.toFloat(),
+                        onValueChange = { onProgressChange(it) },
+                        valueRange = 0f..duration,
+                    )
+                    val progressText = progressSeconds.let { progress ->
+                        "${String.format("%02d", progress.seconds.inWholeMinutes)}:" +
+                                String.format("%02d", progress.seconds.inWholeSeconds)
+                    }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(text = progressText)
+                        Text(text = voice.duration)
+                    }
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.Center,
@@ -175,14 +190,13 @@ private fun ListItemPreview() {
         PlaylistItem(
             voice = VoicesSampleData.first(),
             modifier = Modifier,
-            progress = 8f,
+            progressSeconds = 8,
             duration = 12f,
             shouldExpand = false,
             isSelected = true,
             onProgressChange = {},
             onPlay = {},
             onStop = {},
-//            duration = 14.15f,
         )
     }
 }
@@ -194,14 +208,13 @@ private fun SelectedItemPreview() {
         PlaylistItem(
             voice = VoicesSampleData.first().copy(isPlaying = true),
             modifier = Modifier,
-            progress = 13f,
+            progressSeconds = 13,
             duration = 18f,
             shouldExpand = true,
             isSelected = false,
             onProgressChange = {},
             onPlay = {},
             onStop = {},
-//            duration = 14.15f,
         )
     }
 }
