@@ -74,7 +74,7 @@ fun Playlist(
 
     val voiceList by viewModel.voices.collectAsStateWithLifecycle()
     val isPlaying by playerState.isVoicePlaying.collectAsStateWithLifecycle()
-//    val progress by playerState.progress.collectAsStateWithLifecycle()
+    val progress by playerState.progress.collectAsStateWithLifecycle()
     val duration by playerState.voiceDuration.collectAsStateWithLifecycle()
 //    var lastProgress by remember(progress) {
 //        mutableFloatStateOf(progress)
@@ -133,8 +133,8 @@ fun Playlist(
             },
             onBackPressed = { onBackPressed() },
             isRecording = isRecording,
-            progress = 0.2f,
-            duration = duration,
+            progress = progress,
+            duration = if (duration > 0f) duration else 0f,
             onProgressChange = { _ ->
 //                lastProgress = desireePosition
             },
@@ -376,6 +376,7 @@ fun PlaylistContent(
                             },
                             voice = voice,
                             progress = progress,
+                            duration = duration,
                             shouldExpand =  isExpanded,
                             isSelected = isSelected,
                             onProgressChange = { progress ->

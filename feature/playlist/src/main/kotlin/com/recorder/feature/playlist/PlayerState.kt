@@ -29,6 +29,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import kotlin.time.Duration.Companion.seconds
 
 @Composable
 fun rememberPlayerState(): PlayerState {
@@ -36,7 +37,7 @@ fun rememberPlayerState(): PlayerState {
     val lifecycleOwner = LocalLifecycleOwner.current
 
     var progress by remember {
-        mutableStateOf("00:00")
+        mutableFloatStateOf(0f)
     }
     var currentDuration by remember {
         mutableFloatStateOf(0f)
@@ -63,10 +64,11 @@ fun rememberPlayerState(): PlayerState {
         onGetBrowser = {
             browser = it
         },
-        progress = {currentPositionMillis->
-            val seconds = getSeconds(currentPositionMillis).doubleDigitFormat()
-            val minutes = getMinutes(currentPositionMillis).doubleDigitFormat()
-            progress = "$minutes:$seconds"
+        progress = { currentPositionMillis ->
+//            val seconds = getSeconds(currentPositionMillis).doubleDigitFormat()
+//            val minutes = getMinutes(currentPositionMillis).doubleDigitFormat()
+//            progress = "$minutes:$seconds"
+            progress = currentPositionMillis.seconds.inWholeSeconds.toFloat()
         },
         currentDuration = {
             currentDuration = it.toFloat()
@@ -82,12 +84,12 @@ fun rememberPlayerState(): PlayerState {
 class PlayerState(
     val browser: MediaBrowser?,
     isPlaying: Boolean,
-    progress: String,
+    progress: Float,
     duration: Float,
     coroutineScope: CoroutineScope,
 ) {
     val isVoicePlaying = flow {
-            emit(isPlaying)
+        emit(isPlaying)
     }.stateIn(
         scope = coroutineScope,
         started = SharingStarted.WhileSubscribed(5_000),
@@ -98,7 +100,7 @@ class PlayerState(
     }.stateIn(
         scope = coroutineScope,
         started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = ""
+        initialValue = 0f
     )
     val voiceDuration = flow {
         emit(duration)

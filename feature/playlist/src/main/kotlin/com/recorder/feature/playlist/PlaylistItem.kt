@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.RadioButtonChecked
 import androidx.compose.material.icons.filled.RadioButtonUnchecked
@@ -43,6 +42,7 @@ fun PlaylistItem(
     modifier: Modifier = Modifier,
     voice: Voice,
     progress: Float,
+    duration: Float,
     shouldExpand: Boolean,
     isSelected: Boolean,
     onProgressChange: (Float) -> Unit,
@@ -69,7 +69,7 @@ fun PlaylistItem(
             }
             AnimatedVisibility(visible = shouldExpand) {
                 Column {
-                    Slider(value = progress, onValueChange = { onProgressChange(it) })
+                    Slider(value = progress, onValueChange = { onProgressChange(it) }, valueRange = 0f..duration)
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.Center,
@@ -175,7 +175,8 @@ private fun ListItemPreview() {
         PlaylistItem(
             voice = VoicesSampleData.first(),
             modifier = Modifier,
-            progress = 12f,
+            progress = 8f,
+            duration = 12f,
             shouldExpand = false,
             isSelected = true,
             onProgressChange = {},
@@ -194,6 +195,7 @@ private fun SelectedItemPreview() {
             voice = VoicesSampleData.first().copy(isPlaying = true),
             modifier = Modifier,
             progress = 13f,
+            duration = 18f,
             shouldExpand = true,
             isSelected = false,
             onProgressChange = {},
