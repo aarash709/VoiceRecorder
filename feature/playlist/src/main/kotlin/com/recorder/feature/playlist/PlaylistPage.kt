@@ -113,10 +113,10 @@ fun Playlist(
     ) {
         PlaylistContent(
             voices = voiceList,
-            onPlayPause = { browser?.run { pause() } },
+            onPause = { browser?.run { pause() } },
             onRecord = { recorderViewModel.onRecord(context) },
             onStop = { browser?.run { stop() } },
-            onVoiceClicked = { voiceIndex, voice ->
+            onPlay = { voiceIndex, voice ->
                 playingVoiceIndex = voiceIndex
                 val metadata = MediaMetadata.Builder()
                     .setTitle(voice.title)
@@ -167,9 +167,9 @@ fun PlaylistContent(
     isRecording: Boolean,
     onProgressChange: (Float) -> Unit,
     onRecord: () -> Unit,
-    onPlayPause: () -> Unit,
+    onPause: () -> Unit,
     onStop: () -> Unit,
-    onVoiceClicked: (Int, Voice) -> Unit,
+    onPlay: (Int, Voice) -> Unit,
     onBackPressed: () -> Unit,
     onDeleteVoices: (Set<String>) -> Unit,
     onSaveVoiceFile: () -> Unit,
@@ -371,23 +371,18 @@ fun PlaylistContent(
                                         } else {
                                             voice.title
                                         }
-                                        //
-                                        if (!voice.isPlaying) {
-                                            onVoiceClicked(index, voice)
-                                        } else {
-                                            onStop()
-                                        }
                                     }
                                 )
                             },
                             voice = voice,
                             progress = progress,
-                            shouldExpand = isExpanded,
+                            shouldExpand =  isExpanded,
                             isSelected = isSelected,
                             onProgressChange = { progress ->
                                 onProgressChange(progress)
                             },
-                            onPause = { onPlayPause() },
+                            onPlay = { item -> onPlay(index, item) },
+                            onStop = { onStop() },
 //                            duration = duration,
                         )
                     }
@@ -420,10 +415,10 @@ fun PlaylistPagePreview() {
         Surface(color = MaterialTheme.colorScheme.background) {
             PlaylistContent(
                 VoicesSampleData,
-                onPlayPause = {},
+                onPause = {},
                 onRecord = {},
                 onStop = {},
-                onVoiceClicked = { _, _ ->
+                onPlay = { _, _ ->
                 },
                 onBackPressed = {},
                 progress = 0.1f,

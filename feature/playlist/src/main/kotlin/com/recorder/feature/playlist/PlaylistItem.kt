@@ -3,19 +3,24 @@ package com.recorder.feature.playlist
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.RadioButtonChecked
 import androidx.compose.material.icons.filled.RadioButtonUnchecked
+import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -41,7 +46,8 @@ fun PlaylistItem(
     shouldExpand: Boolean,
     isSelected: Boolean,
     onProgressChange: (Float) -> Unit,
-    onPause: () -> Unit,
+    onPlay: (Voice) -> Unit,
+    onStop: () -> Unit,
 //    duration: Float,
 ) {
     Surface(
@@ -57,6 +63,7 @@ fun PlaylistItem(
                 Title(
                     title = voice.title,
                     recordTime = voice.recordTime,
+                    duration = voice.duration,
                     color = MaterialTheme.colorScheme.onSurface
                 )
             }
@@ -70,28 +77,28 @@ fun PlaylistItem(
                     ) {
                         AnimatedContent(
                             targetState = voice.isPlaying,
+                            transitionSpec = { fadeIn(tween(0)) togetherWith fadeOut(tween(0)) },
                             label = "Play-Pause"
                         ) { isPlaying ->
                             if (isPlaying) {
-                                IconButton(onClick = { onPause() }) {
+                                IconButton(onClick = { onStop() }) {
                                     Icon(
-                                        imageVector = Icons.Default.Pause,
+                                        imageVector = Icons.Default.Stop,
                                         modifier = Modifier.size(50.dp),
                                         tint = MaterialTheme.colorScheme.primary,
                                         contentDescription = "pause icon"
                                     )
                                 }
                             } else {
-                                IconButton(onClick = { onPause() }) {
+                                IconButton(onClick = { onPlay(voice) }) {
                                     Icon(
-                                        imageVector = Icons.Default.Pause,
+                                        imageVector = Icons.Default.PlayArrow,
                                         modifier = Modifier.size(50.dp),
                                         tint = MaterialTheme.colorScheme.primary,
-                                        contentDescription = "pause icon"
+                                        contentDescription = "play icon"
                                     )
                                 }
                             }
-
                         }
                     }
                 }
@@ -126,7 +133,7 @@ fun SelectionRadioButton(isSelected: Boolean, isPlaying: Boolean) {
 }
 
 @Composable
-fun Title(title: String, recordTime: String, color: Color) {
+fun Title(title: String, recordTime: String, color: Color, duration: String) {
     val subTextColor = color.copy(
         alpha = 1.0f,
         red = .5f,
@@ -153,9 +160,8 @@ fun Title(title: String, recordTime: String, color: Color) {
                 color = subTextColor
             )
         }
-//        val duration = if (voice.isPlaying) "${progress}/${voice.duration}" else voice.duration
         Text(
-            text = "time",
+            text = duration,
             fontSize = 12.sp,
             color = subTextColor
         )
@@ -173,7 +179,8 @@ private fun ListItemPreview() {
             shouldExpand = false,
             isSelected = true,
             onProgressChange = {},
-            onPause = {},
+            onPlay = {},
+            onStop = {},
 //            duration = 14.15f,
         )
     }
@@ -190,7 +197,8 @@ private fun SelectedItemPreview() {
             shouldExpand = true,
             isSelected = false,
             onProgressChange = {},
-            onPause = {},
+            onPlay = {},
+            onStop = {},
 //            duration = 14.15f,
         )
     }
