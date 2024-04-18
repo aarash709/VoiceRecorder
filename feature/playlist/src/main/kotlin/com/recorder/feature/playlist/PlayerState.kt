@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -16,9 +17,6 @@ import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.session.MediaBrowser
 import androidx.media3.session.SessionToken
-import com.core.common.doubleDigitFormat
-import com.core.common.getMinutes
-import com.core.common.getSeconds
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.recorder.service.PlayerService
@@ -29,6 +27,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun rememberPlayerState(): PlayerState {
@@ -36,7 +35,7 @@ fun rememberPlayerState(): PlayerState {
     val lifecycleOwner = LocalLifecycleOwner.current
 
     var progress by remember {
-        mutableStateOf("00:00")
+        mutableLongStateOf(0L)
     }
     var currentDuration by remember {
         mutableFloatStateOf(0f)
@@ -63,13 +62,14 @@ fun rememberPlayerState(): PlayerState {
         onGetBrowser = {
             browser = it
         },
-        progress = {currentPositionMillis->
-            val seconds = getSeconds(currentPositionMillis).doubleDigitFormat()
-            val minutes = getMinutes(currentPositionMillis).doubleDigitFormat()
-            progress = "$minutes:$seconds"
+        progress = { currentPositionMillis ->
+//            val seconds = getSeconds(currentPositionMillis).doubleDigitFormat()
+//            val minutes = getMinutes(currentPositionMillis).doubleDigitFormat()
+//            progress = "$minutes:$seconds"
+            progress = currentPositionMillis.milliseconds.absoluteValue.inWholeSeconds
         },
         currentDuration = {
-            currentDuration = it.toFloat()
+            currentDuration = it.milliseconds.inWholeSeconds.toFloat()
         },
         isVoicePlaying = {
             isPlaying = it
@@ -82,12 +82,12 @@ fun rememberPlayerState(): PlayerState {
 class PlayerState(
     val browser: MediaBrowser?,
     isPlaying: Boolean,
-    progress: String,
+    progress: Long,
     duration: Float,
     coroutineScope: CoroutineScope,
 ) {
     val isVoicePlaying = flow {
-            emit(isPlaying)
+        emit(isPlaying)
     }.stateIn(
         scope = coroutineScope,
         started = SharingStarted.WhileSubscribed(5_000),
@@ -98,7 +98,7 @@ class PlayerState(
     }.stateIn(
         scope = coroutineScope,
         started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = ""
+        initialValue = 0L
     )
     val voiceDuration = flow {
         emit(duration)
