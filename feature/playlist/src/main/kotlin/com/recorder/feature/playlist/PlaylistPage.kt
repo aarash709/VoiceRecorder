@@ -28,7 +28,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.ModalBottomSheetProperties
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.Surface
@@ -42,7 +41,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -62,14 +60,11 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import com.core.common.model.Voice
 import com.recorder.core.designsystem.theme.VoiceRecorderTheme
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 @Composable
 fun Playlist(
     onBackPressed: () -> Unit,
 ) {
-    val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val viewModel = hiltViewModel<PlaylistViewModel>()
     val recorderViewModel = hiltViewModel<RecordViewModel>()
@@ -82,9 +77,7 @@ fun Playlist(
     val isPlaying by playerState.isVoicePlaying.collectAsStateWithLifecycle()
     val progress by playerState.progress.collectAsStateWithLifecycle()
     val duration by playerState.voiceDuration.collectAsStateWithLifecycle()
-//    var lastProgress by remember(progress) {
-//        mutableFloatStateOf(progress)
-//    }
+
     var playingVoiceIndex by rememberSaveable(isPlaying, playerState.browser?.currentPosition) {
         mutableIntStateOf(
             if (isPlaying) {
@@ -104,14 +97,6 @@ fun Playlist(
             viewModel.getVoices(context)
         }
     }
-//    LaunchedEffect(key1 = lastProgress) {
-//        if (progress != lastProgress) {
-//            delay(50)
-//            playerState.browser?.run {
-//                seekTo(lastProgress.toLong())
-//            }
-//        }
-//    }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -119,10 +104,10 @@ fun Playlist(
     ) {
         PlaylistContent(
             voices = voiceList,
-            onPause = { browser?.run { pause() } },
+            onPausePlayback = { browser?.run { pause() } },
             onRecord = { recorderViewModel.onRecord(context) },
-            onStop = { browser?.run { stop() } },
-            onPlay = { voiceIndex, voice ->
+            onStopPlayback = { browser?.run { stop() } },
+            onStartPlayback = { voiceIndex, voice ->
                 playingVoiceIndex = voiceIndex
                 val metadata = MediaMetadata.Builder()
                     .setTitle(voice.title)
@@ -143,10 +128,8 @@ fun Playlist(
             progressSeconds = progress,
             duration = if (duration > 0f) duration else 0f,
             onProgressChange = { _ ->
-//                lastProgress = desireePosition
             },
             onDeleteVoices = { titles ->
-                //can delete multiple
                 viewModel.deleteVoice(titles.toList(), context)
             },
             onSaveVoiceFile = {
@@ -175,9 +158,9 @@ fun PlaylistContent(
     recordingTimer: String,
     onProgressChange: (Float) -> Unit,
     onRecord: () -> Unit,
-    onPause: () -> Unit,
-    onStop: () -> Unit,
-    onPlay: (Int, Voice) -> Unit,
+    onPausePlayback: () -> Unit,
+    onStopPlayback: () -> Unit,
+    onStartPlayback: (Int, Voice) -> Unit,
     onBackPressed: () -> Unit,
     onDeleteVoices: (Set<String>) -> Unit,
     onSaveVoiceFile: () -> Unit,
@@ -219,7 +202,6 @@ fun PlaylistContent(
     })
     LaunchedEffect(key1 = isAllSelected) {
         if (isAllSelected) {
-            //make sure there is no duplicate selected voice
             selectedVoices += voices.map { it.title }
         } else {
             selectedVoices = emptySet()
@@ -301,6 +283,12 @@ fun PlaylistContent(
                 .padding(paddingValues)
                 .nestedScroll(scrollBehavior.nestedScrollConnection),
         ) {
+            var showRecordingSheet by remember {
+                mutableStateOf(false)
+            }
+            LaunchedEffect(key1 = isRecording) {
+                showRecordingSheet = isRecording
+            }
             if (showRenameSheet) {
                 PlaylistBottomSheet(
                     focusRequester = focusRequester,
@@ -315,12 +303,6 @@ fun PlaylistContent(
                     }
 
                 )
-            }
-            var showRecordingSheet by remember {
-                mutableStateOf(false)
-            }
-            LaunchedEffect(key1 = isRecording) {
-                showRecordingSheet = isRecording
             }
             if (showRecordingSheet) {
                 RecordingBottomSheet(
@@ -383,8 +365,8 @@ fun PlaylistContent(
                             onProgressChange = { progress ->
                                 onProgressChange(progress)
                             },
-                            onPlay = { item -> onPlay(index, item) },
-                            onStop = { onStop() },
+                            onPlay = { item -> onStartPlayback(index, item) },
+                            onStop = { onStopPlayback() },
                         )
                     }
                 }
@@ -461,10 +443,10 @@ fun PlaylistPagePreview() {
         Surface(color = MaterialTheme.colorScheme.background) {
             PlaylistContent(
                 VoicesSampleData,
-                onPause = {},
+                onPausePlayback = {},
                 onRecord = {},
-                onStop = {},
-                onPlay = { _, _ ->
+                onStopPlayback = {},
+                onStartPlayback = { _, _ ->
                 },
                 onBackPressed = {},
                 progressSeconds = 0,
