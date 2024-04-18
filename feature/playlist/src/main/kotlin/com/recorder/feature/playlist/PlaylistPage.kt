@@ -28,7 +28,9 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.ModalBottomSheetProperties
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SheetState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
@@ -53,12 +55,15 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import com.core.common.model.Voice
 import com.recorder.core.designsystem.theme.VoiceRecorderTheme
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun Playlist(
@@ -69,6 +74,7 @@ fun Playlist(
     val viewModel = hiltViewModel<PlaylistViewModel>()
     val recorderViewModel = hiltViewModel<RecordViewModel>()
     val isRecording by recorderViewModel.isRecording.collectAsStateWithLifecycle()
+    val recordingTimer by recorderViewModel.formattedTimer.collectAsStateWithLifecycle()
     val playerState = rememberPlayerState()
     val browser = playerState.browser
 
@@ -133,6 +139,7 @@ fun Playlist(
             },
             onBackPressed = { onBackPressed() },
             isRecording = isRecording,
+            recordingTimer = recordingTimer,
             progressSeconds = progress,
             duration = if (duration > 0f) duration else 0f,
             onProgressChange = { _ ->
@@ -165,6 +172,7 @@ fun PlaylistContent(
     progressSeconds: Long,
     duration: Float,
     isRecording: Boolean,
+    recordingTimer: String,
     onProgressChange: (Float) -> Unit,
     onRecord: () -> Unit,
     onPause: () -> Unit,
@@ -308,26 +316,19 @@ fun PlaylistContent(
 
                 )
             }
-            if (isRecording) {
-                ModalBottomSheet(
-                    onDismissRequest = { /*TODO*/ },
-                    sheetState = sheetState
-                ) {
-                    Text(text = "text")
-                    Icon(
-                        imageVector = Icons.Filled.Stop,
-                        modifier = Modifier
-                            .clip(CircleShape)
-                            .border(
-                                width = 1.dp,
-                                color = Color.LightGray,
-                                shape = CircleShape
-                            )
-                            .clickable { onRecord() },
-                        tint = Color.Red.copy(green = 0.2f),
-                        contentDescription = "Recorder icon"
-                    )
-                }
+            var showRecordingSheet by remember {
+                mutableStateOf(false)
+            }
+            LaunchedEffect(key1 = isRecording) {
+                showRecordingSheet = isRecording
+            }
+            if (showRecordingSheet) {
+                RecordingBottomSheet(
+                    recordingTimer = recordingTimer,
+                    title = "Now Recording",
+                    sheetState = sheetState,
+                    showRecordingSheet = { showRecordingSheet = it },
+                    onRecord = { onRecord() })
             }
             if (voices.isEmpty()) {
                 EmptyListMessage()
@@ -377,21 +378,65 @@ fun PlaylistContent(
                             voice = voice,
                             progressSeconds = progressSeconds,
                             duration = duration,
-                            shouldExpand =  isExpanded,
+                            shouldExpand = isExpanded,
                             isSelected = isSelected,
                             onProgressChange = { progress ->
                                 onProgressChange(progress)
                             },
                             onPlay = { item -> onPlay(index, item) },
                             onStop = { onStop() },
-//                            duration = duration,
                         )
                     }
                 }
             }
         }
     }
+}
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun RecordingBottomSheet(
+    recordingTimer: String,
+    title: String = "Now Recording",
+    sheetState: SheetState,
+    showRecordingSheet: (Boolean) -> Unit,
+    onRecord: () -> Unit,
+) {
+    ModalBottomSheet(
+        onDismissRequest = {
+            showRecordingSheet(false)
+        },
+        sheetState = sheetState,
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(vertical = 8.dp)
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                text = title,
+                modifier = Modifier.padding(vertical = 8.dp),
+                fontSize = 20.sp
+            )
+            Text(text = recordingTimer, modifier = Modifier.padding(vertical = 8.dp))
+            Icon(
+                imageVector = Icons.Filled.Stop,
+                modifier = Modifier
+                    .size(50.dp)
+                    .clip(CircleShape)
+                    .border(
+                        width = 1.dp,
+                        color = Color.LightGray,
+                        shape = CircleShape
+                    )
+                    .clickable { onRecord() },
+                tint = Color.Red.copy(green = 0.2f),
+                contentDescription = "Recorder icon"
+            )
+        }
+    }
 }
 
 @Composable
@@ -424,7 +469,8 @@ fun PlaylistPagePreview() {
                 onBackPressed = {},
                 progressSeconds = 0,
                 duration = 0.0f,
-                isRecording = false,
+                isRecording = true,
+                recordingTimer = "00:01",
                 onProgressChange = {},
                 onDeleteVoices = {},
                 onSaveVoiceFile = {},
