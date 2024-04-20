@@ -70,7 +70,7 @@ fun PlaylistItem(
             AnimatedVisibility(visible = shouldExpand) {
                 Column {
                     Slider(
-                        value = progressSeconds.toFloat(),
+                        value = if(voice.isPlaying) progressSeconds.toFloat() else 0f,
                         onValueChange = { onProgressChange(it) },
                         valueRange = 0f..duration,
                     )
