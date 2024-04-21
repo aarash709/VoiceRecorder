@@ -68,13 +68,14 @@ fun PlaylistItem(
                 )
             }
             AnimatedVisibility(visible = shouldExpand) {
+                val progress = if (voice.isPlaying) progressSeconds else 0L
                 Column {
                     Slider(
-                        value = progressSeconds.toFloat(),
+                        value = progress.toFloat(),
                         onValueChange = { onProgressChange(it) },
                         valueRange = 0f..duration,
                     )
-                    val progressText = progressSeconds.let { progress ->
+                    val progressText = progress.let { progress ->
                         "${String.format("%02d", progress.seconds.inWholeMinutes)}:" +
                                 String.format("%02d", progress.seconds.inWholeSeconds)
                     }
