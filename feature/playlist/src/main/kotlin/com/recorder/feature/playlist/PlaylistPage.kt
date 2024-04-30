@@ -1,7 +1,12 @@
 package com.recorder.feature.playlist
 
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.content.ServiceConnection
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
+import android.os.IBinder
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -35,6 +40,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -60,6 +66,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import com.core.common.model.Voice
 import com.recorder.core.designsystem.theme.VoiceRecorderTheme
+import com.recorder.service.RecorderService
 
 @Composable
 fun Playlist(
@@ -77,7 +84,37 @@ fun Playlist(
     val isPlaying by playerState.isVoicePlaying.collectAsStateWithLifecycle()
     val progress by playerState.progress.collectAsStateWithLifecycle()
     val duration by playerState.voiceDuration.collectAsStateWithLifecycle()
+    ///
+    var service : RecorderService? by remember {
+        mutableStateOf(null)
+    }
+    var  isBound by remember {
+        mutableStateOf(false)
+    }
 
+    val connection = remember(context) {
+        object : ServiceConnection {
+            override fun onServiceConnected(p0: ComponentName?, binder: IBinder?) {
+                val binder = binder as RecorderService.LocalBinder
+                service = binder.getRecorderService()
+                isBound = true
+            }
+
+            override fun onServiceDisconnected(p0: ComponentName?) {
+                isBound = false
+            }
+        }
+    }
+    ///
+    DisposableEffect(key1 = context) {
+        Intent(context,RecorderService::class.java).apply {
+            context.bindService(this,connection, Context.BIND_AUTO_CREATE)
+        }
+        onDispose {
+            context.unbindService(connection)
+        }
+    }
+    ///
     var playingVoiceIndex by rememberSaveable(isPlaying, playerState.browser?.currentPosition) {
         mutableIntStateOf(
             if (isPlaying) {

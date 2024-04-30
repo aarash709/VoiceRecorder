@@ -48,12 +48,12 @@ class RecorderService : Service() {
 
     private val binder = LocalBinder()
 
-    inner class LocalBinder {
-        fun getBinder() = Binder()
+    inner class LocalBinder : Binder() {
+        fun getRecorderService() = this@RecorderService
     }
 
     override fun onBind(intent: Intent?): IBinder {
-        return binder.getBinder()
+        return binder
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -162,7 +162,7 @@ class RecorderService : Service() {
         recordingStatus = status
     }
 
-    companion object{
+    companion object {
         enum class RecordingStatus {
             Recording,
             Paused,
