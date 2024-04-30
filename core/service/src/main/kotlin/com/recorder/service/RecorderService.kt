@@ -6,6 +6,7 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.media.MediaRecorder
+import android.os.Binder
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import com.core.common.Storage
@@ -31,6 +32,8 @@ class RecorderService : Service() {
     lateinit var notificationManager: NotificationManager
     private val job = Job()
     private val serviceScope = CoroutineScope(Dispatchers.IO + job)
+    private var recordingStatus = RecordingStatus.Idle
+
 
     override fun onCreate() {
         super.onCreate()
@@ -43,8 +46,14 @@ class RecorderService : Service() {
         }
     }
 
-    override fun onBind(intent: Intent?): IBinder? {
-        return null
+    private val binder = LocalBinder()
+
+    inner class LocalBinder {
+        fun getBinder() = Binder()
+    }
+
+    override fun onBind(intent: Intent?): IBinder {
+        return binder.getBinder()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -55,7 +64,7 @@ class RecorderService : Service() {
             }
 
             "stop" -> {
-                stopRecordingAudio(onStopRecording = {
+                stopRecording(onStopRecording = {
 
                 })
                 Timber.e("stop")
@@ -72,22 +81,6 @@ class RecorderService : Service() {
             }
         }
         return START_STICKY
-    }
-
-    private fun pauseRecording() {
-        serviceScope.launch {
-            recorder.apply {
-                pause()
-            }
-        }
-    }
-
-    private fun resumeRecording() {
-        serviceScope.launch {
-            recorder.apply {
-                resume()
-            }
-        }
     }
 
     override fun onDestroy() {
@@ -113,6 +106,7 @@ class RecorderService : Service() {
                     Timber.e("recorder on android(S) can`t be prepared")
                 }
                 start()
+                updateRecordingState(RecordingStatus.Recording)
             }
         }
         val notification = NotificationCompat.Builder(this, "recorder_channel")
@@ -123,16 +117,35 @@ class RecorderService : Service() {
         startForeground(1, notification)
     }
 
-    private fun stopRecordingAudio(onStopRecording: () -> Unit) {
+    private fun stopRecording(onStopRecording: () -> Unit) {
         serviceScope.launch {
             recorder.apply {
                 stop()
                 reset()
+                updateRecordingState(RecordingStatus.Idle)
                 onStopRecording()
                 Timber.e("stopped recording")
             }
         }
         stopForeground(STOP_FOREGROUND_REMOVE)
+    }
+
+    private fun pauseRecording() {
+        serviceScope.launch {
+            recorder.apply {
+                pause()
+                updateRecordingState(RecordingStatus.Paused)
+            }
+        }
+    }
+
+    private fun resumeRecording() {
+        serviceScope.launch {
+            recorder.apply {
+                resume()
+                updateRecordingState(RecordingStatus.Recording)
+            }
+        }
     }
 
     private fun releaseResources() {
@@ -141,6 +154,19 @@ class RecorderService : Service() {
                 release()
             }
             job.cancel()
+            updateRecordingState(RecordingStatus.Idle)
+        }
+    }
+
+    private fun updateRecordingState(status: RecordingStatus) {
+        recordingStatus = status
+    }
+
+    companion object{
+        enum class RecordingStatus {
+            Recording,
+            Paused,
+            Idle
         }
     }
 
