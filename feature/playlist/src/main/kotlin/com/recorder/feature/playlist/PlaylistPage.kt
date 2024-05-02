@@ -56,6 +56,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -67,6 +68,8 @@ import androidx.media3.common.MediaMetadata
 import com.core.common.model.Voice
 import com.recorder.core.designsystem.theme.VoiceRecorderTheme
 import com.recorder.service.RecorderService
+import com.recorder.service.RecorderService.Companion.RecordingState
+import timber.log.Timber
 
 @Composable
 fun Playlist(
@@ -75,7 +78,6 @@ fun Playlist(
     val context = LocalContext.current
     val viewModel = hiltViewModel<PlaylistViewModel>()
     val recorderViewModel = hiltViewModel<RecordViewModel>()
-    val isRecording by recorderViewModel.isRecording.collectAsStateWithLifecycle()
     val recordingTimer by recorderViewModel.formattedTimer.collectAsStateWithLifecycle()
     val playerState = rememberPlayerState()
     val browser = playerState.browser
@@ -85,33 +87,42 @@ fun Playlist(
     val progress by playerState.progress.collectAsStateWithLifecycle()
     val duration by playerState.voiceDuration.collectAsStateWithLifecycle()
     ///
-    var service : RecorderService? by remember {
+    var recorderService: RecorderService? by remember {
         mutableStateOf(null)
     }
-    var  isBound by remember {
+    var isRecorderServiceBound by remember {
+        mutableStateOf(false)
+    }
+    var isRecording by rememberSaveable {
         mutableStateOf(false)
     }
 
-    val connection = remember(context) {
+    val connection = remember {
         object : ServiceConnection {
             override fun onServiceConnected(p0: ComponentName?, binder: IBinder?) {
-                val binder = binder as RecorderService.LocalBinder
-                service = binder.getRecorderService()
-                isBound = true
+                recorderService = (binder as RecorderService.LocalBinder).getRecorderService()
+                isRecording =
+                    recorderService?.recordingState == RecordingState.Recording
+                isRecorderServiceBound = true
             }
 
             override fun onServiceDisconnected(p0: ComponentName?) {
-                isBound = false
+                isRecording =
+                    recorderService?.recordingState == RecordingState.Recording
+                isRecorderServiceBound = false
             }
         }
     }
-    ///
-    DisposableEffect(key1 = context) {
-        Intent(context,RecorderService::class.java).apply {
-            context.bindService(this,connection, Context.BIND_AUTO_CREATE)
+    DisposableEffect(key1 = LocalLifecycleOwner.current) {
+        if (!isRecorderServiceBound) {
+            Intent(context.applicationContext, RecorderService::class.java).apply {
+                context.bindService(this, connection, Context.BIND_AUTO_CREATE)
+            }
         }
         onDispose {
-            context.unbindService(connection)
+            if (isRecorderServiceBound) {
+                context.unbindService(connection)
+            }
         }
     }
     ///
@@ -142,7 +153,21 @@ fun Playlist(
         PlaylistContent(
             voices = voiceList,
             onPausePlayback = { browser?.run { pause() } },
-            onRecord = { recorderViewModel.onRecord(context) },
+            onRecord = {
+                recorderService?.let { service ->
+                    val recordingState = service.recordingState
+                    isRecording = recordingState != RecordingState.Recording
+                    if (recordingState != RecordingState.Recording) {
+                        Intent(context.applicationContext, RecorderService::class.java).apply {
+                            context.startService(this)
+                        }
+                        service.startRecording(context)
+                    } else {
+                        service.stopRecording {
+                        }
+                    }
+                }
+            },
             onStopPlayback = { browser?.run { stop() } },
             onStartPlayback = { voiceIndex, voice ->
                 playingVoiceIndex = voiceIndex
