@@ -33,6 +33,7 @@ class RecorderService : Service() {
     private val job = Job()
     private val serviceScope = CoroutineScope(Dispatchers.IO + job)
     var recordingState = RecordingState.Idle
+    var recordingStartTimeMillis = 0L
 
 
     override fun onCreate() {
@@ -63,29 +64,29 @@ class RecorderService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        when (intent?.action) {
-            "record" -> {
-                startRecording(this)
-                Timber.e("record")
-            }
-
-            "stop" -> {
-                stopRecording(onStopRecording = {
-
-                })
-                Timber.e("stop")
-            }
-
-            "pause" -> {
-                pauseRecording()
-                Timber.e("pause")
-            }
-
-            "resume" -> {
-                resumeRecording()
-                Timber.e("resume")
-            }
-        }
+//        when (intent?.action) {
+//            "record" -> {
+//                startRecording(this)
+//                Timber.e("record")
+//            }
+//
+//            "stop" -> {
+//                stopRecording(onStopRecording = {
+//
+//                })
+//                Timber.e("stop")
+//            }
+//
+//            "pause" -> {
+//                pauseRecording()
+//                Timber.e("pause")
+//            }
+//
+//            "resume" -> {
+//                resumeRecording()
+//                Timber.e("resume")
+//            }
+//        }
         return START_STICKY
     }
 
@@ -167,6 +168,14 @@ class RecorderService : Service() {
     private fun updateRecordingState(status: RecordingState) {
         recordingState = status
         Timber.e(recordingState.toString())
+    }
+
+    fun setRecordingTimer(timeMillis: Long) {
+        recordingStartTimeMillis = timeMillis
+    }
+
+    fun getRecordingTimer(): Long {
+        return recordingStartTimeMillis
     }
 
     companion object {

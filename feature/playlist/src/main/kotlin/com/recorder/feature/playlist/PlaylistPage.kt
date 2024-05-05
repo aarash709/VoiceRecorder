@@ -45,6 +45,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -70,6 +71,7 @@ import com.recorder.core.designsystem.theme.VoiceRecorderTheme
 import com.recorder.service.RecorderService
 import com.recorder.service.RecorderService.Companion.RecordingState
 import timber.log.Timber
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun Playlist(
@@ -96,14 +98,18 @@ fun Playlist(
     var isRecording by rememberSaveable {
         mutableStateOf(false)
     }
+    var lastRecordTime by rememberSaveable {
+        mutableLongStateOf(0)
+    }
 
     val connection = remember {
         object : ServiceConnection {
             override fun onServiceConnected(p0: ComponentName?, binder: IBinder?) {
                 recorderService = (binder as RecorderService.LocalBinder).getRecorderService()
+                isRecorderServiceBound = true
                 isRecording =
                     recorderService?.recordingState == RecordingState.Recording
-                isRecorderServiceBound = true
+                lastRecordTime = recorderService?.recordingStartTimeMillis ?: 0
             }
 
             override fun onServiceDisconnected(p0: ComponentName?) {
@@ -123,6 +129,17 @@ fun Playlist(
             if (isRecorderServiceBound) {
                 context.unbindService(connection)
             }
+        }
+    }
+    LaunchedEffect(isRecording) {
+        Timber.e("debug timer:${recorderService?.recordingStartTimeMillis}")
+        if (recorderService?.recordingState != RecordingState.Recording) {
+//            recorderViewModel.resetTimer()
+        }
+        if (isRecorderServiceBound){
+                val time = recorderService?.getRecordingTimer()
+//                recorderViewModel.startTimer(isRecording = isRecording, currentTime = time)
+                Timber.e("time: $time")
         }
     }
     ///
@@ -152,7 +169,9 @@ fun Playlist(
     ) {
         PlaylistContent(
             voices = voiceList,
-            onPausePlayback = { browser?.run { pause() } },
+            duration = if (duration > 0f) duration else 0f,
+            isRecording = isRecording,
+            recordingTimer = recordingTimer,
             onRecord = {
                 recorderService?.let { service ->
                     val recordingState = service.recordingState
@@ -162,8 +181,11 @@ fun Playlist(
                             context.startService(this)
                         }
                         service.startRecording(context)
+                        service.setRecordingTimer(System.currentTimeMillis().milliseconds.inWholeSeconds)
+                        recorderViewModel.startTimer(isRecording = isRecording, currentTime = service.recordingStartTimeMillis)
                     } else {
                         service.stopRecording {
+                            recorderViewModel.resetTimer()
                         }
                     }
                 }
@@ -185,11 +207,8 @@ fun Playlist(
                 }
             },
             onBackPressed = { onBackPressed() },
-            isRecording = isRecording,
-            recordingTimer = recordingTimer,
             progressSeconds = progress,
-            duration = if (duration > 0f) duration else 0f,
-            onProgressChange = { _ ->
+            onPlayProgressChange = { _ ->
             },
             onDeleteVoices = { titles ->
                 viewModel.deleteVoice(titles.toList(), context)
@@ -218,9 +237,8 @@ fun PlaylistContent(
     duration: Float,
     isRecording: Boolean,
     recordingTimer: String,
-    onProgressChange: (Float) -> Unit,
     onRecord: () -> Unit,
-    onPausePlayback: () -> Unit,
+    onPlayProgressChange: (Float) -> Unit,
     onStopPlayback: () -> Unit,
     onStartPlayback: (Int, Voice) -> Unit,
     onBackPressed: () -> Unit,
@@ -425,7 +443,7 @@ fun PlaylistContent(
                             shouldExpand = isExpanded,
                             isSelected = isSelected,
                             onProgressChange = { progress ->
-                                onProgressChange(progress)
+                                onPlayProgressChange(progress)
                             },
                             onPlay = { item -> onStartPlayback(index, item) },
                             onStop = { onStopPlayback() },
@@ -505,7 +523,6 @@ fun PlaylistPagePreview() {
         Surface(color = MaterialTheme.colorScheme.background) {
             PlaylistContent(
                 VoicesSampleData,
-                onPausePlayback = {},
                 onRecord = {},
                 onStopPlayback = {},
                 onStartPlayback = { _, _ ->
@@ -515,7 +532,7 @@ fun PlaylistPagePreview() {
                 duration = 0.0f,
                 isRecording = true,
                 recordingTimer = "00:01",
-                onProgressChange = {},
+                onPlayProgressChange = {},
                 onDeleteVoices = {},
                 onSaveVoiceFile = {},
                 rename = { _, _ -> },
