@@ -89,6 +89,7 @@ fun Playlist(
     val progress by playerState.progress.collectAsStateWithLifecycle()
     val duration by playerState.voiceDuration.collectAsStateWithLifecycle()
     ///
+    val recorderState = rememberRecorderState()
     var recorderService: RecorderService? by remember {
         mutableStateOf(null)
     }
@@ -129,17 +130,6 @@ fun Playlist(
             if (isRecorderServiceBound) {
                 context.unbindService(connection)
             }
-        }
-    }
-    LaunchedEffect(isRecording) {
-        Timber.e("debug timer:${recorderService?.recordingStartTimeMillis}")
-        if (recorderService?.recordingState != RecordingState.Recording) {
-//            recorderViewModel.resetTimer()
-        }
-        if (isRecorderServiceBound){
-                val time = recorderService?.getRecordingTimer()
-//                recorderViewModel.startTimer(isRecording = isRecording, currentTime = time)
-                Timber.e("time: $time")
         }
     }
     ///
@@ -185,6 +175,7 @@ fun Playlist(
                         recorderViewModel.startTimer(isRecording = isRecording, currentTime = service.recordingStartTimeMillis)
                     } else {
                         service.stopRecording {
+                            recorderViewModel.startTimer(isRecording = false, currentTime = null)
                             recorderViewModel.resetTimer()
                         }
                     }

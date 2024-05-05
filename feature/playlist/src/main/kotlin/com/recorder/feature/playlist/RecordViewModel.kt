@@ -24,7 +24,6 @@ class RecordViewModel @Inject constructor() : ViewModel() {
 
     val formattedTimer = _timerMillis.map { elapsedTime ->
         timePattern.format(LocalTime.ofSecondOfDay(elapsedTime))
-
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(1_000L),
