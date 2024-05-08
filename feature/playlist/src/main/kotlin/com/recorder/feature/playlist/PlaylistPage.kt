@@ -171,12 +171,17 @@ fun Playlist(
                             context.startService(this)
                         }
                         service.startRecording(context)
-                        service.setRecordingTimer(System.currentTimeMillis().milliseconds.inWholeSeconds)
-                        recorderViewModel.startTimer(isRecording = isRecording, currentTime = service.recordingStartTimeMillis)
+                        service.setRecordingTimer(timeMillis = System.currentTimeMillis().milliseconds.inWholeSeconds)
+                        recorderViewModel.updateRecordState(
+                            isRecording = isRecording,
+                            currentTime = service.recordingStartTimeMillis
+                        )
                     } else {
                         service.stopRecording {
-                            recorderViewModel.startTimer(isRecording = false, currentTime = null)
-                            recorderViewModel.resetTimer()
+                            recorderViewModel.updateRecordState(
+                                isRecording,
+                                0L
+                            )
                         }
                     }
                 }
