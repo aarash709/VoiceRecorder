@@ -70,7 +70,6 @@ import com.core.common.model.Voice
 import com.recorder.core.designsystem.theme.VoiceRecorderTheme
 import com.recorder.service.RecorderService
 import com.recorder.service.RecorderService.Companion.RecordingState
-import timber.log.Timber
 import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
@@ -89,7 +88,6 @@ fun Playlist(
     val progress by playerState.progress.collectAsStateWithLifecycle()
     val duration by playerState.voiceDuration.collectAsStateWithLifecycle()
     ///
-    val recorderState = rememberRecorderState()
     var recorderService: RecorderService? by remember {
         mutableStateOf(null)
     }
@@ -102,6 +100,11 @@ fun Playlist(
     var lastRecordTime by rememberSaveable {
         mutableLongStateOf(0)
     }
+//    LaunchedEffect(recorderService) {
+//        recorderService?.let {
+//            isRecording = recorderState.isRecording
+//        }
+//    }
 
     val connection = remember {
         object : ServiceConnection {
@@ -120,9 +123,10 @@ fun Playlist(
             }
         }
     }
+     val recorderState = rememberRecorderState(serviceConnection = connection) // leaks service connection
     DisposableEffect(key1 = LocalLifecycleOwner.current) {
         if (!isRecorderServiceBound) {
-            Intent(context.applicationContext, RecorderService::class.java).apply {
+            Intent(context, RecorderService::class.java).apply {
                 context.bindService(this, connection, Context.BIND_AUTO_CREATE)
             }
         }
