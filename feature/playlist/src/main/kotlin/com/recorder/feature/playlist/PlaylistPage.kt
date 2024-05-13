@@ -100,12 +100,6 @@ fun Playlist(
     var lastRecordTime by rememberSaveable {
         mutableLongStateOf(0)
     }
-//    LaunchedEffect(recorderService) {
-//        recorderService?.let {
-//            isRecording = recorderState.isRecording
-//        }
-//    }
-
     val connection = remember {
         object : ServiceConnection {
             override fun onServiceConnected(p0: ComponentName?, binder: IBinder?) {
@@ -123,7 +117,8 @@ fun Playlist(
             }
         }
     }
-     val recorderState = rememberRecorderState(serviceConnection = connection) // leaks service connection
+    val recorderState =
+        rememberRecorderState(serviceConnection = connection) // leaks service connection
     DisposableEffect(key1 = LocalLifecycleOwner.current) {
         if (!isRecorderServiceBound) {
             Intent(context, RecorderService::class.java).apply {
@@ -154,6 +149,15 @@ fun Playlist(
             )
         } else {
             viewModel.getVoices(context)
+        }
+    }
+    LaunchedEffect(isRecording) {
+        //updates ui timer on first composition if `isRecording` is true
+        if (isRecording) {
+            recorderViewModel.updateRecordState(
+                isRecording = true,
+                currentTime = recorderService?.getRecordingStartMillis()
+            )
         }
     }
     Box(

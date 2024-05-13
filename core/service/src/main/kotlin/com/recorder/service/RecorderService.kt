@@ -174,7 +174,7 @@ class RecorderService : Service() {
         recordingStartTimeMillis = timeMillis
     }
 
-    fun getRecordingTimer(): Long {
+    fun getRecordingStartMillis(): Long {
         return recordingStartTimeMillis
     }
 
