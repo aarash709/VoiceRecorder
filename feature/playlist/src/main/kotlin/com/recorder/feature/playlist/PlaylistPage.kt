@@ -153,11 +153,14 @@ fun Playlist(
     }
     LaunchedEffect(isRecording) {
         //updates ui timer on first composition if `isRecording` is true
+        //or fetch voice list after finished recording
         if (isRecording) {
             recorderViewModel.updateRecordState(
                 isRecording = true,
                 currentTime = recorderService?.getRecordingStartMillis()
             )
+        } else {
+            viewModel.getVoices(context)
         }
     }
     Box(
