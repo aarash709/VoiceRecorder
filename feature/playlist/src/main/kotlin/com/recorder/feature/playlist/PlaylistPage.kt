@@ -77,17 +77,18 @@ fun Playlist(
     onBackPressed: () -> Unit,
 ) {
     val context = LocalContext.current
-    val viewModel = hiltViewModel<PlaylistViewModel>()
+    val playerViewModel = hiltViewModel<PlaylistViewModel>()
     val recorderViewModel = hiltViewModel<RecordViewModel>()
-    val recordingTimer by recorderViewModel.formattedTimer.collectAsStateWithLifecycle()
+
+    val voiceList by playerViewModel.voices.collectAsStateWithLifecycle()
+
     val playerState = rememberPlayerState()
     val browser = playerState.browser
-
-    val voiceList by viewModel.voices.collectAsStateWithLifecycle()
     val isPlaying by playerState.isVoicePlaying.collectAsStateWithLifecycle()
     val progress by playerState.progress.collectAsStateWithLifecycle()
     val duration by playerState.voiceDuration.collectAsStateWithLifecycle()
-    ///
+    //recorder state
+    val recordingTimer by recorderViewModel.formattedTimer.collectAsStateWithLifecycle()
     var recorderService: RecorderService? by remember {
         mutableStateOf(null)
     }
@@ -117,8 +118,12 @@ fun Playlist(
             }
         }
     }
-    val recorderState =
-        rememberRecorderState(serviceConnection = connection) // leaks service connection
+//    val recorderState =
+//        rememberRecorderState(
+//            serviceConnection = connection,
+//            recorderService = recorderService,
+//            isServiceBound = isRecorderServiceBound
+//        )
     DisposableEffect(key1 = LocalLifecycleOwner.current) {
         if (!isRecorderServiceBound) {
             Intent(context, RecorderService::class.java).apply {
@@ -131,7 +136,7 @@ fun Playlist(
             }
         }
     }
-    ///
+    //
     var playingVoiceIndex by rememberSaveable(isPlaying, playerState.browser?.currentPosition) {
         mutableIntStateOf(
             if (isPlaying) {
@@ -143,12 +148,12 @@ fun Playlist(
     }
     LaunchedEffect(key1 = isPlaying, playerState.browser?.currentPosition) {
         if (isPlaying && voiceList.isNotEmpty()) {
-            viewModel.updateVoiceList(
+            playerViewModel.updateVoiceList(
                 selectedVoiceIndex = playingVoiceIndex,
                 isPlaying = true
             )
         } else {
-            viewModel.getVoices(context)
+            playerViewModel.getVoices(context)
         }
     }
     LaunchedEffect(isRecording) {
@@ -160,7 +165,7 @@ fun Playlist(
                 currentTime = recorderService?.getRecordingStartMillis()
             )
         } else {
-            viewModel.getVoices(context)
+            playerViewModel.getVoices(context)
         }
     }
     Box(
@@ -190,8 +195,8 @@ fun Playlist(
                     } else {
                         service.stopRecording {
                             recorderViewModel.updateRecordState(
-                                isRecording,
-                                0L
+                                isRecording = isRecording,
+                                currentTime = 0L
                             )
                         }
                     }
@@ -218,15 +223,15 @@ fun Playlist(
             onPlayProgressChange = { _ ->
             },
             onDeleteVoices = { titles ->
-                viewModel.deleteVoice(titles.toList(), context)
+                playerViewModel.deleteVoice(titles.toList(), context)
             },
             onSaveVoiceFile = {
                 // TODO: implement save functionality
                 //save to shared storage: eg. recording or music or downloads folder
             },
             rename = { current, desired ->
-                viewModel.renameVoice(current, desired, context)
-                viewModel.getVoices(context) //refresh list
+                playerViewModel.renameVoice(current, desired, context)
+                playerViewModel.getVoices(context) //refresh list
             },
         )
     }

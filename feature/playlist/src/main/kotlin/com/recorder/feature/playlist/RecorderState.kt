@@ -10,21 +10,25 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import com.recorder.service.RecorderService
 import com.recorder.service.RecorderService.Companion.RecordingState
+import kotlinx.coroutines.CoroutineScope
+import timber.log.Timber
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
-fun rememberRecorderState(context: Context = LocalContext.current,serviceConnection: ServiceConnection): RecorderState {
-    var recorderService: RecorderService? by remember {
-        mutableStateOf(null)
-    }
-    var isRecorderServiceBound by remember {
-        mutableStateOf(false)
-    }
+fun rememberRecorderState(
+    context: Context = LocalContext.current,
+    serviceConnection: ServiceConnection,
+    recorderService: RecorderService? = null,
+    coroutineScope: CoroutineScope = rememberCoroutineScope(),
+    isServiceBound: Boolean,
+): RecorderState {
     var isRecording by rememberSaveable {
         mutableStateOf(false)
     }
@@ -34,7 +38,8 @@ fun rememberRecorderState(context: Context = LocalContext.current,serviceConnect
     BindServiceEffect(
         connection = serviceConnection,
         context = context,
-        isServiceBound = isRecorderServiceBound
+        isServiceBound = isServiceBound
+
     )
     val recorderState = remember(
         serviceConnection,
@@ -43,24 +48,67 @@ fun rememberRecorderState(context: Context = LocalContext.current,serviceConnect
         recordingStartTimeSecond,
         context
     ) {
-        RecorderState(recorderService, context)
+        RecorderState(recorderService, context, coroutineScope)
     }
     return recorderState
 }
 
 @Stable
 class RecorderState(
-    val service: RecorderService? = null,
+    private val service: RecorderService? = null,
     private val context: Context,
+    private val scope: CoroutineScope,
 ) {
-    val isRecording = service?.recordingState == RecordingState.Recording
+    //work in progress 🚧
+    var isRecording = mutableStateOf(false)
     val recordingStartTimeSecond = service?.recordingStartTimeMillis ?: 0
-    fun startRecording() {
-        service?.startRecording(context)
-    }
+    fun onRecord(onStart: (service: RecorderService) -> Unit, onStop: () -> Unit) {
+        service?.let { service ->
+            val recordingState = service.recordingState
+//            isRecording.value = recordingState == RecordingState.Recording
+            Timber.e("recording state:? ${isRecording.value}")
+            if (recordingState != RecordingState.Recording) {
+                Intent(context.applicationContext, RecorderService::class.java).apply {
+                    context.startService(this)
+                }
+                service.startRecording(context)
+                service.setRecordingTimer(timeMillis = System.currentTimeMillis().milliseconds.inWholeSeconds)
+                isRecording.value = true
+                onStart(service)
+            } else {
+                service.stopRecording {
+                    isRecording.value = false
+                    onStop()
+                }
 
-    fun stopRecording() {
-        service?.stopRecording { }
+            }
+        }
+    }
+//    fun startRecording(onStart: (service: RecorderService) -> Unit) {
+//        service?.let {
+//            val recordingState = service.recordingState
+//            isRecording.value = recordingState == RecordingState.Recording
+////            Timber.e("recording state:? $isRecording")
+//            if (recordingState != RecordingState.Recording) {
+//                Intent(context.applicationContext, RecorderService::class.java).apply {
+//                    context.startService(this)
+//                }
+//                service.startRecording(context)
+//                service.setRecordingTimer(timeMillis = System.currentTimeMillis().milliseconds.inWholeSeconds)
+//                Timber.e("recording state:? $isRecording")
+//                onStart(service)
+//            }
+//        }
+//    }
+
+    fun stop(onStop: () -> Unit) {
+        service?.let { service ->
+            val recordingState = service.recordingState
+            isRecording.value = recordingState != RecordingState.Recording
+            if (service.recordingState == RecordingState.Recording) {
+                service.stopRecording { onStop() }
+            }
+        }
     }
 }
 
