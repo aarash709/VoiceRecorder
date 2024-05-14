@@ -1,7 +1,12 @@
 package com.recorder.feature.playlist
 
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.content.ServiceConnection
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
+import android.os.IBinder
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -35,10 +40,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -50,6 +57,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -60,24 +68,75 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import com.core.common.model.Voice
 import com.recorder.core.designsystem.theme.VoiceRecorderTheme
+import com.recorder.service.RecorderService
+import com.recorder.service.RecorderService.Companion.RecordingState
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun Playlist(
     onBackPressed: () -> Unit,
 ) {
     val context = LocalContext.current
-    val viewModel = hiltViewModel<PlaylistViewModel>()
+    val playerViewModel = hiltViewModel<PlaylistViewModel>()
     val recorderViewModel = hiltViewModel<RecordViewModel>()
-    val isRecording by recorderViewModel.isRecording.collectAsStateWithLifecycle()
-    val recordingTimer by recorderViewModel.formattedTimer.collectAsStateWithLifecycle()
+
+    val voiceList by playerViewModel.voices.collectAsStateWithLifecycle()
+
     val playerState = rememberPlayerState()
     val browser = playerState.browser
-
-    val voiceList by viewModel.voices.collectAsStateWithLifecycle()
     val isPlaying by playerState.isVoicePlaying.collectAsStateWithLifecycle()
     val progress by playerState.progress.collectAsStateWithLifecycle()
     val duration by playerState.voiceDuration.collectAsStateWithLifecycle()
+    //recorder state
+    val recordingTimer by recorderViewModel.formattedTimer.collectAsStateWithLifecycle()
+    var recorderService: RecorderService? by remember {
+        mutableStateOf(null)
+    }
+    var isRecorderServiceBound by remember {
+        mutableStateOf(false)
+    }
+    var isRecording by rememberSaveable {
+        mutableStateOf(false)
+    }
+    var lastRecordTime by rememberSaveable {
+        mutableLongStateOf(0)
+    }
+    val connection = remember {
+        object : ServiceConnection {
+            override fun onServiceConnected(p0: ComponentName?, binder: IBinder?) {
+                recorderService = (binder as RecorderService.LocalBinder).getRecorderService()
+                isRecorderServiceBound = true
+                isRecording =
+                    recorderService?.recordingState == RecordingState.Recording
+                lastRecordTime = recorderService?.recordingStartTimeMillis ?: 0
+            }
 
+            override fun onServiceDisconnected(p0: ComponentName?) {
+                isRecording =
+                    recorderService?.recordingState == RecordingState.Recording
+                isRecorderServiceBound = false
+            }
+        }
+    }
+//    val recorderState =
+//        rememberRecorderState(
+//            serviceConnection = connection,
+//            recorderService = recorderService,
+//            isServiceBound = isRecorderServiceBound
+//        )
+    DisposableEffect(key1 = LocalLifecycleOwner.current) {
+        if (!isRecorderServiceBound) {
+            Intent(context, RecorderService::class.java).apply {
+                context.bindService(this, connection, Context.BIND_AUTO_CREATE)
+            }
+        }
+        onDispose {
+            if (isRecorderServiceBound) {
+                context.unbindService(connection)
+            }
+        }
+    }
+    //
     var playingVoiceIndex by rememberSaveable(isPlaying, playerState.browser?.currentPosition) {
         mutableIntStateOf(
             if (isPlaying) {
@@ -89,12 +148,24 @@ fun Playlist(
     }
     LaunchedEffect(key1 = isPlaying, playerState.browser?.currentPosition) {
         if (isPlaying && voiceList.isNotEmpty()) {
-            viewModel.updateVoiceList(
+            playerViewModel.updateVoiceList(
                 selectedVoiceIndex = playingVoiceIndex,
                 isPlaying = true
             )
         } else {
-            viewModel.getVoices(context)
+            playerViewModel.getVoices(context)
+        }
+    }
+    LaunchedEffect(isRecording) {
+        //updates ui timer on first composition if `isRecording` is true
+        //or fetch voice list after finished recording
+        if (isRecording) {
+            recorderViewModel.updateRecordState(
+                isRecording = true,
+                currentTime = recorderService?.getRecordingStartMillis()
+            )
+        } else {
+            playerViewModel.getVoices(context)
         }
     }
     Box(
@@ -104,8 +175,33 @@ fun Playlist(
     ) {
         PlaylistContent(
             voices = voiceList,
-            onPausePlayback = { browser?.run { pause() } },
-            onRecord = { recorderViewModel.onRecord(context) },
+            duration = if (duration > 0f) duration else 0f,
+            isRecording = isRecording,
+            recordingTimer = recordingTimer,
+            onRecord = {
+                recorderService?.let { service ->
+                    val recordingState = service.recordingState
+                    isRecording = recordingState != RecordingState.Recording
+                    if (recordingState != RecordingState.Recording) {
+                        Intent(context.applicationContext, RecorderService::class.java).apply {
+                            context.startService(this)
+                        }
+                        service.startRecording(context)
+                        service.setRecordingTimer(timeMillis = System.currentTimeMillis().milliseconds.inWholeSeconds)
+                        recorderViewModel.updateRecordState(
+                            isRecording = isRecording,
+                            currentTime = service.recordingStartTimeMillis
+                        )
+                    } else {
+                        service.stopRecording {
+                            recorderViewModel.updateRecordState(
+                                isRecording = isRecording,
+                                currentTime = 0L
+                            )
+                        }
+                    }
+                }
+            },
             onStopPlayback = { browser?.run { stop() } },
             onStartPlayback = { voiceIndex, voice ->
                 playingVoiceIndex = voiceIndex
@@ -123,22 +219,19 @@ fun Playlist(
                 }
             },
             onBackPressed = { onBackPressed() },
-            isRecording = isRecording,
-            recordingTimer = recordingTimer,
             progressSeconds = progress,
-            duration = if (duration > 0f) duration else 0f,
-            onProgressChange = { _ ->
+            onPlayProgressChange = { _ ->
             },
             onDeleteVoices = { titles ->
-                viewModel.deleteVoice(titles.toList(), context)
+                playerViewModel.deleteVoice(titles.toList(), context)
             },
             onSaveVoiceFile = {
                 // TODO: implement save functionality
                 //save to shared storage: eg. recording or music or downloads folder
             },
             rename = { current, desired ->
-                viewModel.renameVoice(current, desired, context)
-                viewModel.getVoices(context) //refresh list
+                playerViewModel.renameVoice(current, desired, context)
+                playerViewModel.getVoices(context) //refresh list
             },
         )
     }
@@ -156,9 +249,8 @@ fun PlaylistContent(
     duration: Float,
     isRecording: Boolean,
     recordingTimer: String,
-    onProgressChange: (Float) -> Unit,
     onRecord: () -> Unit,
-    onPausePlayback: () -> Unit,
+    onPlayProgressChange: (Float) -> Unit,
     onStopPlayback: () -> Unit,
     onStartPlayback: (Int, Voice) -> Unit,
     onBackPressed: () -> Unit,
@@ -363,7 +455,7 @@ fun PlaylistContent(
                             shouldExpand = isExpanded,
                             isSelected = isSelected,
                             onProgressChange = { progress ->
-                                onProgressChange(progress)
+                                onPlayProgressChange(progress)
                             },
                             onPlay = { item -> onStartPlayback(index, item) },
                             onStop = { onStopPlayback() },
@@ -443,7 +535,6 @@ fun PlaylistPagePreview() {
         Surface(color = MaterialTheme.colorScheme.background) {
             PlaylistContent(
                 VoicesSampleData,
-                onPausePlayback = {},
                 onRecord = {},
                 onStopPlayback = {},
                 onStartPlayback = { _, _ ->
@@ -453,7 +544,7 @@ fun PlaylistPagePreview() {
                 duration = 0.0f,
                 isRecording = true,
                 recordingTimer = "00:01",
-                onProgressChange = {},
+                onPlayProgressChange = {},
                 onDeleteVoices = {},
                 onSaveVoiceFile = {},
                 rename = { _, _ -> },

@@ -6,6 +6,7 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.media.MediaRecorder
+import android.os.Binder
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import com.core.common.Storage
@@ -31,6 +32,9 @@ class RecorderService : Service() {
     lateinit var notificationManager: NotificationManager
     private val job = Job()
     private val serviceScope = CoroutineScope(Dispatchers.IO + job)
+    var recordingState = RecordingState.Idle
+    var recordingStartTimeMillis = 0L
+
 
     override fun onCreate() {
         super.onCreate()
@@ -43,51 +47,47 @@ class RecorderService : Service() {
         }
     }
 
-    override fun onBind(intent: Intent?): IBinder? {
-        return null
+    private val binder = LocalBinder()
+
+    inner class LocalBinder : Binder() {
+        fun getRecorderService() = this@RecorderService
+    }
+
+    override fun onBind(intent: Intent?): IBinder {
+        Timber.e("binding")
+        return binder
+    }
+
+    override fun onUnbind(intent: Intent?): Boolean {
+        Timber.e("Unbinding")
+        return super.onUnbind(intent)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        when (intent?.action) {
-            "record" -> {
-                startRecording(this)
-                Timber.e("record")
-            }
-
-            "stop" -> {
-                stopRecordingAudio(onStopRecording = {
-
-                })
-                Timber.e("stop")
-            }
-
-            "pause" -> {
-                pauseRecording()
-                Timber.e("pause")
-            }
-
-            "resume" -> {
-                resumeRecording()
-                Timber.e("resume")
-            }
-        }
+//        when (intent?.action) {
+//            "record" -> {
+//                startRecording(this)
+//                Timber.e("record")
+//            }
+//
+//            "stop" -> {
+//                stopRecording(onStopRecording = {
+//
+//                })
+//                Timber.e("stop")
+//            }
+//
+//            "pause" -> {
+//                pauseRecording()
+//                Timber.e("pause")
+//            }
+//
+//            "resume" -> {
+//                resumeRecording()
+//                Timber.e("resume")
+//            }
+//        }
         return START_STICKY
-    }
-
-    private fun pauseRecording() {
-        serviceScope.launch {
-            recorder.apply {
-                pause()
-            }
-        }
-    }
-
-    private fun resumeRecording() {
-        serviceScope.launch {
-            recorder.apply {
-                resume()
-            }
-        }
     }
 
     override fun onDestroy() {
@@ -96,7 +96,7 @@ class RecorderService : Service() {
         Timber.e("recorder service destroyed")
     }
 
-    private fun startRecording(context: Context) {
+    fun startRecording(context: Context) {
         serviceScope.launch {
             val path = storage.getPath(context)
             val voiceName = storage.generateVoiceName(context)
@@ -113,6 +113,7 @@ class RecorderService : Service() {
                     Timber.e("recorder on android(S) can`t be prepared")
                 }
                 start()
+                updateRecordingState(RecordingState.Recording)
             }
         }
         val notification = NotificationCompat.Builder(this, "recorder_channel")
@@ -123,11 +124,12 @@ class RecorderService : Service() {
         startForeground(1, notification)
     }
 
-    private fun stopRecordingAudio(onStopRecording: () -> Unit) {
+    fun stopRecording(onStopRecording: () -> Unit) {
         serviceScope.launch {
             recorder.apply {
                 stop()
                 reset()
+                updateRecordingState(RecordingState.Idle)
                 onStopRecording()
                 Timber.e("stopped recording")
             }
@@ -135,12 +137,52 @@ class RecorderService : Service() {
         stopForeground(STOP_FOREGROUND_REMOVE)
     }
 
+    private fun pauseRecording() {
+        serviceScope.launch {
+            recorder.apply {
+                pause()
+                updateRecordingState(RecordingState.Paused)
+            }
+        }
+    }
+
+    private fun resumeRecording() {
+        serviceScope.launch {
+            recorder.apply {
+                resume()
+                updateRecordingState(RecordingState.Recording)
+            }
+        }
+    }
+
     private fun releaseResources() {
         serviceScope.launch {
             recorder.apply {
                 release()
+                updateRecordingState(RecordingState.Idle)
             }
             job.cancel()
+        }
+    }
+
+    private fun updateRecordingState(status: RecordingState) {
+        recordingState = status
+        Timber.e(recordingState.toString())
+    }
+
+    fun setRecordingTimer(timeMillis: Long) {
+        recordingStartTimeMillis = timeMillis
+    }
+
+    fun getRecordingStartMillis(): Long {
+        return recordingStartTimeMillis
+    }
+
+    companion object {
+        enum class RecordingState {
+            Recording,
+            Paused,
+            Idle
         }
     }
 
