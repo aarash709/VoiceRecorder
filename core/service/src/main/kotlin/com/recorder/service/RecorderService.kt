@@ -7,7 +7,9 @@ import android.content.Context
 import android.content.Intent
 import android.media.MediaRecorder
 import android.os.Binder
+import android.os.Build
 import android.os.IBinder
+import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import com.core.common.Storage
 import dagger.hilt.android.AndroidEntryPoint
@@ -18,7 +20,7 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
-
+const val RECORDER_SAMPLE_RATE = 44100
 @AndroidEntryPoint
 class RecorderService : Service() {
 
@@ -36,6 +38,7 @@ class RecorderService : Service() {
     var recordingStartTimeMillis = 0L
 
 
+    @RequiresApi(Build.VERSION_CODES.S)
     override fun onCreate() {
         super.onCreate()
         NotificationChannel(
@@ -96,6 +99,7 @@ class RecorderService : Service() {
         Timber.e("recorder service destroyed")
     }
 
+    @RequiresApi(Build.VERSION_CODES.S)
     fun startRecording(context: Context) {
         serviceScope.launch {
             val path = storage.getPath(context)
@@ -103,10 +107,11 @@ class RecorderService : Service() {
             val file = File(path, voiceName)
             recorder.apply {
                 setAudioSource(MediaRecorder.AudioSource.MIC)
-                setOutputFormat(MediaRecorder.OutputFormat.AMR_WB)
-                setAudioEncoder(MediaRecorder.AudioEncoder.AMR_WB)
-                setAudioEncodingBitRate(256.times(1_000))
+                setAudioSamplingRate(RECORDER_SAMPLE_RATE)
+                setAudioEncodingBitRate(128.times(1_000))
+                setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
                 setOutputFile(file.path)
+                setAudioEncoder(MediaRecorder.AudioEncoder.AMR_WB)
                 try {
                     prepare()
                 } catch (e: Exception) {

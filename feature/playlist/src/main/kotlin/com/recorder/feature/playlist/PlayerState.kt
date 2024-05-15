@@ -28,6 +28,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 @Composable
 fun rememberPlayerState(): PlayerState {
@@ -66,7 +67,7 @@ fun rememberPlayerState(): PlayerState {
 //            val seconds = getSeconds(currentPositionMillis).doubleDigitFormat()
 //            val minutes = getMinutes(currentPositionMillis).doubleDigitFormat()
 //            progress = "$minutes:$seconds"
-            progress = currentPositionMillis.milliseconds.absoluteValue.inWholeSeconds
+            progress = currentPositionMillis.milliseconds.inWholeSeconds
         },
         currentDuration = {
             currentDuration = it.milliseconds.inWholeSeconds.toFloat()
@@ -141,7 +142,7 @@ fun PlayerStateEffect(
                         scope.launch {
                             while (isPlaying) {
                                 progress(currentPosition)
-                                delay(1_000L)
+                                delay(1.0.seconds)
                             }
                         }
                         currentDuration(duration)
@@ -177,7 +178,7 @@ fun PlayerStateEffect(
                                                 while (isPlaying) {
                                                     progress(currentPosition)
                                                     Timber.e("position sett:$currentPosition")
-                                                    delay(1_000L)
+                                                    delay(1.0.seconds)
                                                 }
                                             }
                                         }
