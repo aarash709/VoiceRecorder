@@ -14,8 +14,11 @@ pluginManagement{
 }
 rootProject.name = "Voice Recorder"
 include(":app")
+
 include(":feature:record")
-include(":core:designsystem")
+include(":feature:settings")
 include(":feature:playlist")
+
+include(":core:designsystem")
 include(":core:common")
 include(":core:service")
