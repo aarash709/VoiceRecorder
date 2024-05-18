@@ -6,8 +6,11 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.media.MediaRecorder
+import android.media.MediaRecorder.AudioSource
 import android.os.Binder
+import android.os.Build
 import android.os.IBinder
+import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import com.core.common.Storage
 import dagger.hilt.android.AndroidEntryPoint
@@ -18,6 +21,12 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
+
+const val RECORDER_SAMPLE_RATE = 44100
+const val RECORDER_BIT_RATE = 128.times(1_000)
+const val RECORDER_FORMAT = MediaRecorder.OutputFormat.MPEG_4
+const val RECORDER_ENCODER = MediaRecorder.AudioEncoder.AMR_WB
+const val RECORDER_SOURCE = AudioSource.MIC
 
 @AndroidEntryPoint
 class RecorderService : Service() {
@@ -36,6 +45,7 @@ class RecorderService : Service() {
     var recordingStartTimeMillis = 0L
 
 
+    @RequiresApi(Build.VERSION_CODES.S)
     override fun onCreate() {
         super.onCreate()
         NotificationChannel(
@@ -64,29 +74,6 @@ class RecorderService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-//        when (intent?.action) {
-//            "record" -> {
-//                startRecording(this)
-//                Timber.e("record")
-//            }
-//
-//            "stop" -> {
-//                stopRecording(onStopRecording = {
-//
-//                })
-//                Timber.e("stop")
-//            }
-//
-//            "pause" -> {
-//                pauseRecording()
-//                Timber.e("pause")
-//            }
-//
-//            "resume" -> {
-//                resumeRecording()
-//                Timber.e("resume")
-//            }
-//        }
         return START_STICKY
     }
 
@@ -96,16 +83,18 @@ class RecorderService : Service() {
         Timber.e("recorder service destroyed")
     }
 
+    @RequiresApi(Build.VERSION_CODES.S)
     fun startRecording(context: Context) {
         serviceScope.launch {
             val path = storage.getPath(context)
             val voiceName = storage.generateVoiceName(context)
             val file = File(path, voiceName)
             recorder.apply {
-                setAudioSource(MediaRecorder.AudioSource.MIC)
-                setOutputFormat(MediaRecorder.OutputFormat.AMR_WB)
-                setAudioEncoder(MediaRecorder.AudioEncoder.AMR_WB)
-                setAudioEncodingBitRate(256.times(1_000))
+                setAudioSource(RECORDER_SOURCE)
+                setOutputFormat(RECORDER_FORMAT)
+                setAudioSamplingRate(RECORDER_SAMPLE_RATE)
+                setAudioEncodingBitRate(RECORDER_BIT_RATE)
+                setAudioEncoder(RECORDER_ENCODER)
                 setOutputFile(file.path)
                 try {
                     prepare()
