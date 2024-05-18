@@ -6,6 +6,7 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.media.MediaRecorder
+import android.media.MediaRecorder.AudioSource
 import android.os.Binder
 import android.os.Build
 import android.os.IBinder
@@ -20,7 +21,13 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
+
 const val RECORDER_SAMPLE_RATE = 44100
+const val RECORDER_BIT_RATE = 128.times(1_000)
+const val RECORDER_FORMAT = MediaRecorder.OutputFormat.MPEG_4
+const val RECORDER_ENCODER = MediaRecorder.AudioEncoder.AMR_WB
+const val RECORDER_SOURCE = AudioSource.MIC
+
 @AndroidEntryPoint
 class RecorderService : Service() {
 
@@ -67,29 +74,6 @@ class RecorderService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-//        when (intent?.action) {
-//            "record" -> {
-//                startRecording(this)
-//                Timber.e("record")
-//            }
-//
-//            "stop" -> {
-//                stopRecording(onStopRecording = {
-//
-//                })
-//                Timber.e("stop")
-//            }
-//
-//            "pause" -> {
-//                pauseRecording()
-//                Timber.e("pause")
-//            }
-//
-//            "resume" -> {
-//                resumeRecording()
-//                Timber.e("resume")
-//            }
-//        }
         return START_STICKY
     }
 
@@ -106,12 +90,12 @@ class RecorderService : Service() {
             val voiceName = storage.generateVoiceName(context)
             val file = File(path, voiceName)
             recorder.apply {
-                setAudioSource(MediaRecorder.AudioSource.MIC)
+                setAudioSource(RECORDER_SOURCE)
+                setOutputFormat(RECORDER_FORMAT)
                 setAudioSamplingRate(RECORDER_SAMPLE_RATE)
-                setAudioEncodingBitRate(128.times(1_000))
-                setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
+                setAudioEncodingBitRate(RECORDER_BIT_RATE)
+                setAudioEncoder(RECORDER_ENCODER)
                 setOutputFile(file.path)
-                setAudioEncoder(MediaRecorder.AudioEncoder.AMR_WB)
                 try {
                     prepare()
                 } catch (e: Exception) {
