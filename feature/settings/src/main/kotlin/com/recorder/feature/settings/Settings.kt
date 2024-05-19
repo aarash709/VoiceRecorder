@@ -7,6 +7,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredHeight
+import androidx.compose.foundation.layout.requiredHeightIn
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -47,11 +50,7 @@ fun SettingsContent(modifier: Modifier = Modifier) {
             .fillMaxSize()
                 then modifier
     ) {
-        Column(
-//            modifier = Modifier
-//                .fillMaxSize()
-//                    then modifier
-        ) {
+        Column() {
             MediumTopAppBar(
                 title = { Text("Settings") },
 //            modifier =,
@@ -66,37 +65,58 @@ fun SettingsContent(modifier: Modifier = Modifier) {
 //            colors =,
                 scrollBehavior = scrollBehavior
             )
-            Column(modifier = Modifier
-                .fillMaxSize()
-                .nestedScroll(scrollBehavior.nestedScrollConnection)) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .nestedScroll(scrollBehavior.nestedScrollConnection)
+            ) {
+                SettingsItemWithSwitch(
+                    title = "Earpiece mode",
+                    subtitle = "Play audio using the earpiece speaker"
+                )
                 SettingsItemWithSwitch(
                     title = "Name recordings manually"
+                )
+                SettingsItemWithOptions(
+                    title = "Recording format",
+                    currentOption = "m4a",
+                    options = {
+                        repeat(3) {
+                            Surface(modifier = modifier.fillMaxWidth(.5f)) {
+                                Text(text = "$it:text")
+                            }
+                        }
+                    }
+                )
+                SettingsItemWithOptions(
+                    title = "Recording quality",
+                    currentOption = "Standard",
+                    options = {
+                        Surface(modifier = modifier) {
+                            Text(text = "Low")
+                        }
+                        Surface(modifier = modifier) {
+                            Text(text = "Standard")
+                        }
+                        Surface(modifier = modifier) {
+                            Text(text = "High")
+
+                        }
+                    }
+                )
+                SettingsItemWithAction(
+                    title = "Clear data",
+                    action = {}
+                )
+                SettingsItemWithAction(
+                    title = "Recently deleted items",
+                    action = {}
                 )
             }
         }
     }
 }
 
-@Composable
-private fun SettingsItemWithSwitch(modifier: Modifier = Modifier, title: String) {
-    var isClicked by remember {
-        mutableStateOf(false)
-    }
-    Surface(modifier = Modifier
-        .fillMaxWidth()
-        .clickable { isClicked = !isClicked }
-            then modifier) {
-        Row(
-            Modifier
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(text = title, fontSize = 16.sp)
-            Switch(checked = isClicked, onCheckedChange = { isClicked = it })
-        }
-    }
-}
 
 @PreviewLightDark
 @Composable
