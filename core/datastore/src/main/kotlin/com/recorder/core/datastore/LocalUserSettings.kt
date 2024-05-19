@@ -10,29 +10,24 @@ import com.core.common.model.RecordingQuality
 import com.core.common.model.UserSettings
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
 import javax.inject.Inject
 
 class LocalUserSettings @Inject constructor(private val dataStore: DataStore<Preferences>) {
 
-    fun getSettings(): Flow<UserSettings> = flow {
-        combine(
-            getEarpieceMode(),
-            getRenameManuallyMode(),
-            getRecorderFormat(),
-            getRecorderQuality()
-        ) { enableEarpiece, enableNameManually, format, quality ->
-            emit(
-                UserSettings(
-                    shouldUseEarpiece = enableEarpiece,
-                    shouldNameManually = enableNameManually,
-                    recordingFormat = format,
-                    recordingQuality = quality
-                )
-            )
-        }
+    fun getSettings(): Flow<UserSettings> = combine(
+        getEarpieceMode(),
+        getRenameManuallyMode(),
+        getRecorderFormat(),
+        getRecorderQuality()
+    ) { enableEarpiece, enableNameManually, format, quality ->
+        UserSettings(
+            shouldUseEarpiece = enableEarpiece,
+            shouldNameManually = enableNameManually,
+            recordingFormat = format,
+            recordingQuality = quality
+        )
     }
 
     private fun getEarpieceMode(): Flow<Boolean> {
@@ -50,9 +45,9 @@ class LocalUserSettings @Inject constructor(private val dataStore: DataStore<Pre
     private fun getRecorderFormat(): Flow<RecordingFormat> {
         return dataStore.data.map {
             val formatString = it[RECORDER_FORMAT_KEY]
-            if (formatString!= null){
+            if (formatString != null) {
                 Json.decodeFromString<RecordingFormat>(formatString)
-            }else{
+            } else {
                 RecordingFormat.Mp4
             }
         }
@@ -61,9 +56,9 @@ class LocalUserSettings @Inject constructor(private val dataStore: DataStore<Pre
     private fun getRecorderQuality(): Flow<RecordingQuality> {
         return dataStore.data.map {
             val qualityString = it[RECORDER_QUALITY_KEY]
-            if (qualityString != null){
+            if (qualityString != null) {
                 Json.decodeFromString<RecordingQuality>(qualityString)
-            }else{
+            } else {
                 RecordingQuality.Standard
             }
         }

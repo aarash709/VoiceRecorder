@@ -16,8 +16,9 @@ import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
-class SettingsViewModel @Inject constructor(private val userSettingsData: LocalUserSettings) :
-    ViewModel() {
+class SettingsViewModel @Inject constructor(
+    private val userSettingsData: LocalUserSettings,
+) : ViewModel() {
 
     val uiState = userSettingsData.getSettings().map { settings ->
         Timber.e(settings.toString())
