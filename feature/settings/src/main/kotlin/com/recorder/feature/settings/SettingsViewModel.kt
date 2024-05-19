@@ -2,37 +2,54 @@ package com.recorder.feature.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.core.common.model.RecordingFormat
+import com.core.common.model.RecordingQuality
+import com.recorder.core.datastore.LocalUserSettings
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import javax.inject.Inject
 
 @HiltViewModel
-class SettingsViewModel @Inject constructor() : ViewModel() {
+class SettingsViewModel @Inject constructor(private val userSettingsData: LocalUserSettings) :
+    ViewModel() {
 
-    val uiState = MutableStateFlow(SettingsUiState())
+    val uiState = userSettingsData.getSettings().map { settings ->
+        SettingsUiState(
+            shouldUseEarpieceSpeaker = settings.shouldUseEarpiece,
+            canNameRecordingManually = settings.shouldNameManually,
+            recordingFormat = settings.recordingFormat,
+            recordingQuality = settings.recordingQuality
+        )
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SettingsUiState())
 
-    internal fun setEarpieceMode(value : Boolean){
+    internal fun setEarpieceMode(value: Boolean) {
         viewModelScope.launch {
-
+            userSettingsData.setEarpieceMode(value)
         }
     }
 
-    internal fun setNameRecordingManually(value : Boolean){
+    internal fun setRenameRecordingManually(value: Boolean) {
         viewModelScope.launch {
-
+            userSettingsData.setRenameManuallyMode(value)
         }
     }
 
-    internal fun setRecorderFormat(value : RecordingFormat){
+    internal fun setRecorderFormat(value: RecordingFormat) {
         viewModelScope.launch {
-
+            val stringValue = Json.encodeToString(value)
+            userSettingsData.setRecorderFormat(stringValue)
         }
     }
 
-    internal fun setRecorderQuality(value : RecordingQuality){
+    internal fun setRecorderQuality(value: RecordingQuality) {
         viewModelScope.launch {
-
+            val stringValue = Json.encodeToString(value)
+            userSettingsData.setRecorderQuality(stringValue)
         }
     }
 
@@ -44,11 +61,3 @@ data class SettingsUiState(
     val recordingFormat: RecordingFormat = RecordingFormat.Mp4,
     val recordingQuality: RecordingQuality = RecordingQuality.Standard,
 )
-enum class RecordingFormat{
-    Mp4,
-}
-enum class RecordingQuality{
-    Low,
-    Standard,
-    High,
-}

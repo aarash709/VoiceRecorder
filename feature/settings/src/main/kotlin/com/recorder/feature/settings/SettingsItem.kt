@@ -36,7 +36,7 @@ internal fun SettingsItemWithSwitch(
     title: String,
     subtitle: String = "",
     isChecked: Boolean,
-    onCheckChanged: () -> Unit,
+    onCheckChanged: (Boolean) -> Unit,
 ) {
     var isClicked by remember {
         mutableStateOf(isChecked)
@@ -44,7 +44,7 @@ internal fun SettingsItemWithSwitch(
     Surface(modifier = Modifier
         .fillMaxWidth()
         .requiredHeight(80.dp)
-        .clickable { isClicked = !isClicked }
+        .clickable { onCheckChanged(isClicked) }
             then modifier) {
         Row(
             Modifier
@@ -64,7 +64,7 @@ internal fun SettingsItemWithSwitch(
                     )
                 }
             }
-            Switch(checked = isClicked, onCheckedChange = { isClicked = it })
+            Switch(checked = isChecked, onCheckedChange = { isClicked = !isClicked })
         }
     }
 }

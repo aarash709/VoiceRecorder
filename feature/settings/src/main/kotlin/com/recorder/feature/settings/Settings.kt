@@ -24,10 +24,11 @@ import com.recorder.core.designsystem.theme.VoiceRecorderTheme
 fun Settings() {
     val settingsViewModel = hiltViewModel<SettingsViewModel>()
     val uiState by settingsViewModel.uiState.collectAsStateWithLifecycle()
-    SettingsContent(uiState = uiState,
+    SettingsContent(
+        uiState = uiState,
         modifier = Modifier,
-        onEarpieceMode = { },
-        onNameRecordingManually = { })
+        onEarpieceMode = { settingsViewModel.setEarpieceMode(!uiState.shouldUseEarpieceSpeaker) },
+        onNameRecordingManually = { settingsViewModel.setRenameRecordingManually(uiState.canNameRecordingManually) })
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -123,7 +124,7 @@ private fun SettingsPreview() {
         val state = SettingsUiState()
         SettingsContent(uiState = state,
             modifier = Modifier,
-            onEarpieceMode = {  },
+            onEarpieceMode = { },
             onNameRecordingManually = { })
     }
 }
