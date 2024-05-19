@@ -1,49 +1,43 @@
 package com.recorder.feature.settings
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredHeight
-import androidx.compose.foundation.layout.requiredHeightIn
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.tooling.preview.PreviewLightDark
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.recorder.core.designsystem.theme.VoiceRecorderTheme
 
 @Composable
 fun Settings() {
     val settingsViewModel = hiltViewModel<SettingsViewModel>()
-    SettingsContent()
+    val uiState by settingsViewModel.uiState.collectAsStateWithLifecycle()
+    SettingsContent(uiState = uiState,
+        modifier = Modifier,
+        onEarpieceMode = { },
+        onNameRecordingManually = { })
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsContent(modifier: Modifier = Modifier) {
+fun SettingsContent(
+    modifier: Modifier = Modifier,
+    uiState: SettingsUiState,
+    onEarpieceMode: () -> Unit,
+    onNameRecordingManually: () -> Unit,
+) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     Surface(
         modifier = Modifier
@@ -72,10 +66,14 @@ fun SettingsContent(modifier: Modifier = Modifier) {
             ) {
                 SettingsItemWithSwitch(
                     title = "Earpiece mode",
-                    subtitle = "Play audio using the earpiece speaker"
+                    subtitle = "Play audio using the earpiece speaker",
+                    isChecked = uiState.shouldUseEarpieceSpeaker,
+                    onCheckChanged = { onEarpieceMode() }
                 )
                 SettingsItemWithSwitch(
-                    title = "Name recordings manually"
+                    title = "Name recordings manually",
+                    isChecked = uiState.canNameRecordingManually,
+                    onCheckChanged = { onNameRecordingManually() }
                 )
                 SettingsItemWithOptions(
                     title = "Recording format",
@@ -122,6 +120,10 @@ fun SettingsContent(modifier: Modifier = Modifier) {
 @Composable
 private fun SettingsPreview() {
     VoiceRecorderTheme {
-        SettingsContent()
+        val state = SettingsUiState()
+        SettingsContent(uiState = state,
+            modifier = Modifier,
+            onEarpieceMode = {  },
+            onNameRecordingManually = { })
     }
 }
