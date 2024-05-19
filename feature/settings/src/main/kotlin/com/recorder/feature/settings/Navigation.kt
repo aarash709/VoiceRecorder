@@ -13,21 +13,21 @@ fun NavController.toSettings(navOptions: NavOptions? = null) {
     navigate(SETTINGS_ROUTE, navOptions)
 }
 
-fun NavGraphBuilder.settings() {
+fun NavGraphBuilder.settings(onNavigateBack: () -> Unit) {
     composable(
         route = SETTINGS_ROUTE,
         enterTransition = {
             slideIntoContainer(
-                AnimatedContentTransitionScope.SlideDirection.Right,
-                tween(400)
+                towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                animationSpec = tween(400),
             )
         },
         exitTransition = {
             slideOutOfContainer(
-                AnimatedContentTransitionScope.SlideDirection.Left,
-                tween(400)
+                towards = AnimatedContentTransitionScope.SlideDirection.Right,
+                animationSpec = tween(400),
             )
         }) {
-//        Settings()
+        Settings(onNavigateBack = { onNavigateBack() })
     }
 }

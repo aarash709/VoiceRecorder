@@ -14,6 +14,7 @@ fun NavController.toRecordings(navOptions: NavOptions? = null) {
 }
 
 fun NavGraphBuilder.playlist(
+    onNavigateToSettings: () -> Unit,
     onBackPressed: () -> Unit,
 ) {
     composable(
@@ -21,21 +22,24 @@ fun NavGraphBuilder.playlist(
         enterTransition = {
             when (initialState.destination.route) {
                 else -> slideIntoContainer(
-                    AnimatedContentTransitionScope.SlideDirection.Right,
-                    tween(400)
+                    towards = AnimatedContentTransitionScope.SlideDirection.Right,
+                    animationSpec = tween(400),
+                    initialOffset = { it / 3 }
                 )
             }
         },
         exitTransition = {
             when (targetState.destination.route) {
                 else -> slideOutOfContainer(
-                    AnimatedContentTransitionScope.SlideDirection.Left,
-                    tween(400)
+                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                    animationSpec = tween(400),
+                    targetOffset = { it / 3 }
                 )
             }
         }) {
 
         Playlist(
+            onNavigateToSettings = { onNavigateToSettings() },
             onBackPressed = { onBackPressed() },
         )
     }

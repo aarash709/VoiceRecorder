@@ -44,7 +44,7 @@ internal fun SettingsItemWithSwitch(
     Surface(modifier = Modifier
         .fillMaxWidth()
         .requiredHeight(80.dp)
-        .clickable { onCheckChanged(isClicked) }
+        .clickable { onCheckChanged(!isChecked) }
             then modifier) {
         Row(
             Modifier
@@ -64,7 +64,7 @@ internal fun SettingsItemWithSwitch(
                     )
                 }
             }
-            Switch(checked = isChecked, onCheckedChange = { isClicked = !isClicked })
+            Switch(checked = isClicked, onCheckedChange = { /*isClicked = !isClicked*/ })
         }
     }
 }

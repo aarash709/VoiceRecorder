@@ -7,6 +7,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -21,14 +22,15 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.recorder.core.designsystem.theme.VoiceRecorderTheme
 
 @Composable
-fun Settings() {
+fun Settings(onNavigateBack: () -> Unit) {
     val settingsViewModel = hiltViewModel<SettingsViewModel>()
     val uiState by settingsViewModel.uiState.collectAsStateWithLifecycle()
     SettingsContent(
         uiState = uiState,
         modifier = Modifier,
         onEarpieceMode = { settingsViewModel.setEarpieceMode(!uiState.shouldUseEarpieceSpeaker) },
-        onNameRecordingManually = { settingsViewModel.setRenameRecordingManually(uiState.canNameRecordingManually) })
+        onNameRecordingManually = { settingsViewModel.setRenameRecordingManually(uiState.canNameRecordingManually) },
+        onNavigateBack = { onNavigateBack() })
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -38,6 +40,7 @@ fun SettingsContent(
     uiState: SettingsUiState,
     onEarpieceMode: () -> Unit,
     onNameRecordingManually: () -> Unit,
+    onNavigateBack: () -> Unit,
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     Surface(
@@ -50,10 +53,12 @@ fun SettingsContent(
                 title = { Text("Settings") },
 //            modifier =,
                 navigationIcon = {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Default.ArrowBack,
-                        contentDescription = "back button"
-                    )
+                    IconButton(onClick = { onNavigateBack() }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Default.ArrowBack,
+                            contentDescription = "back button"
+                        )
+                    }
                 },
                 actions = {},
 //            windowInsets =,
@@ -125,6 +130,7 @@ private fun SettingsPreview() {
         SettingsContent(uiState = state,
             modifier = Modifier,
             onEarpieceMode = { },
-            onNameRecordingManually = { })
+            onNameRecordingManually = { },
+            onNavigateBack = {})
     }
 }
