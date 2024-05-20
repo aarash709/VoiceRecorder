@@ -1,11 +1,11 @@
 package com.recorder.feature.playlist
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.ChecklistRtl
 import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -24,6 +24,7 @@ fun PlaylistTopBar(
     scrollBehavior: TopAppBarScrollBehavior,
     onSelectedVoiceUpdate: () -> Unit,
     onIsAllSelected: () -> Unit,
+    onNavigateToSettings: () -> Unit,
     onBackPressed: () -> Unit,
 ) {
     MediumTopAppBar(
@@ -66,12 +67,21 @@ fun PlaylistTopBar(
             }
         },
         actions = {
-            AnimatedVisibility(visible = isInEditMode) {
-                IconButton(onClick = { onIsAllSelected() }) {
-                    Icon(
-                        imageVector = Icons.Outlined.ChecklistRtl,
-                        contentDescription = "Select all button"
-                    )
+            AnimatedContent(targetState = isInEditMode) {
+                if (it) {
+                    IconButton(onClick = { onIsAllSelected() }) {
+                        Icon(
+                            imageVector = Icons.Outlined.ChecklistRtl,
+                            contentDescription = "Select all button"
+                        )
+                    }
+                }else{
+                    IconButton(onClick = { onNavigateToSettings() }) {
+                        Icon(
+                            imageVector = Icons.Outlined.Settings,
+                            contentDescription = "Select all button"
+                        )
+                    }
                 }
             }
         },

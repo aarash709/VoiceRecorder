@@ -74,6 +74,7 @@ import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun Playlist(
+    onNavigateToSettings: () -> Unit,
     onBackPressed: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -218,6 +219,7 @@ fun Playlist(
                     play()
                 }
             },
+            onNavigateToSettings = { onNavigateToSettings() },
             onBackPressed = { onBackPressed() },
             progressSeconds = progress,
             onPlayProgressChange = { _ ->
@@ -253,6 +255,7 @@ fun PlaylistContent(
     onPlayProgressChange: (Float) -> Unit,
     onStopPlayback: () -> Unit,
     onStartPlayback: (Int, Voice) -> Unit,
+    onNavigateToSettings: () -> Unit,
     onBackPressed: () -> Unit,
     onDeleteVoices: (Set<String>) -> Unit,
     onSaveVoiceFile: () -> Unit,
@@ -314,6 +317,7 @@ fun PlaylistContent(
                 scrollBehavior = scrollBehavior,
                 onIsAllSelected = { isAllSelected = !isAllSelected },
                 onSelectedVoiceUpdate = { selectedVoices = emptySet() },
+                onNavigateToSettings = { onNavigateToSettings() },
                 onBackPressed = { onBackPressed() },
             )
         },
@@ -539,6 +543,7 @@ fun PlaylistPagePreview() {
                 onStopPlayback = {},
                 onStartPlayback = { _, _ ->
                 },
+                onNavigateToSettings = {},
                 onBackPressed = {},
                 progressSeconds = 0,
                 duration = 0.0f,

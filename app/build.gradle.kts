@@ -59,6 +59,7 @@ dependencies {
 
     implementation(project(":feature:record"))
     implementation(project(":feature:playlist"))
+    implementation(project(":feature:settings"))
     implementation(project(":core:designsystem"))
     implementation(project(":core:common"))
     implementation(project(":core:service"))

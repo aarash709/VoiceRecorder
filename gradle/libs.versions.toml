@@ -1,6 +1,7 @@
 [versions]
 kotlin = "1.9.24"
 androidGradle = "8.4.0"
+kotlinxKsp = "1.9.24-1.0.20"
 composeBom = "2024.05.00"
 androidxActivity = "1.9.0"
 androidxCompose = "1.4.3"
@@ -99,3 +100,4 @@ kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hiltAndroid" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 kotlinter = { id = "org.jmailen.kotlinter", version.ref = "kotlinter" }
+kotlinx-ksp = { id = "com.google.devtools.ksp", version.ref = "kotlinxKsp" }
