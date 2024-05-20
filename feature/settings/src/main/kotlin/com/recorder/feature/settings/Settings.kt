@@ -15,10 +15,11 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.core.common.R
 import com.recorder.core.designsystem.theme.VoiceRecorderTheme
 
 @Composable
@@ -28,8 +29,8 @@ fun Settings(onNavigateBack: () -> Unit) {
     SettingsContent(
         uiState = uiState,
         modifier = Modifier,
-        onEarpieceMode = { settingsViewModel.setEarpieceMode(!uiState.shouldUseEarpieceSpeaker) },
-        onNameRecordingManually = { settingsViewModel.setRenameRecordingManually(uiState.canNameRecordingManually) },
+        onEarpieceMode = settingsViewModel::setEarpieceMode,
+        onNameRecordingManually = settingsViewModel::setRenameRecordingManually,
         onNavigateBack = { onNavigateBack() })
 }
 
@@ -38,8 +39,8 @@ fun Settings(onNavigateBack: () -> Unit) {
 fun SettingsContent(
     modifier: Modifier = Modifier,
     uiState: SettingsUiState,
-    onEarpieceMode: () -> Unit,
-    onNameRecordingManually: () -> Unit,
+    onEarpieceMode: (Boolean) -> Unit,
+    onNameRecordingManually: (Boolean) -> Unit,
     onNavigateBack: () -> Unit,
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -48,10 +49,9 @@ fun SettingsContent(
             .fillMaxSize()
                 then modifier
     ) {
-        Column() {
+        Column {
             MediumTopAppBar(
-                title = { Text("Settings") },
-//            modifier =,
+                title = { Text(stringResource(id = R.string.settings)) },
                 navigationIcon = {
                     IconButton(onClick = { onNavigateBack() }) {
                         Icon(
@@ -60,29 +60,25 @@ fun SettingsContent(
                         )
                     }
                 },
-                actions = {},
-//            windowInsets =,
-//            colors =,
                 scrollBehavior = scrollBehavior
             )
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .nestedScroll(scrollBehavior.nestedScrollConnection)
             ) {
                 SettingsItemWithSwitch(
-                    title = "Earpiece mode",
-                    subtitle = "Play audio using the earpiece speaker",
+                    title = stringResource(id = R.string.earpiece_mode),
+                    subtitle = stringResource(id = R.string.earpiece_subtitle),
                     isChecked = uiState.shouldUseEarpieceSpeaker,
-                    onCheckChanged = { onEarpieceMode() }
+                    onCheckChanged = { onEarpieceMode(it) }
                 )
                 SettingsItemWithSwitch(
-                    title = "Name recordings manually",
+                    title = stringResource(id = R.string.name_recordings_manually),
                     isChecked = uiState.canNameRecordingManually,
-                    onCheckChanged = { onNameRecordingManually() }
+                    onCheckChanged = { onNameRecordingManually(it) }
                 )
                 SettingsItemWithOptions(
-                    title = "Recording format",
+                    title = stringResource(id = R.string.recording_format),
                     currentOption = "m4a",
                     options = {
                         repeat(3) {
@@ -93,7 +89,7 @@ fun SettingsContent(
                     }
                 )
                 SettingsItemWithOptions(
-                    title = "Recording quality",
+                    title = stringResource(id = R.string.recording_quality),
                     currentOption = "Standard",
                     options = {
                         Surface(modifier = modifier) {
@@ -109,11 +105,11 @@ fun SettingsContent(
                     }
                 )
                 SettingsItemWithAction(
-                    title = "Clear data",
+                    title = stringResource(id = R.string.clear_data),
                     action = {}
                 )
                 SettingsItemWithAction(
-                    title = "Recently deleted items",
+                    title = stringResource(id = R.string.recently_deleted_items),
                     action = {}
                 )
             }

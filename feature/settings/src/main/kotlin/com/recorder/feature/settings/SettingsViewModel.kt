@@ -12,7 +12,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -21,7 +20,6 @@ class SettingsViewModel @Inject constructor(
 ) : ViewModel() {
 
     val uiState = userSettingsData.getSettings().map { settings ->
-        Timber.e(settings.toString())
         SettingsUiState(
             shouldUseEarpieceSpeaker = settings.shouldUseEarpiece,
             canNameRecordingManually = settings.shouldNameManually,
