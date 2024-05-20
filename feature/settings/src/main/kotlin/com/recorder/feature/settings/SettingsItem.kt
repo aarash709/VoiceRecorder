@@ -3,13 +3,14 @@ package com.recorder.feature.settings
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.UnfoldMore
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -72,7 +73,7 @@ internal fun SettingsItemWithOptions(
     modifier: Modifier = Modifier,
     title: String,
     currentOption: String,
-    options: @Composable ColumnScope.() -> Unit,
+    options: @Composable () -> Unit,
 ) {
     var shouldShowOptions by remember {
         mutableStateOf(false)
@@ -105,12 +106,10 @@ internal fun SettingsItemWithOptions(
         }
         if (shouldShowOptions) {
             BasicAlertDialog(
-                onDismissRequest = { shouldShowOptions = !shouldShowOptions },
-                modifier = Modifier
+                onDismissRequest = { shouldShowOptions = !shouldShowOptions }
             ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
+                Surface(
+                    shape = RoundedCornerShape(16.dp)
                 ) {
                     options()
                 }
@@ -147,6 +146,39 @@ internal fun SettingsItemWithAction(
                 Icon(
                     imageVector = Icons.AutoMirrored.Default.KeyboardArrowRight,
                     contentDescription = "more options"
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun OptionsItem(
+    modifier: Modifier = Modifier,
+    optionName: String,
+    isSelected: Boolean,
+    onOptionSelected: () -> Unit,
+) {
+    Surface(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable { onOptionSelected() },
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = optionName,
+                modifier = Modifier,
+                /* color = MaterialTheme.colorScheme.surface*/
+            )
+            if (isSelected) {
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    tint = MaterialTheme.colorScheme.primary,
+                    contentDescription = "selected format icon"
                 )
             }
         }
