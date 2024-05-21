@@ -456,12 +456,17 @@ fun PlaylistContent(
                             voice = voice,
                             progressSeconds = progressSeconds,
                             duration = duration,
-                            shouldExpand = isExpanded,
+                            shouldExpand = if (!isRecording) isExpanded else false,
                             isSelected = isSelected,
                             onProgressChange = { progress ->
                                 onPlayProgressChange(progress)
                             },
-                            onPlay = { item -> onStartPlayback(index, item) },
+                            onPlay = { item ->
+                                if (!isRecording) onStartPlayback(
+                                    index,
+                                    item
+                                ) /*else show snack bar cannot play while recording*/
+                            },
                             onStop = { onStopPlayback() },
                         )
                     }

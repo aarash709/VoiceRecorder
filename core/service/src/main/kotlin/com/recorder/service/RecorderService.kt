@@ -83,7 +83,6 @@ class RecorderService : Service() {
         Timber.e("recorder service destroyed")
     }
 
-    @RequiresApi(Build.VERSION_CODES.S)
     fun startRecording(context: Context) {
         serviceScope.launch {
             val path = storage.getPath(context)
