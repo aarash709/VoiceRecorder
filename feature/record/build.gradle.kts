@@ -1,8 +1,9 @@
 plugins {
-    id(libs.plugins.android.library.get().pluginId)
-    id(libs.plugins.kotlin.android.get().pluginId)
-    id(libs.plugins.hilt.get().pluginId)
-    id("kotlin-kapt")
+    alias(libs.plugins.android.library)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.compose)
+    alias(libs.plugins.hilt)
+    alias(libs.plugins.kotlinx.ksp)
 }
 
 android {
@@ -21,8 +22,8 @@ android {
     buildFeatures{
         compose =  true
     }
-    composeOptions{
-        kotlinCompilerExtensionVersion =  libs.versions.androidxComposeCompiler.get()
+    composeCompiler{
+        enableStrongSkippingMode = true
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -51,7 +52,7 @@ dependencies {
 
     implementation(libs.hilt.navigationCompose)
     implementation(libs.hilt.android)
-    kapt(libs.hilt.kaptCompiler)
+    ksp(libs.hilt.kaptCompiler)
 
     implementation(libs.androidx.coreKtx)
     implementation(libs.appcompat)
