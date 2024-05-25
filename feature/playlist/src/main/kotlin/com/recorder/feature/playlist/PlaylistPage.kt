@@ -219,7 +219,7 @@ fun Playlist(
                     play()
                 }
             },
-            onNavigateToSettings = { onNavigateToSettings() },
+            onNavigateToSettings = { if (!isRecording) onNavigateToSettings() },
             onBackPressed = { onBackPressed() },
             progressSeconds = progress,
             onPlayProgressChange = { _ ->

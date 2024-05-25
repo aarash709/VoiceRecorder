@@ -1,8 +1,8 @@
 package com.recorder.feature.playlist
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.ChecklistRtl
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Settings
@@ -43,26 +43,16 @@ fun PlaylistTopBar(
             }
         },
         navigationIcon = {
-            AnimatedContent(
-                targetState = isInEditMode,
+            AnimatedVisibility(
+                visible = isInEditMode,
                 label = "Top bar Icon"
-            ) { isInEditMode ->
-                if (isInEditMode) {
-                    IconButton(onClick = { onSelectedVoiceUpdate() }) {
-                        Icon(
-                            imageVector = Icons.Outlined.Close,
-                            tint = MaterialTheme.colorScheme.onBackground,
-                            contentDescription = "Clear selection Button"
-                        )
-                    }
-                } else {
-                    IconButton(onClick = { onBackPressed() }) {
-                        Icon(
-                            imageVector = Icons.Outlined.ArrowBack,
-                            tint = MaterialTheme.colorScheme.onBackground,
-                            contentDescription = "back icon"
-                        )
-                    }
+            ) {
+                IconButton(onClick = { onSelectedVoiceUpdate() }) {
+                    Icon(
+                        imageVector = Icons.Outlined.Close,
+                        tint = MaterialTheme.colorScheme.onBackground,
+                        contentDescription = "Clear selection Button"
+                    )
                 }
             }
         },
@@ -75,7 +65,7 @@ fun PlaylistTopBar(
                             contentDescription = "Select all button"
                         )
                     }
-                }else{
+                } else {
                     IconButton(onClick = { onNavigateToSettings() }) {
                         Icon(
                             imageVector = Icons.Outlined.Settings,
