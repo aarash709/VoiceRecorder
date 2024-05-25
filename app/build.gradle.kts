@@ -1,9 +1,10 @@
 plugins {
-    id(libs.plugins.android.application.get().pluginId)
-    id(libs.plugins.kotlin.android.get().pluginId)
-    id(libs.plugins.kotlin.serialization.get().pluginId)
-    id(libs.plugins.hilt.get().pluginId)
-    id("kotlin-kapt")
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.compose)
+    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.hilt)
+    alias(libs.plugins.kotlinx.ksp)
 }
 
 android {
@@ -45,8 +46,8 @@ android {
     buildFeatures {
         compose = true
     }
-    composeOptions {
-        kotlinCompilerExtensionVersion = libs.versions.androidxComposeCompiler.get()
+    composeCompiler{
+        enableStrongSkippingMode = true
     }
     packaging {
         resources {
@@ -89,7 +90,7 @@ dependencies {
     implementation(libs.accompanist.permissions)
 
     implementation(libs.hilt.android)
-    kapt(libs.hilt.kaptCompiler)
+    ksp(libs.hilt.kaptCompiler)
 
     testImplementation(libs.junit4)
     testImplementation(libs.kotlix.coroutinesTest)
