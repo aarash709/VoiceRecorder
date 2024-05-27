@@ -32,10 +32,11 @@ fun getLastTimeRecorded(lastModified: Long): String {
  * [path] the path of a file
  * */
 fun mediaDurationInMillis(path: String): Long {
-    return MediaMetadataRetriever().run {
+    val time = MediaMetadataRetriever().run {
         setDataSource(path)
         extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
-    }!!.toLong()
+    }
+    return time?.toLong() ?: 0L
 }
 
 fun Long.doubleDigitFormat(pattern: String = "%02d"): String {

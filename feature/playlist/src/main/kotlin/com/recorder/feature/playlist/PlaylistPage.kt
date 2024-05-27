@@ -109,7 +109,7 @@ fun Playlist(
                 isRecorderServiceBound = true
                 isRecording =
                     recorderService?.recordingState == RecordingState.Recording
-                lastRecordTime = recorderService?.recordingStartTimeMillis ?: 0
+                lastRecordTime = recorderService?.getRecordingStartMillis() ?: 0L
             }
 
             override fun onServiceDisconnected(p0: ComponentName?) {
