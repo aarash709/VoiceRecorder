@@ -88,7 +88,6 @@ fun PlaylistItem(
                     Title(
                         title = voice.title,
                         recordTime = voice.recordTime,
-                        duration = voice.duration,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                 }
@@ -224,7 +223,6 @@ fun Title(
     modifier: Modifier = Modifier,
     recordTime: String,
     color: Color,
-    duration: String,
 ) {
     val subTextColor = color.copy(
         alpha = 1.0f,
