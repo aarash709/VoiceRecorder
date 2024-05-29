@@ -4,8 +4,10 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -17,8 +19,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.RadioButtonChecked
 import androidx.compose.material.icons.filled.RadioButtonUnchecked
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.outlined.Delete
@@ -50,11 +52,13 @@ fun PlaylistItem(
     duration: Float,
     shouldExpand: Boolean,
     isSelected: Boolean,
+    isInSelectionMode: Boolean,
     onProgressChange: (Float) -> Unit,
     onPlay: (Voice) -> Unit,
     onStop: () -> Unit,
     onDeleteVoice: (voiceTitle: String) -> Unit,
     onPlaybackOptions: () -> Unit,
+    onItemActions: () -> Unit,
 ) {
     Surface(
         modifier = Modifier
@@ -76,7 +80,11 @@ fun PlaylistItem(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    SelectionRadioButton(isSelected = isSelected, isPlaying = voice.isPlaying)
+                    SelectionRadioButton(
+                        isSelected = isSelected,
+                        isInSelectionMode = isInSelectionMode,
+                        isPlaying = voice.isPlaying
+                    )
                     Title(
                         title = voice.title,
                         recordTime = voice.recordTime,
@@ -91,7 +99,7 @@ fun PlaylistItem(
                         color = subTextColor
                     )
                 } else {
-                    IconButton(onClick = { /*TODO*/ }) {
+                    IconButton(onClick = { onItemActions() }) {
                         Icon(
                             imageVector = Icons.Outlined.Pending,
                             contentDescription = "voice item actions"
@@ -186,20 +194,25 @@ private fun PlayStopButton(
 }
 
 @Composable
-fun SelectionRadioButton(isSelected: Boolean, isPlaying: Boolean) {
-    AnimatedVisibility(isSelected && !isPlaying) {
+fun SelectionRadioButton(isInSelectionMode: Boolean, isSelected: Boolean, isPlaying: Boolean) {
+    AnimatedVisibility(
+        isInSelectionMode && !isPlaying,
+        enter = fadeIn(animationSpec = tween(25)) + expandHorizontally(),
+        exit = fadeOut(animationSpec = tween(25)) + shrinkHorizontally(),
+    ) {
+        val modifier = Modifier.padding(end = 8.dp)
         if (isSelected)
             Icon(
-                imageVector = Icons.Default.RadioButtonChecked,
+                imageVector = Icons.Filled.CheckCircle,
                 contentDescription = null,
-                modifier = Modifier,
+                modifier = modifier,
                 tint = MaterialTheme.colorScheme.primary
             )
         else
             Icon(
-                imageVector = Icons.Default.RadioButtonUnchecked,
+                imageVector = Icons.Filled.RadioButtonUnchecked,
                 contentDescription = null,
-                modifier = Modifier,
+                modifier = modifier,
                 tint = MaterialTheme.colorScheme.primary
             )
     }
@@ -252,6 +265,8 @@ private fun ListItemPreview() {
             onStop = {},
             onDeleteVoice = {},
             onPlaybackOptions = {},
+            onItemActions = {},
+            isInSelectionMode = true
         )
     }
 }
@@ -272,6 +287,8 @@ private fun SelectedItemPreview() {
             onStop = {},
             onDeleteVoice = {},
             onPlaybackOptions = {},
+            onItemActions = {},
+            isInSelectionMode = false,
         )
     }
 }
