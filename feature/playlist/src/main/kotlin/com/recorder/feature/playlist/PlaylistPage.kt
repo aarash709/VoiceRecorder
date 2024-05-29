@@ -458,6 +458,7 @@ fun PlaylistContent(
                             duration = duration,
                             shouldExpand = if (!isRecording) isExpanded else false,
                             isSelected = isSelected,
+                            isInSelectionMode = isInSelectionMode,
                             onProgressChange = { progress ->
                                 onPlayProgressChange(progress)
                             },
@@ -468,6 +469,9 @@ fun PlaylistContent(
                                 ) /*else show snack bar cannot play while recording*/
                             },
                             onStop = { onStopPlayback() },
+                            onDeleteVoice = { onDeleteVoices(setOf(it)) },
+                            onPlaybackOptions = {},
+                            onItemActions = {},
                         )
                     }
                 }

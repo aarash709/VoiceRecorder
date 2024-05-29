@@ -2,6 +2,9 @@ package com.recorder.feature.playlist
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ChecklistRtl
 import androidx.compose.material.icons.outlined.Close
@@ -45,6 +48,8 @@ fun PlaylistTopBar(
         navigationIcon = {
             AnimatedVisibility(
                 visible = isInEditMode,
+                enter = fadeIn(tween(150)),
+                exit = fadeOut(tween(150)),
                 label = "Top bar Icon"
             ) {
                 IconButton(onClick = { onSelectedVoiceUpdate() }) {
