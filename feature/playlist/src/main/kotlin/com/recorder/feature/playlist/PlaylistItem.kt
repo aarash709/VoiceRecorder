@@ -8,10 +8,11 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -20,6 +21,9 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.RadioButtonChecked
 import androidx.compose.material.icons.filled.RadioButtonUnchecked
 import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Pending
+import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -49,6 +53,8 @@ fun PlaylistItem(
     onProgressChange: (Float) -> Unit,
     onPlay: (Voice) -> Unit,
     onStop: () -> Unit,
+    onDeleteVoice: (voiceTitle: String) -> Unit,
+    onPlaybackOptions: () -> Unit,
 ) {
     Surface(
         modifier = Modifier
@@ -57,21 +63,50 @@ fun PlaylistItem(
                 then modifier,
         color = MaterialTheme.colorScheme.surface,
     ) {
+        val subTextColor = MaterialTheme.colorScheme.onSurface.copy(
+            alpha = 1.0f,
+            red = .5f,
+            green = .5f,
+            blue = .5f
+        )
         Column(modifier = Modifier.padding(all = 16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                SelectionRadioButton(isSelected = isSelected, isPlaying = voice.isPlaying)
-                Title(
-                    title = voice.title,
-                    recordTime = voice.recordTime,
-                    duration = voice.duration,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    SelectionRadioButton(isSelected = isSelected, isPlaying = voice.isPlaying)
+                    Title(
+                        title = voice.title,
+                        recordTime = voice.recordTime,
+                        duration = voice.duration,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+                if (!shouldExpand) {
+                    Text(
+                        text = voice.duration,
+                        fontSize = 12.sp,
+                        color = subTextColor
+                    )
+                } else {
+                    IconButton(onClick = { /*TODO*/ }) {
+                        Icon(
+                            imageVector = Icons.Outlined.Pending,
+                            contentDescription = "voice item actions"
+                        )
+                    }
+                }
             }
             AnimatedVisibility(visible = shouldExpand) {
                 val progress = if (voice.isPlaying) progressSeconds else 0L
                 Column {
+                    Spacer(modifier = Modifier.height(16.dp))
                     Slider(
                         value = progress.toFloat(),
+                        modifier = Modifier.height(16.dp),
+                        enabled = voice.isPlaying,
                         onValueChange = { onProgressChange(it) },
                         valueRange = 0f..duration,
                     )
@@ -80,41 +115,35 @@ fun PlaylistItem(
                                 String.format("%02d", progress.seconds.inWholeSeconds)
                     }
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text(text = progressText)
-                        Text(text = voice.duration)
+                        val fontSize = 12.sp
+                        val color =
+                            if (!voice.isPlaying) subTextColor else MaterialTheme.colorScheme.onSurface
+                        Text(text = progressText, fontSize = fontSize, color = color)
+                        Text(text = voice.duration, fontSize = fontSize, color = color)
                     }
+                    Spacer(modifier = Modifier.height(16.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center,
+                        horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        AnimatedContent(
-                            targetState = voice.isPlaying,
-                            transitionSpec = { fadeIn(tween(0)) togetherWith fadeOut(tween(0)) },
-                            label = "Play-Pause"
-                        ) { isPlaying ->
-                            if (isPlaying) {
-                                IconButton(onClick = { onStop() }) {
-                                    Icon(
-                                        imageVector = Icons.Default.Stop,
-                                        modifier = Modifier.size(50.dp),
-                                        tint = MaterialTheme.colorScheme.primary,
-                                        contentDescription = "pause icon"
-                                    )
-                                }
-                            } else {
-                                IconButton(onClick = { onPlay(voice) }) {
-                                    Icon(
-                                        imageVector = Icons.Default.PlayArrow,
-                                        modifier = Modifier.size(50.dp),
-                                        tint = MaterialTheme.colorScheme.primary,
-                                        contentDescription = "play icon"
-                                    )
-                                }
-                            }
+                        IconButton(onClick = { onPlaybackOptions() }) {
+                            Icon(
+                                imageVector = Icons.Outlined.Tune,
+                                contentDescription = "playback options icon"
+                            )
+                        }
+                        PlayStopButton(voice = voice, onStop = onStop, onPlay = onPlay)
+                        IconButton(onClick = { onDeleteVoice(voice.title) }) {
+                            Icon(
+                                imageVector = Icons.Outlined.Delete,
+                                contentDescription = "delete icon"
+                            )
                         }
                     }
                 }
@@ -124,60 +153,83 @@ fun PlaylistItem(
 }
 
 @Composable
-fun SelectionRadioButton(isSelected: Boolean, isPlaying: Boolean) {
-    Box(
-        modifier = Modifier,
-        contentAlignment = Alignment.Center
-    ) {
-        AnimatedVisibility(isSelected && !isPlaying) {
-            if (isSelected)
+private fun PlayStopButton(
+    voice: Voice,
+    onStop: () -> Unit,
+    onPlay: (Voice) -> Unit,
+) {
+    AnimatedContent(
+        targetState = voice.isPlaying,
+        transitionSpec = { fadeIn(tween(0)) togetherWith fadeOut(tween(0)) },
+        label = "Play-Pause"
+    ) { isPlaying ->
+        if (isPlaying) {
+            IconButton(onClick = { onStop() }) {
                 Icon(
-                    imageVector = Icons.Default.RadioButtonChecked,
-                    contentDescription = null,
-                    modifier = Modifier,
-                    tint = MaterialTheme.colorScheme.primary
+                    imageVector = Icons.Default.Stop,
+                    modifier = Modifier.size(50.dp),
+                    tint = MaterialTheme.colorScheme.primary,
+                    contentDescription = "pause icon"
                 )
-            else
+            }
+        } else {
+            IconButton(onClick = { onPlay(voice) }) {
                 Icon(
-                    imageVector = Icons.Default.RadioButtonUnchecked,
-                    contentDescription = null,
-                    modifier = Modifier,
-                    tint = MaterialTheme.colorScheme.primary
+                    imageVector = Icons.Default.PlayArrow,
+                    modifier = Modifier.size(50.dp),
+                    tint = MaterialTheme.colorScheme.primary,
+                    contentDescription = "play icon"
                 )
+            }
         }
     }
 }
 
 @Composable
-fun Title(title: String, recordTime: String, color: Color, duration: String) {
+fun SelectionRadioButton(isSelected: Boolean, isPlaying: Boolean) {
+    AnimatedVisibility(isSelected && !isPlaying) {
+        if (isSelected)
+            Icon(
+                imageVector = Icons.Default.RadioButtonChecked,
+                contentDescription = null,
+                modifier = Modifier,
+                tint = MaterialTheme.colorScheme.primary
+            )
+        else
+            Icon(
+                imageVector = Icons.Default.RadioButtonUnchecked,
+                contentDescription = null,
+                modifier = Modifier,
+                tint = MaterialTheme.colorScheme.primary
+            )
+    }
+}
+
+@Composable
+fun Title(
+    title: String,
+    modifier: Modifier = Modifier,
+    recordTime: String,
+    color: Color,
+    duration: String,
+) {
     val subTextColor = color.copy(
         alpha = 1.0f,
         red = .5f,
         green = .5f,
         blue = .5f
     )
-    Row(
-        Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(0.dp),//janky animation if set to > 0
     ) {
-        Column(
-            modifier = Modifier,
-            verticalArrangement = Arrangement.spacedBy(0.dp),//janky animation if set to > 0
-        ) {
-            Text(
-                text = title,
-                color = color,
-                fontSize = 16.sp
-            )
-            Text(
-                text = recordTime,
-                fontSize = 12.sp,
-                color = subTextColor
-            )
-        }
         Text(
-            text = duration,
+            text = title,
+            color = color,
+            fontSize = 16.sp
+        )
+        Text(
+            text = recordTime,
             fontSize = 12.sp,
             color = subTextColor
         )
@@ -198,6 +250,8 @@ private fun ListItemPreview() {
             onProgressChange = {},
             onPlay = {},
             onStop = {},
+            onDeleteVoice = {},
+            onPlaybackOptions = {},
         )
     }
 }
@@ -216,6 +270,8 @@ private fun SelectedItemPreview() {
             onProgressChange = {},
             onPlay = {},
             onStop = {},
+            onDeleteVoice = {},
+            onPlaybackOptions = {},
         )
     }
 }

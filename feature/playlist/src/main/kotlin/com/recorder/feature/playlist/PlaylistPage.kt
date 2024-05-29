@@ -468,6 +468,8 @@ fun PlaylistContent(
                                 ) /*else show snack bar cannot play while recording*/
                             },
                             onStop = { onStopPlayback() },
+                            onDeleteVoice = { onDeleteVoices(setOf(it)) },
+                            onPlaybackOptions = {  },
                         )
                     }
                 }
