@@ -329,7 +329,11 @@ fun PlaylistContent(
                     selectedVoices = selectedVoices,
                     onShowRenameSheet = { showRenameSheet = it },
                     renameTextFieldValue = { renameTextFieldValue = it },
-                    onDeleteVoices = { onDeleteVoices(it) })
+                    onDeleteVoices = {
+                        onDeleteVoices(it)
+                        selectedVoices = emptySet()
+                    }
+                )
             else
                 BottomAppBar(
                     actions = {
