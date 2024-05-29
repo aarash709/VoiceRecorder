@@ -101,6 +101,7 @@ fun PlaylistItem(
                     IconButton(onClick = { onItemActions() }) {
                         Icon(
                             imageVector = Icons.Outlined.Pending,
+                            modifier = Modifier.size(28.dp),
                             contentDescription = "voice item actions"
                         )
                     }
@@ -142,6 +143,7 @@ fun PlaylistItem(
                         IconButton(onClick = { onPlaybackOptions() }) {
                             Icon(
                                 imageVector = Icons.Outlined.Tune,
+                                modifier = Modifier.size(28.dp),
                                 contentDescription = "playback options icon"
                             )
                         }
@@ -149,6 +151,7 @@ fun PlaylistItem(
                         IconButton(onClick = { onDeleteVoice(voice.title) }) {
                             Icon(
                                 imageVector = Icons.Outlined.Delete,
+                                modifier = Modifier.size(28.dp),
                                 contentDescription = "delete icon"
                             )
                         }
