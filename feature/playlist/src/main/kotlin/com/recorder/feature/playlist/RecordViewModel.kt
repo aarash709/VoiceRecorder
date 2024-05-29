@@ -51,7 +51,8 @@ class RecordViewModel @Inject constructor() : ViewModel() {
     private val formatter = DateTimeFormatter.ofPattern("mm:ss")
     val formattedTimer = currentRecordingSeconds.map { seconds ->
         Timber.e("timeS:$seconds")
-        formatter.format(LocalTime.ofSecondOfDay(seconds))
+        val safeSeconds = if (seconds in 0..86399) seconds else 0
+        formatter.format(LocalTime.ofSecondOfDay(safeSeconds))
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(1_000L),
