@@ -233,7 +233,6 @@ fun Playlist(
             },
             rename = { current, desired ->
                 playerViewModel.renameVoice(current, desired, context)
-                playerViewModel.getVoices(context) //refresh list
             },
         )
     }

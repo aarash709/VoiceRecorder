@@ -119,7 +119,6 @@ class RecorderService : Service() {
                 stop()
                 reset()
                 updateRecordingState(RecordingState.Idle)
-                delay(500)
                 onStopRecording()
                 Timber.e("stopped recording")
             }

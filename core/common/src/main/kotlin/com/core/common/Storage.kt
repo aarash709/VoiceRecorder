@@ -19,21 +19,17 @@ class Storage {
     suspend fun getVoices(context: Context): List<Voice>? {
         return withContext(Dispatchers.IO) {
             val path = getPath(context)
-            File(path).listFiles()?.mapNotNull { voiceFile ->
-                if (voiceFile.exists()) {
-                    val recordTime = getLastTimeRecorded(voiceFile.lastModified())
-                    val durationInMillis = mediaDurationInMillis(voiceFile.path)
-                    val seconds = getSeconds(durationInMillis).doubleDigitFormat()
-                    val minutes = getMinutes(durationInMillis).doubleDigitFormat()
-                    Voice(
-                        title = voiceFile.name,
-                        path = voiceFile.path,
-                        duration = "$minutes:$seconds",
-                        recordTime = recordTime,
-                    )
-                } else {
-                    null
-                }
+            File(path).listFiles()?.filter { it.exists() }?.map { voiceFile ->
+                val recordTime = getLastTimeRecorded(voiceFile.lastModified())
+                val durationInMillis = mediaDurationInMillis(voiceFile.path)
+                val seconds = getSeconds(durationInMillis).doubleDigitFormat()
+                val minutes = getMinutes(durationInMillis).doubleDigitFormat()
+                Voice(
+                    title = voiceFile.name,
+                    path = voiceFile.path,
+                    duration = "$minutes:$seconds",
+                    recordTime = recordTime,
+                )
             }
         }
     }
