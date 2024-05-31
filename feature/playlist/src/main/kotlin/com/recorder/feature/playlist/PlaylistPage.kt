@@ -233,7 +233,6 @@ fun Playlist(
             },
             rename = { current, desired ->
                 playerViewModel.renameVoice(current, desired, context)
-                playerViewModel.getVoices(context) //refresh list
             },
         )
     }
@@ -329,7 +328,11 @@ fun PlaylistContent(
                     selectedVoices = selectedVoices,
                     onShowRenameSheet = { showRenameSheet = it },
                     renameTextFieldValue = { renameTextFieldValue = it },
-                    onDeleteVoices = { onDeleteVoices(it) })
+                    onDeleteVoices = {
+                        onDeleteVoices(it)
+                        selectedVoices = emptySet()
+                    }
+                )
             else
                 BottomAppBar(
                     actions = {
