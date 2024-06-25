@@ -68,6 +68,9 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import com.core.common.model.Voice
 import com.recorder.core.designsystem.theme.VoiceRecorderTheme
+import com.recorder.feature.playlist.components.OptionsSheet
+import com.recorder.feature.playlist.components.PlaylistBottomSheet
+import com.recorder.feature.playlist.components.RecordingBottomSheet
 import com.recorder.service.RecorderService
 import com.recorder.service.RecorderService.Companion.RecordingState
 import kotlin.time.Duration.Companion.milliseconds
@@ -385,8 +388,14 @@ fun PlaylistContent(
             var showRecordingSheet by remember {
                 mutableStateOf(false)
             }
+            var showPlayItemOptionsSheet by remember {
+                mutableStateOf(false)
+            }
             LaunchedEffect(key1 = isRecording) {
                 showRecordingSheet = isRecording
+            }
+            if (showPlayItemOptionsSheet) {
+                OptionsSheet()
             }
             if (showRenameSheet) {
                 PlaylistBottomSheet(
@@ -473,7 +482,7 @@ fun PlaylistContent(
                             },
                             onStop = { onStopPlayback() },
                             onDeleteVoice = { onDeleteVoices(setOf(it)) },
-                            onPlaybackOptions = {},
+                            onPlaybackOptions = { showPlayItemOptionsSheet = true },
                             onItemActions = {},
                         )
                     }
@@ -483,51 +492,6 @@ fun PlaylistContent(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun RecordingBottomSheet(
-    recordingTimer: String,
-    title: String = "Now Recording",
-    sheetState: SheetState,
-    showRecordingSheet: (Boolean) -> Unit,
-    onRecord: () -> Unit,
-) {
-    ModalBottomSheet(
-        onDismissRequest = {
-            showRecordingSheet(false)
-        },
-        sheetState = sheetState,
-    ) {
-        Column(
-            modifier = Modifier
-                .padding(vertical = 8.dp)
-                .fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Text(
-                text = title,
-                modifier = Modifier.padding(vertical = 8.dp),
-                fontSize = 20.sp
-            )
-            Text(text = recordingTimer, modifier = Modifier.padding(vertical = 8.dp))
-            Icon(
-                imageVector = Icons.Filled.Stop,
-                modifier = Modifier
-                    .size(50.dp)
-                    .clip(CircleShape)
-                    .border(
-                        width = 1.dp,
-                        color = Color.LightGray,
-                        shape = CircleShape
-                    )
-                    .clickable { onRecord() },
-                tint = Color.Red.copy(green = 0.2f),
-                contentDescription = "Recorder icon"
-            )
-        }
-    }
-}
 
 @Composable
 fun EmptyListMessage() {
