@@ -33,8 +33,8 @@ import androidx.compose.ui.unit.sp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun OptionsSheet(modifier: Modifier = Modifier) {
-    ModalBottomSheet(onDismissRequest = { /*TODO*/ }) {
+fun OptionsSheet(modifier: Modifier = Modifier,onDismissRequest:()->Unit) {
+    ModalBottomSheet(onDismissRequest = { onDismissRequest() }) {
         Surface(modifier = modifier.fillMaxWidth()) {
             Column(
                 Modifier
@@ -88,5 +88,5 @@ fun OptionsSheet(modifier: Modifier = Modifier) {
 @Preview
 @Composable
 private fun SheetPrev() {
-    OptionsSheet()
+    OptionsSheet(onDismissRequest = {})
 }

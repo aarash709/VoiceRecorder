@@ -395,7 +395,7 @@ fun PlaylistContent(
                 showRecordingSheet = isRecording
             }
             if (showPlayItemOptionsSheet) {
-                OptionsSheet()
+                OptionsSheet(onDismissRequest = { showPlayItemOptionsSheet = false })
             }
             if (showRenameSheet) {
                 PlaylistBottomSheet(
