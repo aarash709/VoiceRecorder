@@ -20,8 +20,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Forward10
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.RadioButtonUnchecked
+import androidx.compose.material.icons.filled.Replay10
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Pending
@@ -55,6 +57,8 @@ fun PlaylistItem(
     isInSelectionMode: Boolean,
     onProgressChange: (Float) -> Unit,
     onPlay: (Voice) -> Unit,
+    onForward: () -> Unit,
+    onRewind: () -> Unit,
     onStop: () -> Unit,
     onDeleteVoice: (voiceTitle: String) -> Unit,
     onPlaybackOptions: () -> Unit,
@@ -147,7 +151,9 @@ fun PlaylistItem(
                                 contentDescription = "playback options icon"
                             )
                         }
-                        PlayStopButton(voice = voice, onStop = onStop, onPlay = onPlay)
+                        PlayStopButton(voice = voice, onStop = onStop, onPlay = onPlay,
+                            onForward = { },
+                            onRewind = { })
                         IconButton(onClick = { onDeleteVoice(voice.title) }) {
                             Icon(
                                 imageVector = Icons.Outlined.Delete,
@@ -167,28 +173,44 @@ private fun PlayStopButton(
     voice: Voice,
     onStop: () -> Unit,
     onPlay: (Voice) -> Unit,
+    onForward: () -> Unit,
+    onRewind: () -> Unit,
 ) {
     AnimatedContent(
         targetState = voice.isPlaying,
         transitionSpec = { fadeIn(tween(0)) togetherWith fadeOut(tween(0)) },
         label = "Play-Pause"
     ) { isPlaying ->
-        if (isPlaying) {
-            IconButton(onClick = { onStop() }) {
+        Row(horizontalArrangement = Arrangement.SpaceBetween) {
+            IconButton(onClick = { onRewind() }) {
                 Icon(
-                    imageVector = Icons.Default.Stop,
-                    modifier = Modifier.size(50.dp),
-                    tint = MaterialTheme.colorScheme.primary,
-                    contentDescription = "pause icon"
+                    imageVector = Icons.Default.Replay10,
+                    contentDescription = "forward 10 seconds icon"
                 )
             }
-        } else {
-            IconButton(onClick = { onPlay(voice) }) {
+            if (isPlaying) {
+                IconButton(onClick = { onStop() }) {
+                    Icon(
+                        imageVector = Icons.Default.Stop,
+                        modifier = Modifier.size(50.dp),
+                        tint = MaterialTheme.colorScheme.primary,
+                        contentDescription = "pause icon"
+                    )
+                }
+            } else {
+                IconButton(onClick = { onPlay(voice) }) {
+                    Icon(
+                        imageVector = Icons.Default.PlayArrow,
+                        modifier = Modifier.size(50.dp),
+                        tint = MaterialTheme.colorScheme.primary,
+                        contentDescription = "play icon"
+                    )
+                }
+            }
+            IconButton(onClick = { onForward() }) {
                 Icon(
-                    imageVector = Icons.Default.PlayArrow,
-                    modifier = Modifier.size(50.dp),
-                    tint = MaterialTheme.colorScheme.primary,
-                    contentDescription = "play icon"
+                    imageVector = Icons.Default.Forward10,
+                    contentDescription = "forward 10 seconds icon"
                 )
             }
         }
@@ -267,7 +289,9 @@ private fun ListItemPreview() {
             onDeleteVoice = {},
             onPlaybackOptions = {},
             onItemActions = {},
-            isInSelectionMode = true
+            isInSelectionMode = true,
+            onForward = {},
+            onRewind = {}
         )
     }
 }
@@ -290,6 +314,8 @@ private fun SelectedItemPreview() {
             onPlaybackOptions = {},
             onItemActions = {},
             isInSelectionMode = false,
+            onForward = {},
+            onRewind = {},
         )
     }
 }

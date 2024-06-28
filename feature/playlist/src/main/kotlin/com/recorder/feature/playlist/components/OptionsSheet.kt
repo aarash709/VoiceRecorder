@@ -56,7 +56,7 @@ fun OptionsSheet(modifier: Modifier = Modifier, onDismissRequest: () -> Unit) {
                         Text(text = "Reset", style = MaterialTheme.typography.titleMedium)
                     }
                     Text(text = "Options", style = MaterialTheme.typography.titleMedium)
-                    IconButton(onClick = { /*TODO*/ }) {
+                    IconButton(onClick = { onDismissRequest() }) {
                         Icon(
                             imageVector = Icons.Default.Close,
                             contentDescription = "close options sheet icon"

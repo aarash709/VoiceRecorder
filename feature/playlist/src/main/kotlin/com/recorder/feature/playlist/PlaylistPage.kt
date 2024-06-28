@@ -219,6 +219,7 @@ fun Playlist(
                     .build()
                 browser?.run {
                     setMediaItem(mediaItem)
+                    seekForward()
                     play()
                 }
             },
@@ -484,6 +485,8 @@ fun PlaylistContent(
                             onDeleteVoice = { onDeleteVoices(setOf(it)) },
                             onPlaybackOptions = { showPlayItemOptionsSheet = true },
                             onItemActions = {},
+                            onForward = { },
+                            onRewind = { },
                         )
                     }
                 }
