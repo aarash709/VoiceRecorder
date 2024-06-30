@@ -64,6 +64,7 @@ fun PlaylistItem(
     onPlaybackOptions: () -> Unit,
     onItemActions: () -> Unit,
 ) {
+    val isPlaying = voice.isPlaying
     Surface(
         modifier = Modifier
             .animateContentSize()
@@ -102,7 +103,7 @@ fun PlaylistItem(
                         color = subTextColor
                     )
                 } else {
-                    IconButton(onClick = { onItemActions() }) {
+                    IconButton(onClick = { onItemActions() }, enabled = !isPlaying) {
                         Icon(
                             imageVector = Icons.Outlined.Pending,
                             modifier = Modifier.size(28.dp),
@@ -144,17 +145,17 @@ fun PlaylistItem(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        IconButton(onClick = { onPlaybackOptions() }) {
+                        IconButton(onClick = { onPlaybackOptions() }, enabled = !isPlaying) {
                             Icon(
                                 imageVector = Icons.Outlined.Tune,
                                 modifier = Modifier.size(28.dp),
                                 contentDescription = "playback options icon"
                             )
                         }
-                        PlayStopButton(voice = voice, onStop = onStop, onPlay = onPlay,
+                        PlaybackControls(voice = voice, onStop = onStop, onPlay = onPlay,
                             onForward = { },
                             onRewind = { })
-                        IconButton(onClick = { onDeleteVoice(voice.title) }) {
+                        IconButton(onClick = { onDeleteVoice(voice.title) }, enabled = !isPlaying) {
                             Icon(
                                 imageVector = Icons.Outlined.Delete,
                                 modifier = Modifier.size(28.dp),
@@ -169,7 +170,7 @@ fun PlaylistItem(
 }
 
 @Composable
-private fun PlayStopButton(
+private fun PlaybackControls(
     voice: Voice,
     onStop: () -> Unit,
     onPlay: (Voice) -> Unit,
@@ -185,6 +186,7 @@ private fun PlayStopButton(
             IconButton(onClick = { onRewind() }) {
                 Icon(
                     imageVector = Icons.Default.Replay10,
+                    modifier = Modifier.size(28.dp),
                     contentDescription = "forward 10 seconds icon"
                 )
             }
@@ -210,6 +212,7 @@ private fun PlayStopButton(
             IconButton(onClick = { onForward() }) {
                 Icon(
                     imageVector = Icons.Default.Forward10,
+                    modifier = Modifier.size(28.dp),
                     contentDescription = "forward 10 seconds icon"
                 )
             }
