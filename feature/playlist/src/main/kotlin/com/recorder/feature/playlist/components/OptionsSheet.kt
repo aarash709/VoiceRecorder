@@ -42,6 +42,18 @@ fun OptionsSheet(
     onDismissRequest: () -> Unit,
     onPlaybackSpeedChange: (Float) -> Unit,
 ) {
+    var sliderValue by remember {
+        mutableFloatStateOf(1f)
+    }
+    var isSkipSilenceEnabled by remember {
+        mutableStateOf(false)
+    }
+    LaunchedEffect(key1 = playbackSpeed) {
+        sliderValue = playbackSpeed
+    }
+    val isDefaultSetting by remember(sliderValue, isSkipSilenceEnabled) {
+        mutableStateOf(sliderValue != 1.0f || isSkipSilenceEnabled)
+    }
     ModalBottomSheet(onDismissRequest = { onDismissRequest() }) {
         Surface(modifier = modifier.fillMaxWidth()) {
             Column(
@@ -55,9 +67,13 @@ fun OptionsSheet(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     TextButton(
-                        onClick = { /*TODO reset to default play settings*/ },
+                        onClick = {
+                            sliderValue = 1.0f
+                            isSkipSilenceEnabled = false
+                        },
                         colors = ButtonDefaults
-                            .textButtonColors(contentColor = MaterialTheme.colorScheme.onBackground)
+                            .textButtonColors(contentColor = MaterialTheme.colorScheme.onBackground),
+                        enabled = isDefaultSetting
                     ) {
                         Text(text = "Reset", style = MaterialTheme.typography.titleMedium)
                     }
@@ -77,19 +93,12 @@ fun OptionsSheet(
                             modifier = Modifier.padding(horizontal = 0.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            var value by remember {
-                                mutableFloatStateOf(1f)
-                            }
-                            LaunchedEffect(key1 = playbackSpeed) {
-                                value = playbackSpeed
-                            }
                             Slider(
-                                value = value,
+                                value = sliderValue,
                                 onValueChange = {
-                                    value = it
-
+                                    sliderValue = it
                                 },
-                                onValueChangeFinished = { onPlaybackSpeedChange(value) },
+                                onValueChangeFinished = { onPlaybackSpeedChange(sliderValue) },
                                 steps = 2,
                                 valueRange = 0.5f..2.0f
                             )
@@ -103,11 +112,10 @@ fun OptionsSheet(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        var checked by remember {
-                            mutableStateOf(false)
-                        }
                         Text(text = "Skip Silence", fontSize = 16.sp)
-                        Switch(checked = checked, onCheckedChange = { checked = it })
+                        Switch(
+                            checked = isSkipSilenceEnabled,
+                            onCheckedChange = { isSkipSilenceEnabled = it })
                     }
                 }
             }
