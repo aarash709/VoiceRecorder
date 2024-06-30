@@ -20,8 +20,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Forward10
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.RadioButtonUnchecked
+import androidx.compose.material.icons.filled.Replay10
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Pending
@@ -55,11 +57,14 @@ fun PlaylistItem(
     isInSelectionMode: Boolean,
     onProgressChange: (Float) -> Unit,
     onPlay: (Voice) -> Unit,
+    onSeekForward: () -> Unit,
+    onSeekBack: () -> Unit,
     onStop: () -> Unit,
     onDeleteVoice: (voiceTitle: String) -> Unit,
     onPlaybackOptions: () -> Unit,
     onItemActions: () -> Unit,
 ) {
+    val isPlaying = voice.isPlaying
     Surface(
         modifier = Modifier
             .animateContentSize()
@@ -98,7 +103,7 @@ fun PlaylistItem(
                         color = subTextColor
                     )
                 } else {
-                    IconButton(onClick = { onItemActions() }) {
+                    IconButton(onClick = { onItemActions() }, enabled = !isPlaying) {
                         Icon(
                             imageVector = Icons.Outlined.Pending,
                             modifier = Modifier.size(28.dp),
@@ -140,15 +145,17 @@ fun PlaylistItem(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        IconButton(onClick = { onPlaybackOptions() }) {
+                        IconButton(onClick = { onPlaybackOptions() }, enabled = !isPlaying) {
                             Icon(
                                 imageVector = Icons.Outlined.Tune,
                                 modifier = Modifier.size(28.dp),
                                 contentDescription = "playback options icon"
                             )
                         }
-                        PlayStopButton(voice = voice, onStop = onStop, onPlay = onPlay)
-                        IconButton(onClick = { onDeleteVoice(voice.title) }) {
+                        PlaybackControls(voice = voice, onStop = onStop, onPlay = onPlay,
+                            onSeekForward = { onSeekForward() },
+                            onSeekBack = { onSeekBack() })
+                        IconButton(onClick = { onDeleteVoice(voice.title) }, enabled = !isPlaying) {
                             Icon(
                                 imageVector = Icons.Outlined.Delete,
                                 modifier = Modifier.size(28.dp),
@@ -163,32 +170,50 @@ fun PlaylistItem(
 }
 
 @Composable
-private fun PlayStopButton(
+private fun PlaybackControls(
     voice: Voice,
     onStop: () -> Unit,
     onPlay: (Voice) -> Unit,
+    onSeekForward: () -> Unit,
+    onSeekBack: () -> Unit,
 ) {
     AnimatedContent(
         targetState = voice.isPlaying,
         transitionSpec = { fadeIn(tween(0)) togetherWith fadeOut(tween(0)) },
         label = "Play-Pause"
     ) { isPlaying ->
-        if (isPlaying) {
-            IconButton(onClick = { onStop() }) {
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            IconButton(onClick = { onSeekBack() }) {
                 Icon(
-                    imageVector = Icons.Default.Stop,
-                    modifier = Modifier.size(50.dp),
-                    tint = MaterialTheme.colorScheme.primary,
-                    contentDescription = "pause icon"
+                    imageVector = Icons.Default.Replay10,
+                    modifier = Modifier.size(28.dp),
+                    contentDescription = "forward 10 seconds icon"
                 )
             }
-        } else {
-            IconButton(onClick = { onPlay(voice) }) {
+            if (isPlaying) {
+                IconButton(onClick = { onStop() }) {
+                    Icon(
+                        imageVector = Icons.Default.Stop,
+                        modifier = Modifier.size(50.dp),
+                        tint = MaterialTheme.colorScheme.primary,
+                        contentDescription = "pause icon"
+                    )
+                }
+            } else {
+                IconButton(onClick = { onPlay(voice) }) {
+                    Icon(
+                        imageVector = Icons.Default.PlayArrow,
+                        modifier = Modifier.size(50.dp),
+                        tint = MaterialTheme.colorScheme.primary,
+                        contentDescription = "play icon"
+                    )
+                }
+            }
+            IconButton(onClick = { onSeekForward() }) {
                 Icon(
-                    imageVector = Icons.Default.PlayArrow,
-                    modifier = Modifier.size(50.dp),
-                    tint = MaterialTheme.colorScheme.primary,
-                    contentDescription = "play icon"
+                    imageVector = Icons.Default.Forward10,
+                    modifier = Modifier.size(28.dp),
+                    contentDescription = "forward 10 seconds icon"
                 )
             }
         }
@@ -267,7 +292,9 @@ private fun ListItemPreview() {
             onDeleteVoice = {},
             onPlaybackOptions = {},
             onItemActions = {},
-            isInSelectionMode = true
+            isInSelectionMode = true,
+            onSeekForward = {},
+            onSeekBack = {}
         )
     }
 }
@@ -290,6 +317,8 @@ private fun SelectedItemPreview() {
             onPlaybackOptions = {},
             onItemActions = {},
             isInSelectionMode = false,
+            onSeekForward = {},
+            onSeekBack = {},
         )
     }
 }

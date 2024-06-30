@@ -32,9 +32,7 @@ import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SheetState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
@@ -61,16 +59,19 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import com.core.common.model.Voice
 import com.recorder.core.designsystem.theme.VoiceRecorderTheme
+import com.recorder.feature.playlist.components.OptionsSheet
+import com.recorder.feature.playlist.components.PlaylistBottomSheet
+import com.recorder.feature.playlist.components.RecordingBottomSheet
 import com.recorder.service.RecorderService
 import com.recorder.service.RecorderService.Companion.RecordingState
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 @Composable
 fun Playlist(
@@ -177,6 +178,7 @@ fun Playlist(
         PlaylistContent(
             voices = voiceList,
             duration = if (duration > 0f) duration else 0f,
+            playbackSpeed = playerState.browser?.playbackParameters?.speed ?: 1.0f,
             isRecording = isRecording,
             recordingTimer = recordingTimer,
             onRecord = {
@@ -200,6 +202,22 @@ fun Playlist(
                                 currentTime = 0L
                             )
                         }
+                    }
+                }
+            },
+            onSeekForward = {
+                if (isPlaying) {
+                    browser?.run {
+                        val seekPosition = currentPosition + 10.0.seconds.inWholeMilliseconds
+                        seekTo(seekPosition)
+                    }
+                }
+            },
+            onSeekBack = {
+                if (isPlaying) {
+                    browser?.run {
+                        val seekPosition = currentPosition - 10.0.seconds.inWholeMilliseconds
+                        seekTo(seekPosition)
                     }
                 }
             },
@@ -234,6 +252,13 @@ fun Playlist(
             rename = { current, desired ->
                 playerViewModel.renameVoice(current, desired, context)
             },
+            onPlaybackSpeedChange = { speedFactor ->
+                browser?.run {
+                    if (!isPlaying) {
+                        setPlaybackSpeed(speedFactor)
+                    }
+                }
+            },
         )
     }
 }
@@ -247,11 +272,15 @@ fun Playlist(
 fun PlaylistContent(
     voices: List<Voice>,
     progressSeconds: Long,
+    playbackSpeed: Float,
     duration: Float,
     isRecording: Boolean,
     recordingTimer: String,
     onRecord: () -> Unit,
     onPlayProgressChange: (Float) -> Unit,
+    onPlaybackSpeedChange: (Float) -> Unit,
+    onSeekForward: () -> Unit,
+    onSeekBack: () -> Unit,
     onStopPlayback: () -> Unit,
     onStartPlayback: (Int, Voice) -> Unit,
     onNavigateToSettings: () -> Unit,
@@ -385,8 +414,18 @@ fun PlaylistContent(
             var showRecordingSheet by remember {
                 mutableStateOf(false)
             }
+            var showPlayItemOptionsSheet by remember {
+                mutableStateOf(false)
+            }
             LaunchedEffect(key1 = isRecording) {
                 showRecordingSheet = isRecording
+            }
+            if (showPlayItemOptionsSheet) {
+                OptionsSheet(
+                    onDismissRequest = { showPlayItemOptionsSheet = false },
+                    playbackSpeed = playbackSpeed,
+                    onPlaybackSpeedChange = { onPlaybackSpeedChange(it) }
+                )
             }
             if (showRenameSheet) {
                 PlaylistBottomSheet(
@@ -473,8 +512,10 @@ fun PlaylistContent(
                             },
                             onStop = { onStopPlayback() },
                             onDeleteVoice = { onDeleteVoices(setOf(it)) },
-                            onPlaybackOptions = {},
+                            onPlaybackOptions = { showPlayItemOptionsSheet = true },
                             onItemActions = {},
+                            onSeekForward = { onSeekForward() },
+                            onSeekBack = { onSeekBack() },
                         )
                     }
                 }
@@ -483,51 +524,6 @@ fun PlaylistContent(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun RecordingBottomSheet(
-    recordingTimer: String,
-    title: String = "Now Recording",
-    sheetState: SheetState,
-    showRecordingSheet: (Boolean) -> Unit,
-    onRecord: () -> Unit,
-) {
-    ModalBottomSheet(
-        onDismissRequest = {
-            showRecordingSheet(false)
-        },
-        sheetState = sheetState,
-    ) {
-        Column(
-            modifier = Modifier
-                .padding(vertical = 8.dp)
-                .fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Text(
-                text = title,
-                modifier = Modifier.padding(vertical = 8.dp),
-                fontSize = 20.sp
-            )
-            Text(text = recordingTimer, modifier = Modifier.padding(vertical = 8.dp))
-            Icon(
-                imageVector = Icons.Filled.Stop,
-                modifier = Modifier
-                    .size(50.dp)
-                    .clip(CircleShape)
-                    .border(
-                        width = 1.dp,
-                        color = Color.LightGray,
-                        shape = CircleShape
-                    )
-                    .clickable { onRecord() },
-                tint = Color.Red.copy(green = 0.2f),
-                contentDescription = "Recorder icon"
-            )
-        }
-    }
-}
 
 @Composable
 fun EmptyListMessage() {
@@ -565,6 +561,10 @@ fun PlaylistPagePreview() {
                 onDeleteVoices = {},
                 onSaveVoiceFile = {},
                 rename = { _, _ -> },
+                onPlaybackSpeedChange = {},
+                playbackSpeed = 0.5f,
+                onSeekForward = {},
+                onSeekBack = {},
             )
         }
     }

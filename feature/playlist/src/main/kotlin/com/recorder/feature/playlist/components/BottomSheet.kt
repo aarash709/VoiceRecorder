@@ -1,4 +1,4 @@
-package com.recorder.feature.playlist
+package com.recorder.feature.playlist.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
