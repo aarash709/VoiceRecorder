@@ -71,6 +71,7 @@ import com.recorder.feature.playlist.components.RecordingBottomSheet
 import com.recorder.service.RecorderService
 import com.recorder.service.RecorderService.Companion.RecordingState
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 @Composable
 fun Playlist(
@@ -204,6 +205,22 @@ fun Playlist(
                     }
                 }
             },
+            onSeekForward = {
+                if (isPlaying) {
+                    browser?.run {
+                        val seekPosition = currentPosition + 10.0.seconds.inWholeMilliseconds
+                        seekTo(seekPosition)
+                    }
+                }
+            },
+            onSeekBack = {
+                if (isPlaying) {
+                    browser?.run {
+                        val seekPosition = currentPosition - 10.0.seconds.inWholeMilliseconds
+                        seekTo(seekPosition)
+                    }
+                }
+            },
             onStopPlayback = { browser?.run { stop() } },
             onStartPlayback = { voiceIndex, voice ->
                 playingVoiceIndex = voiceIndex
@@ -262,6 +279,8 @@ fun PlaylistContent(
     onRecord: () -> Unit,
     onPlayProgressChange: (Float) -> Unit,
     onPlaybackSpeedChange: (Float) -> Unit,
+    onSeekForward: () -> Unit,
+    onSeekBack: () -> Unit,
     onStopPlayback: () -> Unit,
     onStartPlayback: (Int, Voice) -> Unit,
     onNavigateToSettings: () -> Unit,
@@ -495,8 +514,8 @@ fun PlaylistContent(
                             onDeleteVoice = { onDeleteVoices(setOf(it)) },
                             onPlaybackOptions = { showPlayItemOptionsSheet = true },
                             onItemActions = {},
-                            onForward = { },
-                            onRewind = { },
+                            onSeekForward = { onSeekForward() },
+                            onSeekBack = { onSeekBack() },
                         )
                     }
                 }
@@ -544,6 +563,8 @@ fun PlaylistPagePreview() {
                 rename = { _, _ -> },
                 onPlaybackSpeedChange = {},
                 playbackSpeed = 0.5f,
+                onSeekForward = {},
+                onSeekBack = {},
             )
         }
     }

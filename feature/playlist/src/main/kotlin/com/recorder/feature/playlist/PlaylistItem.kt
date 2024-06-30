@@ -57,8 +57,8 @@ fun PlaylistItem(
     isInSelectionMode: Boolean,
     onProgressChange: (Float) -> Unit,
     onPlay: (Voice) -> Unit,
-    onForward: () -> Unit,
-    onRewind: () -> Unit,
+    onSeekForward: () -> Unit,
+    onSeekBack: () -> Unit,
     onStop: () -> Unit,
     onDeleteVoice: (voiceTitle: String) -> Unit,
     onPlaybackOptions: () -> Unit,
@@ -153,8 +153,8 @@ fun PlaylistItem(
                             )
                         }
                         PlaybackControls(voice = voice, onStop = onStop, onPlay = onPlay,
-                            onForward = { },
-                            onRewind = { })
+                            onSeekForward = { onSeekForward() },
+                            onSeekBack = { onSeekBack() })
                         IconButton(onClick = { onDeleteVoice(voice.title) }, enabled = !isPlaying) {
                             Icon(
                                 imageVector = Icons.Outlined.Delete,
@@ -174,16 +174,16 @@ private fun PlaybackControls(
     voice: Voice,
     onStop: () -> Unit,
     onPlay: (Voice) -> Unit,
-    onForward: () -> Unit,
-    onRewind: () -> Unit,
+    onSeekForward: () -> Unit,
+    onSeekBack: () -> Unit,
 ) {
     AnimatedContent(
         targetState = voice.isPlaying,
         transitionSpec = { fadeIn(tween(0)) togetherWith fadeOut(tween(0)) },
         label = "Play-Pause"
     ) { isPlaying ->
-        Row(horizontalArrangement = Arrangement.SpaceBetween) {
-            IconButton(onClick = { onRewind() }) {
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            IconButton(onClick = { onSeekBack() }) {
                 Icon(
                     imageVector = Icons.Default.Replay10,
                     modifier = Modifier.size(28.dp),
@@ -209,7 +209,7 @@ private fun PlaybackControls(
                     )
                 }
             }
-            IconButton(onClick = { onForward() }) {
+            IconButton(onClick = { onSeekForward() }) {
                 Icon(
                     imageVector = Icons.Default.Forward10,
                     modifier = Modifier.size(28.dp),
@@ -293,8 +293,8 @@ private fun ListItemPreview() {
             onPlaybackOptions = {},
             onItemActions = {},
             isInSelectionMode = true,
-            onForward = {},
-            onRewind = {}
+            onSeekForward = {},
+            onSeekBack = {}
         )
     }
 }
@@ -317,8 +317,8 @@ private fun SelectedItemPreview() {
             onPlaybackOptions = {},
             onItemActions = {},
             isInSelectionMode = false,
-            onForward = {},
-            onRewind = {},
+            onSeekForward = {},
+            onSeekBack = {},
         )
     }
 }
