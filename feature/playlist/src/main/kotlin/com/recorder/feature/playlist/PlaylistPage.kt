@@ -177,6 +177,7 @@ fun Playlist(
         PlaylistContent(
             voices = voiceList,
             duration = if (duration > 0f) duration else 0f,
+            playbackSpeed = playerState.browser?.playbackParameters?.speed ?: 1.0f,
             isRecording = isRecording,
             recordingTimer = recordingTimer,
             onRecord = {
@@ -234,6 +235,13 @@ fun Playlist(
             rename = { current, desired ->
                 playerViewModel.renameVoice(current, desired, context)
             },
+            onPlaybackSpeedChange = { speedFactor ->
+                browser?.run {
+                    if (!isPlaying) {
+                        setPlaybackSpeed(speedFactor)
+                    }
+                }
+            },
         )
     }
 }
@@ -247,11 +255,13 @@ fun Playlist(
 fun PlaylistContent(
     voices: List<Voice>,
     progressSeconds: Long,
+    playbackSpeed: Float,
     duration: Float,
     isRecording: Boolean,
     recordingTimer: String,
     onRecord: () -> Unit,
     onPlayProgressChange: (Float) -> Unit,
+    onPlaybackSpeedChange: (Float) -> Unit,
     onStopPlayback: () -> Unit,
     onStartPlayback: (Int, Voice) -> Unit,
     onNavigateToSettings: () -> Unit,
@@ -392,7 +402,11 @@ fun PlaylistContent(
                 showRecordingSheet = isRecording
             }
             if (showPlayItemOptionsSheet) {
-                OptionsSheet(onDismissRequest = { showPlayItemOptionsSheet = false })
+                OptionsSheet(
+                    onDismissRequest = { showPlayItemOptionsSheet = false },
+                    playbackSpeed = playbackSpeed,
+                    onPlaybackSpeedChange = { onPlaybackSpeedChange(it) }
+                )
             }
             if (showRenameSheet) {
                 PlaylistBottomSheet(
@@ -528,6 +542,8 @@ fun PlaylistPagePreview() {
                 onDeleteVoices = {},
                 onSaveVoiceFile = {},
                 rename = { _, _ -> },
+                onPlaybackSpeedChange = {},
+                playbackSpeed = 0.5f,
             )
         }
     }

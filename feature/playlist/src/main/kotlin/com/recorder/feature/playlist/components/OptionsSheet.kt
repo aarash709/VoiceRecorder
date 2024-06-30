@@ -35,7 +35,12 @@ import androidx.compose.ui.unit.sp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun OptionsSheet(modifier: Modifier = Modifier, onDismissRequest: () -> Unit) {
+fun OptionsSheet(
+    modifier: Modifier = Modifier,
+    playbackSpeed: Float,
+    onDismissRequest: () -> Unit,
+    onPlaybackSpeedChange: (Float) -> Unit,
+) {
     ModalBottomSheet(onDismissRequest = { onDismissRequest() }) {
         Surface(modifier = modifier.fillMaxWidth()) {
             Column(
@@ -67,13 +72,20 @@ fun OptionsSheet(modifier: Modifier = Modifier, onDismissRequest: () -> Unit) {
                 Column(modifier = Modifier.padding(horizontal = 12.dp)) {
                     Column {
                         Text(text = "Playback speed", fontSize = 14.sp)
-                        Row(modifier = Modifier.padding(horizontal = 0.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 0.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
                             var value by remember {
                                 mutableFloatStateOf(1f)
                             }
                             Slider(
                                 value = value,
-                                onValueChange = { value = it },
+                                onValueChange = {
+                                    value = it
+
+                                },
+                                onValueChangeFinished = { onPlaybackSpeedChange(value) },
                                 steps = 2,
                                 valueRange = 0.5f..2.0f
                             )
@@ -103,5 +115,10 @@ fun OptionsSheet(modifier: Modifier = Modifier, onDismissRequest: () -> Unit) {
 @Preview
 @Composable
 private fun SheetPrev() {
-    OptionsSheet(onDismissRequest = {})
+    OptionsSheet(
+        onDismissRequest = {},
+        onPlaybackSpeedChange = { },
+        modifier = Modifier,
+        playbackSpeed = 0.0f
+    )
 }
