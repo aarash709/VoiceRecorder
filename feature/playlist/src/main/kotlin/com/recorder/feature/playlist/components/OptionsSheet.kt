@@ -22,6 +22,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -78,6 +79,9 @@ fun OptionsSheet(
                         ) {
                             var value by remember {
                                 mutableFloatStateOf(1f)
+                            }
+                            LaunchedEffect(key1 = playbackSpeed) {
+                                value = playbackSpeed
                             }
                             Slider(
                                 value = value,
