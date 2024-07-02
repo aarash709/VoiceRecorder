@@ -4,15 +4,13 @@ androidGradle = "8.5.0"
 kotlinxKsp = "2.0.0-1.0.22"
 composeBom = "2024.06.00"
 androidxActivity = "1.9.0"
-androidxCompose = "1.4.3"
-androidxComposeCompiler = "1.5.14"
+androidxComposeAlpha = "1.7.0-beta04"
 androidxCore = "1.13.1"
-androidxAppcompat = "1.6.1"
+androidxAppcompat = "1.7.0"
 andoidxWindow = "1.3.0"
 andoidxNavigation = "2.7.7"
 andoidxLifecycle = "2.8.3"
 androidxActivityCompose = "1.9.0"
-androidxHiltWork = "1.2.0"
 androidxSplashScreen = "1.0.1"
 andoidxDatastorePreferences = "1.1.1"
 androidxMedia = "1.7.0"
@@ -27,55 +25,61 @@ hiltAndroid = "2.51.1"
 timberLogger = "5.0.1"
 junit4 = "4.13.2"
 espresso-core = "3.6.1"
-appcompat = "1.7.0"
 detekt = "1.23.6"
 kotlinter = "4.4.0"
 
 [libraries]
+#UI
 compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
-compose-animation = { group = "androidx.compose.animation", name = "animation" }
-compose-foundation = { group = "androidx.compose.foundation", name = "foundation" }
-compose-ui = { group = "androidx.compose.ui", name = "ui" }
+compose-animation = { group = "androidx.compose.animation", name = "animation", version.ref="androidxComposeAlpha" }
+compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref="androidxComposeAlpha" }
+compose-ui = { group = "androidx.compose.ui", name = "ui", version.ref="androidxComposeAlpha" }
 compose-ui-toolingPreview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
 compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
 compose-ui-testJunit = { group = "androidx.compose.ui", name = "ui-test-junit4" }
-compose-runtime = { group = "androidx.compose.runtime", name = "runtime" }
-compose-runtime-livedata = { group = "androidx.compose.runtime", name = "runtime-livedata" }
+compose-runtime = { group = "androidx.compose.runtime", name = "runtime", version.ref="androidxComposeAlpha" }
+compose-runtime-livedata = { group = "androidx.compose.runtime", name = "runtime-livedata", version.ref="androidxComposeAlpha" }
 compose-material3 = { group = "androidx.compose.material3", name = "material3" }
 compose-material3-windowSizeClass = { group = "androidx.compose.material3", name = "material3-window-size-class" }
 compose-material = { group = "androidx.compose.material", name = "material" }
 compose-material-iconsExtended = { group = "androidx.compose.material", name = "material-icons-extended" }
-androidx-CoreKtx = { group = "androidx.core", name = "core-ktx", version.ref = "androidxCore" }
 androidx-Activity = { group = "androidx.activity", name = "activity", version.ref = "androidxActivity" }
 androidx-splashScreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "androidxSplashScreen" }
-androidx-AppCompat = { group = "androidx.core", name = "core-ktx", version.ref = "androidxCore" }
 androidx-Window = { group = "androidx.window", name = "window", version.ref = "andoidxWindow" }
 androidx-NavigationCompose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "andoidxNavigation" }
+androidx-ActivityCompose = { group = "androidx.activity", name = "activity-compose", version.ref = "androidxActivityCompose" }
+accompanist-permissions = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "accompanist" }
+material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+#lifecycle
 androidx-LifecycleRuntimeKtx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "andoidxLifecycle" }
 androidx-LifecycleViewModelKtx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "andoidxLifecycle" }
 androidx-LifecycleLiveDataKtx = { group = "androidx.lifecycle", name = "lifecycle-livedata-ktx", version.ref = "andoidxLifecycle" }
 androidx-LifecycleComposeRuntime = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "andoidxLifecycle" }
 androidx-LifecycleViewModelCompose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "andoidxLifecycle" }
-androidx-ActivityCompose = { group = "androidx.activity", name = "activity-compose", version.ref = "androidxActivityCompose" }
+#data
 androidx-Datastore = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "andoidxDatastorePreferences" }
-androidx-HiltKaptCompiler = { group = "androidx.hilt", name = "hilt-compiler", version.ref = "androidxHiltWork" }
+#media
 androidx-media = { group = "androidx.media", name = "media", version.ref = "androidxMedia" }
 androidx-media3-exoPlayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "androidxMedia3" }
 androidx-media3-mediasession = { group = "androidx.media3", name = "media3-session", version.ref = "androidxMedia3" }
-material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+#
+androidx-CoreKtx = { group = "androidx.core", name = "core-ktx", version.ref = "androidxCore" }
+androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "androidxAppcompat" }
 kotlix-Serialization = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 kotlix-CoroutinesCore = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
 kotlix-CoroutinesTest = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinxCoroutines" }
 kotlix-CoroutinesAndroid = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "kotlinxCoroutines" }
-accompanist-permissions = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "accompanist" }
 timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "timberLogger" }
+#DI
+#androidx-HiltKaptCompiler = { group = "androidx.hilt", name = "hilt-compiler", version.ref = "androidxHiltWork" }
 hilt_NavigationCompose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
 hilt_Android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hiltAndroid" }
-hilt_KaptCompiler = { group = "com.google.dagger", name = "hilt-compiler", version.ref = "hiltAndroid" }
+hilt_Compiler = { group = "com.google.dagger", name = "hilt-compiler", version.ref = "hiltAndroid" }
+#Test
 junit4 = { group = "junit", name = "junit", version.ref = "junit4" }
 androidx-test-extJunit = { group = "androidx.test.ext", name = "junit", version.ref = "androidxTestExtJunit" }
 espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espresso-core" }
-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+#code styling
 detekt-formatting = { group = "io.gitlab.arturbosch.detekt", name = "detekt-formatting", version.ref = "detekt" }
 
 

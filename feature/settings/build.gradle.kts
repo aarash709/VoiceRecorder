@@ -45,13 +45,12 @@ dependencies {
     implementation(libs.androidx.lifecycleComposeRuntime)
 
     implementation(libs.androidx.coreKtx)
-    implementation(libs.appcompat)
+    implementation(libs.androidx.appcompat)
 
     implementation(libs.hilt.navigationCompose)
     implementation(libs.hilt.android)
-    ksp(libs.hilt.kaptCompiler)
+    ksp(libs.hilt.compiler)
 
-    implementation(libs.appcompat)
 
     //test
     testImplementation(libs.junit4)

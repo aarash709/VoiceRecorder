@@ -51,10 +51,10 @@ dependencies {
 
     implementation(libs.hilt.navigationCompose)
     implementation(libs.hilt.android)
-    ksp(libs.hilt.kaptCompiler)
+    ksp(libs.hilt.compiler)
 
     implementation(libs.androidx.coreKtx)
-    implementation(libs.appcompat)
+    implementation(libs.androidx.appcompat)
 
     testImplementation(libs.junit4)
     testImplementation(libs.kotlix.coroutinesTest)
