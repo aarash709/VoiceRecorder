@@ -32,7 +32,7 @@ dependencies {
     implementation(libs.androidx.datastore)
 
     implementation(libs.hilt.android)
-    ksp(libs.hilt.kaptCompiler)
+    ksp(libs.hilt.compiler)
 
     implementation(libs.kotlix.coroutinesAndroid)
 }

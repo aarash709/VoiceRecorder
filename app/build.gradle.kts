@@ -68,7 +68,7 @@ dependencies {
     detektPlugins(libs.detekt.formatting)
 
     implementation(libs.androidx.coreKtx)
-    implementation(libs.androidx.appCompat)
+    implementation(libs.androidx.appcompat)
     implementation(libs.androidx.splashScreen)
 
 //    //necessary for notification style using agp:7.1.2
@@ -90,7 +90,7 @@ dependencies {
     implementation(libs.accompanist.permissions)
 
     implementation(libs.hilt.android)
-    ksp(libs.hilt.kaptCompiler)
+    ksp(libs.hilt.compiler)
 
     testImplementation(libs.junit4)
     testImplementation(libs.kotlix.coroutinesTest)
