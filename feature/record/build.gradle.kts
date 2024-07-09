@@ -47,8 +47,8 @@ dependencies {
 
     implementation(libs.androidx.lifecycleComposeRuntime)
 
-    implementation(libs.kotlix.coroutinesCore)
-    implementation(libs.kotlix.coroutinesAndroid)
+    implementation(libs.kotlix.coroutines.core)
+    implementation(libs.kotlix.coroutines.android)
 
     implementation(libs.hilt.navigationCompose)
     implementation(libs.hilt.android)
@@ -58,8 +58,8 @@ dependencies {
     implementation(libs.androidx.appcompat)
 
     testImplementation(libs.junit4)
-    testImplementation(libs.kotlix.coroutinesTest)
-    androidTestImplementation(libs.kotlix.coroutinesTest)
+    testImplementation(libs.kotlix.coroutines.test)
+    androidTestImplementation(libs.kotlix.coroutines.test)
     androidTestImplementation(libs.androidx.test.extJunit)
     androidTestImplementation(libs.espresso.core)
     androidTestImplementation(libs.compose.ui.testJunit)

@@ -37,9 +37,9 @@ dependencies {
     debugApi(libs.compose.ui.tooling)
 
     testImplementation(libs.junit4)
-    testImplementation(libs.kotlix.coroutinesTest)
+    testImplementation(libs.kotlix.coroutines.test)
     androidTestApi(libs.compose.ui.testJunit)
-    androidTestApi(libs.kotlix.coroutinesTest)
+    androidTestApi(libs.kotlix.coroutines.test)
     androidTestApi(libs.androidx.test.extJunit)
     androidTestApi(libs.espresso.core)
 }
