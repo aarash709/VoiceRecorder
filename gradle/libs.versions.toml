@@ -43,38 +43,38 @@ compose-material3 = { group = "androidx.compose.material3", name = "material3" }
 compose-material3-windowSizeClass = { group = "androidx.compose.material3", name = "material3-window-size-class" }
 compose-material = { group = "androidx.compose.material", name = "material" }
 compose-material-iconsExtended = { group = "androidx.compose.material", name = "material-icons-extended" }
-androidx-Activity = { group = "androidx.activity", name = "activity", version.ref = "androidxActivity" }
+androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "androidxActivity" }
 androidx-splashScreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "androidxSplashScreen" }
-androidx-Window = { group = "androidx.window", name = "window", version.ref = "andoidxWindow" }
-androidx-NavigationCompose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "andoidxNavigation" }
-androidx-ActivityCompose = { group = "androidx.activity", name = "activity-compose", version.ref = "androidxActivityCompose" }
+androidx-window = { group = "androidx.window", name = "window", version.ref = "andoidxWindow" }
+androidx-navigationCompose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "andoidxNavigation" }
+androidx-activityCompose = { group = "androidx.activity", name = "activity-compose", version.ref = "androidxActivityCompose" }
 accompanist-permissions = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "accompanist" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 #lifecycle
-androidx-LifecycleRuntimeKtx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "andoidxLifecycle" }
-androidx-LifecycleViewModelKtx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "andoidxLifecycle" }
-androidx-LifecycleLiveDataKtx = { group = "androidx.lifecycle", name = "lifecycle-livedata-ktx", version.ref = "andoidxLifecycle" }
-androidx-LifecycleComposeRuntime = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "andoidxLifecycle" }
-androidx-LifecycleViewModelCompose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "andoidxLifecycle" }
+androidx-lifecycleRuntimeKtx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "andoidxLifecycle" }
+androidx-lifecycle-viewModelKtx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "andoidxLifecycle" }
+androidx-lifecycle-liveDataKtx = { group = "androidx.lifecycle", name = "lifecycle-livedata-ktx", version.ref = "andoidxLifecycle" }
+androidx-lifecycleComposeRuntime = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "andoidxLifecycle" }
+androidx-lifecycleViewModelCompose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "andoidxLifecycle" }
 #data
-androidx-Datastore = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "andoidxDatastorePreferences" }
+androidx-datastore = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "andoidxDatastorePreferences" }
 #media
 androidx-media = { group = "androidx.media", name = "media", version.ref = "androidxMedia" }
 androidx-media3-exoPlayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "androidxMedia3" }
 androidx-media3-mediasession = { group = "androidx.media3", name = "media3-session", version.ref = "androidxMedia3" }
 #
-androidx-CoreKtx = { group = "androidx.core", name = "core-ktx", version.ref = "androidxCore" }
+androidx-coreKtx = { group = "androidx.core", name = "core-ktx", version.ref = "androidxCore" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "androidxAppcompat" }
-kotlix-Serialization = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
-kotlix-CoroutinesCore = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
-kotlix-CoroutinesTest = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinxCoroutines" }
-kotlix-CoroutinesAndroid = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "kotlinxCoroutines" }
+kotlix-serialization = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
+kotlix-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
+kotlix-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinxCoroutines" }
+kotlix-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "kotlinxCoroutines" }
 timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "timberLogger" }
 #DI
-#androidx-HiltKaptCompiler = { group = "androidx.hilt", name = "hilt-compiler", version.ref = "androidxHiltWork" }
-hilt_NavigationCompose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
-hilt_Android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hiltAndroid" }
-hilt_Compiler = { group = "com.google.dagger", name = "hilt-compiler", version.ref = "hiltAndroid" }
+#androidx-hiltCompiler = { group = "androidx.hilt", name = "hilt-compiler", version.ref = "androidxHiltWork" }
+hilt-navigationCompose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
+hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hiltAndroid" }
+hilt-compiler = { group = "com.google.dagger", name = "hilt-compiler", version.ref = "hiltAndroid" }
 #Test
 junit4 = { group = "junit", name = "junit", version.ref = "junit4" }
 androidx-test-extJunit = { group = "androidx.test.ext", name = "junit", version.ref = "androidxTestExtJunit" }

@@ -74,8 +74,8 @@ dependencies {
 //    //necessary for notification style using agp:7.1.2
     implementation(libs.androidx.media)
 
-    implementation(libs.kotlix.coroutinesCore)
-    implementation(libs.kotlix.coroutinesAndroid)
+    implementation(libs.kotlix.coroutines.core)
+    implementation(libs.kotlix.coroutines.android)
 
     implementation(libs.material)
     implementation(libs.androidx.lifecycleRuntimeKtx)
@@ -93,7 +93,7 @@ dependencies {
     ksp(libs.hilt.compiler)
 
     testImplementation(libs.junit4)
-    testImplementation(libs.kotlix.coroutinesTest)
+    testImplementation(libs.kotlix.coroutines.test)
     androidTestImplementation(project(":core:designsystem")) // using ui tests apis (add test apis with a test module)
 
 

@@ -34,5 +34,5 @@ dependencies {
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
 
-    implementation(libs.kotlix.coroutinesAndroid)
+    implementation(libs.kotlix.coroutines.android)
 }

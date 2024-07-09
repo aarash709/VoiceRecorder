@@ -42,8 +42,8 @@ dependencies {
     implementation(project(":core:service"))
 
     implementation(libs.material)
-    implementation(libs.kotlix.coroutinesCore)
-    implementation(libs.kotlix.coroutinesAndroid)
+    implementation(libs.kotlix.coroutines.core)
+    implementation(libs.kotlix.coroutines.android)
 
     implementation(libs.androidx.navigationCompose)
 
@@ -57,8 +57,8 @@ dependencies {
     implementation(libs.androidx.appcompat)
 
     testImplementation(libs.junit4)
-    testImplementation(libs.kotlix.coroutinesTest)
-    androidTestImplementation(libs.kotlix.coroutinesTest)
+    testImplementation(libs.kotlix.coroutines.test)
+    androidTestImplementation(libs.kotlix.coroutines.test)
     androidTestImplementation(libs.androidx.test.extJunit)
     androidTestImplementation(libs.espresso.core)
     androidTestImplementation(libs.compose.ui.testJunit)
