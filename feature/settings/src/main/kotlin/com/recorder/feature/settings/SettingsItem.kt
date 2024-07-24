@@ -28,6 +28,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -72,7 +73,7 @@ internal fun SettingsItemWithSwitch(
 internal fun SettingsItemWithOptions(
     modifier: Modifier = Modifier,
     title: String,
-    currentOption: String,
+    currentActiveOption: String,
     options: @Composable () -> Unit,
 ) {
     var shouldShowOptions by remember {
@@ -95,7 +96,7 @@ internal fun SettingsItemWithOptions(
                 )
             ) {
                 Row {
-                    Text(text = currentOption)
+                    Text(text = currentActiveOption)
                     Icon(
                         imageVector = Icons.Default.UnfoldMore,
                         contentDescription = "more options"
@@ -163,7 +164,11 @@ fun OptionsItem(
         modifier = modifier
             .fillMaxWidth()
             .clickable { onOptionSelected() },
+        color = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+        else MaterialTheme.colorScheme.surface
     ) {
+        val color = if (isSelected) MaterialTheme.colorScheme.primary
+        else LocalContentColor.current
         Row(
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -172,12 +177,12 @@ fun OptionsItem(
             Text(
                 text = optionName,
                 modifier = Modifier,
-                /* color = MaterialTheme.colorScheme.surface*/
+                color = color
             )
             if (isSelected) {
                 Icon(
                     imageVector = Icons.Default.Check,
-                    tint = MaterialTheme.colorScheme.primary,
+                    tint = color,
                     contentDescription = "selected format icon"
                 )
             }

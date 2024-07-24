@@ -53,7 +53,7 @@ fun SettingsContent(
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val context = LocalContext.current
-    val format by remember {
+    val currentRecordingFormat by remember {
         val value = when (uiState.recordingFormat) {
             RecordingFormat.Mp4 -> context.resources.getString(R.string.mp4)
         }
@@ -102,19 +102,24 @@ fun SettingsContent(
                 )
                 SettingsItemWithOptions(
                     title = stringResource(id = R.string.recording_format),
-                    currentOption = format,
+                    currentActiveOption = currentRecordingFormat,
                     options = {
                         Column(
                             modifier = Modifier,
                             verticalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
-                            OptionsItem(optionName = format, isSelected = true) {}
+                            OptionsItem(
+                                optionName = currentRecordingFormat,
+                                isSelected = currentRecordingFormat == stringResource(
+                                    id = R.string.mp4
+                                )
+                            ) {}
                         }
                     }
                 )
                 SettingsItemWithOptions(
                     title = stringResource(id = R.string.recording_quality),
-                    currentOption = quality,
+                    currentActiveOption = quality,
                     options = {
                         Column(
                             modifier = Modifier,
