@@ -38,6 +38,7 @@ fun Settings(onNavigateBack: () -> Unit) {
         onEarpieceMode = settingsViewModel::setEarpieceMode,
         onNameRecordingManually = settingsViewModel::setRenameRecordingManually,
         onSetFormat = settingsViewModel::setRecorderFormat,
+        onSetQuality = settingsViewModel::setRecorderQuality,
         onNavigateBack = { onNavigateBack() },
         onNavigateToRecentlyDeleted = {})
 }
@@ -50,6 +51,7 @@ fun SettingsContent(
     onEarpieceMode: (Boolean) -> Unit,
     onNameRecordingManually: (Boolean) -> Unit,
     onSetFormat: (RecordingFormat) -> Unit,
+    onSetQuality: (RecordingQuality) -> Unit,
     onNavigateBack: () -> Unit,
     onNavigateToRecentlyDeleted: () -> Unit,
 ) {
@@ -115,22 +117,9 @@ fun SettingsContent(
                     title = stringResource(id = R.string.recording_quality),
                     currentActiveOption = quality,
                     options = {
-                        Column(
-                            modifier = Modifier,
-                        ) {
-                            OptionsItem(
-                                optionName = "Low",
-                                isSelected = false,
-                                onOptionSelected = { })
-                            OptionsItem(
-                                optionName = "Standard",
-                                isSelected = true,
-                                onOptionSelected = { })
-                            OptionsItem(
-                                optionName = "High",
-                                isSelected = false,
-                                onOptionSelected = { })
-                        }
+                        RecordingQualityOptions(
+                            currentRecordingQuality = quality,
+                            onSetQuality = { onSetQuality(it) })
                     }
                 )
                 SettingsItemWithAction(
@@ -147,6 +136,31 @@ fun SettingsContent(
 }
 
 @Composable
+private fun RecordingQualityOptions(
+    currentRecordingQuality: String,
+    onSetQuality: (RecordingQuality) -> Unit,
+) {
+    Column(
+        modifier = Modifier,
+    ) {
+        OptionsItem(
+            optionName = stringResource(id = R.string.low),
+            isSelected = currentRecordingQuality == stringResource(id = R.string.low),
+            isClickable = false,
+            onSelectOption = { onSetQuality(RecordingQuality.Low) })
+        OptionsItem(
+            optionName = stringResource(id = R.string.standard),
+            isSelected = currentRecordingQuality == stringResource(id = R.string.standard),
+            onSelectOption = { onSetQuality(RecordingQuality.Standard) })
+        OptionsItem(
+            optionName = stringResource(id = R.string.high),
+            isSelected = currentRecordingQuality == stringResource(id = R.string.high),
+            isClickable = false,
+            onSelectOption = { onSetQuality(RecordingQuality.High) })
+    }
+}
+
+@Composable
 private fun RecorderFormatOptions(
     currentRecordingFormat: String,
     onOptionSelected: (RecordingFormat) -> Unit,
@@ -159,7 +173,7 @@ private fun RecorderFormatOptions(
             optionName = currentRecordingFormat,
             isSelected = currentRecordingFormat == stringResource(
                 id = R.string.mp4
-            ), onOptionSelected = { onOptionSelected(RecordingFormat.Mp4) }
+            ), onSelectOption = { onOptionSelected(RecordingFormat.Mp4) }
         )
     }
 }
@@ -175,6 +189,7 @@ private fun SettingsPreview() {
             onEarpieceMode = { },
             onNameRecordingManually = { },
             onSetFormat = { },
+            onSetQuality = { },
             onNavigateBack = {},
             onNavigateToRecentlyDeleted = {})
     }

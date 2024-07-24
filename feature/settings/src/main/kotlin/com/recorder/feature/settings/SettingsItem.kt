@@ -28,7 +28,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -158,12 +157,13 @@ fun OptionsItem(
     modifier: Modifier = Modifier,
     optionName: String,
     isSelected: Boolean,
-    onOptionSelected: () -> Unit,
+    isClickable: Boolean = true,
+    onSelectOption: () -> Unit,
 ) {
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .clickable { onOptionSelected() },
+            .clickable(enabled = isClickable) { onSelectOption() },
         color = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
         else MaterialTheme.colorScheme.surface
     ) {
