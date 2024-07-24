@@ -1,6 +1,5 @@
 package com.recorder.feature.settings
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
@@ -20,7 +19,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.core.common.R
@@ -37,6 +35,8 @@ fun Settings(onNavigateBack: () -> Unit) {
         modifier = Modifier,
         onEarpieceMode = settingsViewModel::setEarpieceMode,
         onNameRecordingManually = settingsViewModel::setRenameRecordingManually,
+        onSetFormat = settingsViewModel::setRecorderFormat,
+        onSetQuality = settingsViewModel::setRecorderQuality,
         onNavigateBack = { onNavigateBack() },
         onNavigateToRecentlyDeleted = {})
 }
@@ -48,12 +48,14 @@ fun SettingsContent(
     uiState: SettingsUiState,
     onEarpieceMode: (Boolean) -> Unit,
     onNameRecordingManually: (Boolean) -> Unit,
+    onSetFormat: (RecordingFormat) -> Unit,
+    onSetQuality: (RecordingQuality) -> Unit,
     onNavigateBack: () -> Unit,
     onNavigateToRecentlyDeleted: () -> Unit,
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val context = LocalContext.current
-    val format by remember {
+    val currentRecordingFormat by remember {
         val value = when (uiState.recordingFormat) {
             RecordingFormat.Mp4 -> context.resources.getString(R.string.mp4)
         }
@@ -102,27 +104,20 @@ fun SettingsContent(
                 )
                 SettingsItemWithOptions(
                     title = stringResource(id = R.string.recording_format),
-                    currentOption = format,
+                    currentActiveOption = currentRecordingFormat,
                     options = {
-                        Column(
-                            modifier = Modifier,
-                            verticalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                            OptionsItem(optionName = format, isSelected = true) {}
-                        }
+                        RecorderFormatOptions(
+                            currentRecordingFormat = currentRecordingFormat,
+                            onOptionSelected = { onSetFormat(it) })
                     }
                 )
                 SettingsItemWithOptions(
                     title = stringResource(id = R.string.recording_quality),
-                    currentOption = quality,
+                    currentActiveOption = quality,
                     options = {
-                        Column(
-                            modifier = Modifier,
-                        ) {
-                            OptionsItem(optionName = "Low", isSelected = false) {}
-                            OptionsItem(optionName = "Standard", isSelected = true) {}
-                            OptionsItem(optionName = "High", isSelected = false) {}
-                        }
+                        RecordingQualityOptions(
+                            currentRecordingQuality = quality,
+                            onSetQuality = { onSetQuality(it) })
                     }
                 )
                 SettingsItemWithAction(
@@ -138,7 +133,6 @@ fun SettingsContent(
     }
 }
 
-
 @PreviewLightDark
 @Composable
 private fun SettingsPreview() {
@@ -148,6 +142,8 @@ private fun SettingsPreview() {
             modifier = Modifier,
             onEarpieceMode = { },
             onNameRecordingManually = { },
+            onSetFormat = { },
+            onSetQuality = { },
             onNavigateBack = {},
             onNavigateToRecentlyDeleted = {})
     }
