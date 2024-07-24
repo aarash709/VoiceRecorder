@@ -37,6 +37,7 @@ fun Settings(onNavigateBack: () -> Unit) {
         modifier = Modifier,
         onEarpieceMode = settingsViewModel::setEarpieceMode,
         onNameRecordingManually = settingsViewModel::setRenameRecordingManually,
+        onSetFormat = settingsViewModel::setRecorderFormat,
         onNavigateBack = { onNavigateBack() },
         onNavigateToRecentlyDeleted = {})
 }
@@ -48,6 +49,7 @@ fun SettingsContent(
     uiState: SettingsUiState,
     onEarpieceMode: (Boolean) -> Unit,
     onNameRecordingManually: (Boolean) -> Unit,
+    onSetFormat: (RecordingFormat) -> Unit,
     onNavigateBack: () -> Unit,
     onNavigateToRecentlyDeleted: () -> Unit,
 ) {
@@ -104,17 +106,9 @@ fun SettingsContent(
                     title = stringResource(id = R.string.recording_format),
                     currentActiveOption = currentRecordingFormat,
                     options = {
-                        Column(
-                            modifier = Modifier,
-                            verticalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                            OptionsItem(
-                                optionName = currentRecordingFormat,
-                                isSelected = currentRecordingFormat == stringResource(
-                                    id = R.string.mp4
-                                )
-                            ) {}
-                        }
+                        RecorderFormatOptions(
+                            currentRecordingFormat = currentRecordingFormat,
+                            onOptionSelected = { onSetFormat(it) })
                     }
                 )
                 SettingsItemWithOptions(
@@ -124,9 +118,18 @@ fun SettingsContent(
                         Column(
                             modifier = Modifier,
                         ) {
-                            OptionsItem(optionName = "Low", isSelected = false) {}
-                            OptionsItem(optionName = "Standard", isSelected = true) {}
-                            OptionsItem(optionName = "High", isSelected = false) {}
+                            OptionsItem(
+                                optionName = "Low",
+                                isSelected = false,
+                                onOptionSelected = { })
+                            OptionsItem(
+                                optionName = "Standard",
+                                isSelected = true,
+                                onOptionSelected = { })
+                            OptionsItem(
+                                optionName = "High",
+                                isSelected = false,
+                                onOptionSelected = { })
                         }
                     }
                 )
@@ -143,6 +146,24 @@ fun SettingsContent(
     }
 }
 
+@Composable
+private fun RecorderFormatOptions(
+    currentRecordingFormat: String,
+    onOptionSelected: (RecordingFormat) -> Unit,
+) {
+    Column(
+        modifier = Modifier,
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        OptionsItem(
+            optionName = currentRecordingFormat,
+            isSelected = currentRecordingFormat == stringResource(
+                id = R.string.mp4
+            ), onOptionSelected = { onOptionSelected(RecordingFormat.Mp4) }
+        )
+    }
+}
+
 
 @PreviewLightDark
 @Composable
@@ -153,6 +174,7 @@ private fun SettingsPreview() {
             modifier = Modifier,
             onEarpieceMode = { },
             onNameRecordingManually = { },
+            onSetFormat = { },
             onNavigateBack = {},
             onNavigateToRecentlyDeleted = {})
     }
