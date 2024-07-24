@@ -1,6 +1,5 @@
 package com.recorder.feature.settings
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
@@ -20,7 +19,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.core.common.R
@@ -134,50 +132,6 @@ fun SettingsContent(
         }
     }
 }
-
-@Composable
-private fun RecordingQualityOptions(
-    currentRecordingQuality: String,
-    onSetQuality: (RecordingQuality) -> Unit,
-) {
-    Column(
-        modifier = Modifier,
-    ) {
-        OptionsItem(
-            optionName = stringResource(id = R.string.low),
-            isSelected = currentRecordingQuality == stringResource(id = R.string.low),
-            isClickable = false,
-            onSelectOption = { onSetQuality(RecordingQuality.Low) })
-        OptionsItem(
-            optionName = stringResource(id = R.string.standard),
-            isSelected = currentRecordingQuality == stringResource(id = R.string.standard),
-            onSelectOption = { onSetQuality(RecordingQuality.Standard) })
-        OptionsItem(
-            optionName = stringResource(id = R.string.high),
-            isSelected = currentRecordingQuality == stringResource(id = R.string.high),
-            isClickable = false,
-            onSelectOption = { onSetQuality(RecordingQuality.High) })
-    }
-}
-
-@Composable
-private fun RecorderFormatOptions(
-    currentRecordingFormat: String,
-    onOptionSelected: (RecordingFormat) -> Unit,
-) {
-    Column(
-        modifier = Modifier,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        OptionsItem(
-            optionName = currentRecordingFormat,
-            isSelected = currentRecordingFormat == stringResource(
-                id = R.string.mp4
-            ), onSelectOption = { onOptionSelected(RecordingFormat.Mp4) }
-        )
-    }
-}
-
 
 @PreviewLightDark
 @Composable
