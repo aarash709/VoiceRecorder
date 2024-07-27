@@ -1,6 +1,8 @@
 package com.recorder.core.designsystem.theme
 
 import android.content.res.Configuration
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -18,6 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -65,6 +68,9 @@ private val lightColorScheme = lightColorScheme(
     onBackground = Color.Black,
     onSurface = Color.Black,
 )
+
+@OptIn(ExperimentalSharedTransitionApi::class)
+val LocalSharedTransitionScope = compositionLocalOf<SharedTransitionScope?> { null }
 
 @Composable
 fun VoiceRecorderTheme(
