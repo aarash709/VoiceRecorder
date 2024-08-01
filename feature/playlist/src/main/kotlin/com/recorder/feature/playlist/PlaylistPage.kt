@@ -78,6 +78,7 @@ import kotlin.time.Duration.Companion.seconds
 @Composable
 fun Playlist(
     onNavigateToSettings: () -> Unit,
+    onNavigateToRecorder: () -> Unit,
     onBackPressed: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -240,6 +241,7 @@ fun Playlist(
                 }
             },
             onNavigateToSettings = { if (!isRecording) onNavigateToSettings() },
+            onNavigateToRecorder = { onNavigateToRecorder() },
             onBackPressed = { onBackPressed() },
             progressSeconds = progress,
             onPlayProgressChange = { _ ->
@@ -286,12 +288,14 @@ fun PlaylistContent(
     onStopPlayback: () -> Unit,
     onStartPlayback: (Int, Voice) -> Unit,
     onNavigateToSettings: () -> Unit,
+    onNavigateToRecorder: () -> Unit,
     onBackPressed: () -> Unit,
     onDeleteVoices: (Set<String>) -> Unit,
     onSaveVoiceFile: () -> Unit,
     rename: (current: String, desired: String) -> Unit,
 ) {
-    val sharedElementScope = LocalSharedTransitionScope.current ?: throw IllegalStateException("no shared element scope found")
+    val sharedElementScope = LocalSharedTransitionScope.current
+        ?: throw IllegalStateException("no shared element scope found")
     var selectedVoices by remember {
         mutableStateOf(emptySet<String>())
     }
@@ -338,7 +342,7 @@ fun PlaylistContent(
             selectedVoices = emptySet()
         }
     }
-    with(sharedElementScope){
+    with(sharedElementScope) {
         Scaffold(
             modifier = Modifier,
             contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -373,36 +377,35 @@ fun PlaylistContent(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.Center
                             ) {
-                                if (isRecording)
-                                    Icon(
-                                        imageVector = Icons.Filled.Stop,
-                                        modifier = Modifier
-                                            .clip(CircleShape)
-                                            .border(
-                                                width = 1.dp,
-                                                color = Color.LightGray,
-                                                shape = CircleShape
-                                            )
-                                            .clickable { onRecord() }
-                                            .size(50.dp),
-                                        tint = Color.Red.copy(green = 0.2f),
-                                        contentDescription = "Recorder icon"
-                                    )
-                                else
-                                    Icon(
-                                        imageVector = Icons.Filled.Circle,
-                                        modifier = Modifier
-                                            .clip(CircleShape)
-                                            .border(
-                                                width = 1.dp,
-                                                color = Color.LightGray,
-                                                shape = CircleShape
-                                            )
-                                            .clickable { onRecord() }
-                                            .size(50.dp),
-                                        tint = Color.Red.copy(green = 0.2f),
-                                        contentDescription = "Recorder icon"
-                                    )
+                                Icon(
+                                    imageVector = Icons.Filled.Circle,
+                                    modifier = Modifier
+                                        .clip(CircleShape)
+                                        .border(
+                                            width = 1.dp,
+                                            color = Color.LightGray,
+                                            shape = CircleShape
+                                        )
+                                        .clickable { onNavigateToRecorder() }
+                                        .size(50.dp),
+                                    tint = Color.Red.copy(green = 0.2f),
+                                    contentDescription = "Recorder icon"
+                                )
+//                                if (isRecording)
+//                                    Icon(
+//                                        imageVector = Icons.Filled.Stop,
+//                                        modifier = Modifier
+//                                            .clip(CircleShape)
+//                                            .border(
+//                                                width = 1.dp,
+//                                                color = Color.LightGray,
+//                                                shape = CircleShape
+//                                            )
+//                                            .size(50.dp),
+//                                        tint = Color.Red.copy(green = 0.2f),
+//                                        contentDescription = "Recorder icon"
+//                                    )
+//                                else
                             }
                         },
                         tonalElevation = 0.dp
@@ -558,6 +561,7 @@ fun PlaylistPagePreview() {
                 onStartPlayback = { _, _ ->
                 },
                 onNavigateToSettings = {},
+                onNavigateToRecorder = {},
                 onBackPressed = {},
                 progressSeconds = 0,
                 duration = 0.0f,

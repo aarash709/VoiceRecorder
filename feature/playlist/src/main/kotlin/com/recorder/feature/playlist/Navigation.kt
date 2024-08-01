@@ -7,18 +7,19 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
 
-const val RECORDING_ROUTE = "RECORDING_ROUTE"
+const val PLAYLIST_ROUTE = "PLAYLIST_ROUTE"
 
-fun NavController.toRecordings(navOptions: NavOptions? = null) {
-    navigate(RECORDING_ROUTE, navOptions)
+fun NavController.toPlaylist(navOptions: NavOptions? = null) {
+    navigate(PLAYLIST_ROUTE, navOptions)
 }
 
 fun NavGraphBuilder.playlist(
     onNavigateToSettings: () -> Unit,
+    onNavigateToRecorder: () -> Unit,
     onBackPressed: () -> Unit,
 ) {
     composable(
-        route = RECORDING_ROUTE,
+        route = PLAYLIST_ROUTE,
         enterTransition = {
             when (initialState.destination.route) {
                 else -> slideIntoContainer(
@@ -40,6 +41,7 @@ fun NavGraphBuilder.playlist(
 
         Playlist(
             onNavigateToSettings = { onNavigateToSettings() },
+            onNavigateToRecorder = { onNavigateToRecorder() },
             onBackPressed = { onBackPressed() },
         )
     }
