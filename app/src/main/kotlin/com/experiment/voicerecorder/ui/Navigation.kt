@@ -37,13 +37,18 @@ fun VoiceRecorderNavigation(
                     onNavigateToSettings = { navController.toSettings() },
                     onNavigateToRecorder = {
                         navController.toRecorder(navOptions = navOptions {
-                            launchSingleTop = true
-                            popUpTo(RECORDER_ROUTE)
+                            popUpTo(route = PLAYLIST_ROUTE, popUpToBuilder = { inclusive = true })
                         })
                     },
                     onBackPressed = { navController.popBackStack() },
                 )
-                recorder(onNavigateToPlaylist = { navController.toPlaylist() })
+                recorder(onNavigateToPlaylist = {
+                    navController.toPlaylist(
+                        navOptions = navOptions {
+                            popUpTo(route = RECORDER_ROUTE, popUpToBuilder = { inclusive = true })
+                        }
+                    )
+                })
                 settings(onNavigateBack = { navController.popBackStack() })
             }
         }
