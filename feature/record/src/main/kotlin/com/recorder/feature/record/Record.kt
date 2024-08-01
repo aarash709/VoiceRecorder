@@ -1,6 +1,11 @@
 package com.recorder.feature.record
 
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.content.ServiceConnection
 import android.content.res.Configuration
+import android.os.IBinder
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -27,8 +32,14 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
@@ -39,12 +50,15 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.recorder.core.designsystem.theme.VoiceRecorderTheme
+import com.recorder.service.RecorderService
+import com.recorder.service.RecorderService.Companion.RecordingState
 import kotlinx.coroutines.delay
 
 
@@ -56,6 +70,60 @@ fun Record(
     val recordTime by recordViewModel.formattedTimer.collectAsStateWithLifecycle()
     val isRecording by recordViewModel.isRecording.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val recordingTimer by recordViewModel.formattedTimer.collectAsStateWithLifecycle()
+    var recorderService: RecorderService? by remember {
+        mutableStateOf(null)
+    }
+    var isRecorderServiceBound by remember {
+        mutableStateOf(false)
+    }
+//    var isRecording by rememberSaveable {
+//        mutableStateOf(false)
+//    }
+    var lastRecordTime by rememberSaveable {
+        mutableLongStateOf(0)
+    }
+    val connection = remember {
+        object : ServiceConnection {
+            override fun onServiceConnected(p0: ComponentName?, binder: IBinder?) {
+                recorderService = (binder as RecorderService.LocalBinder).getRecorderService()
+                isRecorderServiceBound = true
+//                isRecording =
+//                    recorderService?.recordingState == RecordingState.Recording
+                lastRecordTime = recorderService?.getRecordingStartMillis() ?: 0L
+            }
+
+            override fun onServiceDisconnected(p0: ComponentName?) {
+//                isRecording =
+//                    recorderService?.recordingState == RecordingState.Recording
+                isRecorderServiceBound = false
+            }
+        }
+    }
+    DisposableEffect(key1 = LocalLifecycleOwner.current) {
+        if (!isRecorderServiceBound) {
+            Intent(context, RecorderService::class.java).apply {
+                context.bindService(this, connection, Context.BIND_AUTO_CREATE)
+            }
+        }
+        onDispose {
+            if (isRecorderServiceBound) {
+                context.unbindService(connection)
+            }
+        }
+    }
+    LaunchedEffect(isRecording) {
+        //updates ui timer on first composition if `isRecording` is true
+        //or fetch voice list after finished recording
+        if (isRecording) {
+//            recorderViewModel.updateRecordState(
+//                isRecording = true,
+//                currentTime = recorderService?.getRecordingStartMillis()
+//            )
+//        } else {
+//            playerViewModel.getVoices(context)
+        }
+    }
     RecordContent(
         modifier = Modifier
             .padding(16.dp),
