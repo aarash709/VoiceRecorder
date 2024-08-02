@@ -47,15 +47,16 @@ class RecordViewModel @Inject constructor() : ViewModel() {
             initialValue = 0L
         )
 
-    private val formatter = DateTimeFormatter.ofPattern("mm:ss")
+    private val formatter = DateTimeFormatter.ofPattern("mm:ss.S")
     val formattedTimer = currentRecordingSeconds.map { seconds ->
         Timber.e("timeS:$seconds")
-        val safeSeconds = if (seconds in 0..86399) seconds else 0
-        formatter.format(LocalTime.ofSecondOfDay(safeSeconds))
+        val safeSeconds = if (seconds in 0..86399) seconds else 0 //86399 is 24HRS
+        LocalTime.ofNanoOfDay(seconds+1_000_000).format(formatter)
+//        formatter.format(LocalTime.ofSecondOfDay(seconds))
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(1_000L),
-        initialValue = "00:00"
+        initialValue = "00:00.0"
     )
 
     init {
@@ -76,90 +77,7 @@ class RecordViewModel @Inject constructor() : ViewModel() {
     }
 
     private fun setTimer(isRecording: Boolean, currentTime: Long? = null) = flow {
-        var startMillis = currentTime ?: System.currentTimeMillis().milliseconds.inWholeSeconds
-        while (isRecording) {
-            val currentMillis = System.currentTimeMillis().milliseconds.inWholeSeconds
-            val elapsedTimeSinceStart =
-                if (currentMillis > startMillis)
-                    currentMillis - startMillis
-                else
-                    0L
-            emit(elapsedTimeSinceStart)
-            startMillis = System.currentTimeMillis().milliseconds.inWholeSeconds
-            delay(1000L)
-        }
-    }
-
-    private fun resetTimer() {
-        viewModelScope.launch {
-            _currentRecordingSeconds.update { 0 }
-        }
-    }
-    /*private var _isRecording = MutableStateFlow(false)
-    var isRecording = _isRecording.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(1_000L),
-        initialValue = false
-    )
-    private var _timerMillis = MutableStateFlow(0L)
-
-    private val timePattern = DateTimeFormatter.ofPattern("mm:ss")
-
-    val formattedTimer = _timerMillis.map { elapsedTime ->
-        LocalTime.ofNanoOfDay(elapsedTime * 1_000_000).format(timePattern)
-
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(1_000L),
-        initialValue = "00:00:00"
-    )
-
-    init {
-        _isRecording.flatMapLatest {
-            startTimer(it)
-        }.onEach { time ->
-            _timerMillis.update { it + time }
-        }.launchIn(viewModelScope)
-    }*/
-
-    /*fun onRecord(context: Context) {
-        if (_isRecording.value.not()) {
-            Intent(context, RecorderService::class.java).also {
-                it.action = "record"
-                context.startService(it)
-                _isRecording.update { true }
-            }
-        } else {
-            Intent(context, RecorderService::class.java).also {
-                it.action = "stop"
-                context.startService(it)
-                _isRecording.update { false }
-                resetTimer()
-            }
-        }
-    }
-
-    fun onPause(context: Context) {
-        if (_isRecording.value) {
-            Intent(context, RecorderService::class.java).also {
-                it.action = "pause"
-                context.startService(it)
-            }
-            _isRecording.update { false }
-            _timerMillis.update { it }
-        } else {
-            Intent(context, RecorderService::class.java).also {
-                it.action = "resume"
-                context.startService(it)
-                _isRecording.update { true }
-                startTimer(_isRecording.value, _timerMillis.value)
-            }
-        }
-    }
-
-    private fun startTimer(isRecording: Boolean, currentTime: Long? = null): Flow<Long> = flow {
         var startMillis = currentTime ?: System.currentTimeMillis()
-        Timber.e(isRecording.toString())
         while (isRecording) {
             val currentMillis = System.currentTimeMillis()
             val elapsedTimeSinceStart =
@@ -175,8 +93,8 @@ class RecordViewModel @Inject constructor() : ViewModel() {
 
     private fun resetTimer() {
         viewModelScope.launch {
-            _timerMillis.update { 0 }
+            _currentRecordingSeconds.update { 0 }
         }
-    }*/
+    }
 
 }
