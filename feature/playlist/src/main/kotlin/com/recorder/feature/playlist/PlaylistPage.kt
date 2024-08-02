@@ -60,7 +60,6 @@ import com.recorder.core.designsystem.theme.LocalSharedTransitionScope
 import com.recorder.core.designsystem.theme.VoiceRecorderTheme
 import com.recorder.feature.playlist.components.OptionsSheet
 import com.recorder.feature.playlist.components.PlaylistBottomSheet
-import com.recorder.feature.playlist.components.RecordingBottomSheet
 import kotlin.time.Duration.Companion.seconds
 
 @Composable
@@ -71,8 +70,6 @@ fun Playlist(
 ) {
     val context = LocalContext.current
     val playerViewModel = hiltViewModel<PlaylistViewModel>()
-    val recorderViewModel = hiltViewModel<RecordViewModel>()
-
     val voiceList by playerViewModel.voices.collectAsStateWithLifecycle()
 
     val playerState = rememberPlayerState()
@@ -80,56 +77,7 @@ fun Playlist(
     val isPlaying by playerState.isVoicePlaying.collectAsStateWithLifecycle()
     val progress by playerState.progress.collectAsStateWithLifecycle()
     val duration by playerState.voiceDuration.collectAsStateWithLifecycle()
-    //recorder state
-    val recordingTimer by recorderViewModel.formattedTimer.collectAsStateWithLifecycle()
-//    var recorderService: RecorderService? by remember {
-//        mutableStateOf(null)
-//    }
-//    var isRecorderServiceBound by remember {
-//        mutableStateOf(false)
-//    }
-//    var isRecording by rememberSaveable {
-//        mutableStateOf(false)
-//    }
-//    var lastRecordTime by rememberSaveable {
-//        mutableLongStateOf(0)
-//    }
-//    val connection = remember {
-//        object : ServiceConnection {
-//            override fun onServiceConnected(p0: ComponentName?, binder: IBinder?) {
-//                recorderService = (binder as RecorderService.LocalBinder).getRecorderService()
-//                isRecorderServiceBound = true
-//                isRecording =
-//                    recorderService?.recordingState == RecordingState.Recording
-//                lastRecordTime = recorderService?.getRecordingStartMillis() ?: 0L
-//            }
-//
-//            override fun onServiceDisconnected(p0: ComponentName?) {
-//                isRecording =
-//                    recorderService?.recordingState == RecordingState.Recording
-//                isRecorderServiceBound = false
-//            }
-//        }
-//    }
-//    val recorderState =
-//        rememberRecorderState(
-//            serviceConnection = connection,
-//            recorderService = recorderService,
-//            isServiceBound = isRecorderServiceBound
-//        )
-//    DisposableEffect(key1 = LocalLifecycleOwner.current) {
-//        if (!isRecorderServiceBound) {
-//            Intent(context, RecorderService::class.java).apply {
-//                context.bindService(this, connection, Context.BIND_AUTO_CREATE)
-//            }
-//        }
-//        onDispose {
-//            if (isRecorderServiceBound) {
-//                context.unbindService(connection)
-//            }
-//        }
-//    }
-    //
+
     var playingVoiceIndex by rememberSaveable(isPlaying, playerState.browser?.currentPosition) {
         mutableIntStateOf(
             if (isPlaying) {
@@ -149,18 +97,6 @@ fun Playlist(
             playerViewModel.getVoices(context)
         }
     }
-//    LaunchedEffect(isRecording) {
-//        //updates ui timer on first composition if `isRecording` is true
-//        //or fetch voice list after finished recording
-//        if (isRecording) {
-//            recorderViewModel.updateRecordState(
-//                isRecording = true,
-//                currentTime = recorderService?.getRecordingStartMillis()
-//            )
-//        } else {
-//            playerViewModel.getVoices(context)
-//        }
-//    }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -168,34 +104,9 @@ fun Playlist(
     ) {
         PlaylistContent(
             voices = voiceList,
+            isPlaying = isPlaying,
             duration = if (duration > 0f) duration else 0f,
             playbackSpeed = playerState.browser?.playbackParameters?.speed ?: 1.0f,
-//            isRecording = isRecording,
-            recordingTimer = recordingTimer,
-            onRecord = {
-//                recorderService?.let { service ->
-//                    val recordingState = service.recordingState
-//                    isRecording = recordingState != RecordingState.Recording
-//                    if (recordingState != RecordingState.Recording) {
-//                        Intent(context.applicationContext, RecorderService::class.java).apply {
-//                            context.startService(this)
-//                        }
-//                        service.startRecording(context)
-//                        service.setRecordingTimer(timeMillis = System.currentTimeMillis().milliseconds.inWholeSeconds)
-//                        recorderViewModel.updateRecordState(
-//                            isRecording = isRecording,
-//                            currentTime = service.recordingStartTimeMillis
-//                        )
-//                    } else {
-//                        service.stopRecording {
-//                            recorderViewModel.updateRecordState(
-//                                isRecording = isRecording,
-//                                currentTime = 0L
-//                            )
-//                        }
-//                    }
-//                }
-            },
             onSeekForward = {
                 if (isPlaying) {
                     browser?.run {
@@ -263,12 +174,10 @@ fun Playlist(
 @Composable
 fun PlaylistContent(
     voices: List<Voice>,
+    isPlaying: Boolean,
     progressSeconds: Long,
     playbackSpeed: Float,
     duration: Float,
-    isRecording: Boolean = false,
-    recordingTimer: String,
-    onRecord: () -> Unit,
     onPlayProgressChange: (Float) -> Unit,
     onPlaybackSpeedChange: (Float) -> Unit,
     onSeekForward: () -> Unit,
@@ -374,45 +283,14 @@ fun PlaylistContent(
                                             color = Color.LightGray,
                                             shape = CircleShape
                                         )
-                                        .clickable { onNavigateToRecorder() }
+                                        .clickable { if (!isPlaying) onNavigateToRecorder() }
                                         .size(60.dp),
                                     tint = Color.Red.copy(green = 0.2f),
                                     contentDescription = "Recorder icon"
                                 )
-//                                if (isRecording)
-//                                    Icon(
-//                                        imageVector = Icons.Filled.Stop,
-//                                        modifier = Modifier
-//                                            .clip(CircleShape)
-//                                            .border(
-//                                                width = 1.dp,
-//                                                color = Color.LightGray,
-//                                                shape = CircleShape
-//                                            )
-//                                            .size(50.dp),
-//                                        tint = Color.Red.copy(green = 0.2f),
-//                                        contentDescription = "Recorder icon"
-//                                    )
-//                                else
                             }
                         },
                         tonalElevation = 0.dp,
-                        floatingActionButton = {
-//                            Icon(
-//                                imageVector = Icons.Filled.Circle,
-//                                modifier = Modifier
-//                                    .clip(CircleShape)
-//                                    .border(
-//                                        width = 1.dp,
-//                                        color = Color.LightGray,
-//                                        shape = CircleShape
-//                                    )
-//                                    .clickable { onNavigateToRecorder() }
-//                                    .size(60.dp),
-//                                tint = Color.Red.copy(green = 0.2f),
-//                                contentDescription = "Recorder icon"
-//                            )
-                        },
                     )
             }
         ) { paddingValues ->
@@ -422,15 +300,9 @@ fun PlaylistContent(
                     .padding(paddingValues)
                     .nestedScroll(scrollBehavior.nestedScrollConnection),
             ) {
-                var showRecordingSheet by remember {
-                    mutableStateOf(false)
-                }
                 var showPlayItemOptionsSheet by remember {
                     mutableStateOf(false)
                 }
-//                LaunchedEffect(key1 = isRecording) {
-//                    showRecordingSheet = isRecording
-//                }
                 if (showPlayItemOptionsSheet) {
                     OptionsSheet(
                         onDismissRequest = { showPlayItemOptionsSheet = false },
@@ -453,14 +325,6 @@ fun PlaylistContent(
 
                     )
                 }
-                if (showRecordingSheet) {
-                    RecordingBottomSheet(
-                        recordingTimer = recordingTimer,
-                        title = "Now Recording",
-                        sheetState = sheetState,
-                        showRecordingSheet = { showRecordingSheet = it },
-                        onRecord = { onRecord() })
-                }
                 if (voices.isEmpty()) {
                     EmptyListMessage()
                 } else {
@@ -471,7 +335,7 @@ fun PlaylistContent(
                         itemsIndexed(
                             items = voices,
                             key = { index, _ -> index }) { index, voice ->
-                            val isExpanded by remember(voices) {
+                            val shouldExpand by remember(voices) {
                                 derivedStateOf {
                                     selectedVoice == voice.title
                                 }
@@ -509,17 +373,17 @@ fun PlaylistContent(
                                 voice = voice,
                                 progressSeconds = progressSeconds,
                                 duration = duration,
-                                shouldExpand = if (!isRecording) isExpanded else false,
+                                shouldExpand = shouldExpand,
                                 isSelected = isSelected,
                                 isInSelectionMode = isInSelectionMode,
                                 onProgressChange = { progress ->
                                     onPlayProgressChange(progress)
                                 },
                                 onPlay = { item ->
-                                    if (!isRecording) onStartPlayback(
+                                    onStartPlayback(
                                         index,
                                         item
-                                    ) /*else show snack bar cannot play while recording*/
+                                    )
                                 },
                                 onStop = { onStopPlayback() },
                                 onDeleteVoice = { onDeleteVoices(setOf(it)) },
@@ -533,7 +397,6 @@ fun PlaylistContent(
                 }
             }
         }
-
     }
 }
 
@@ -560,25 +423,23 @@ fun PlaylistPagePreview() {
         Surface(color = MaterialTheme.colorScheme.background) {
             PlaylistContent(
                 VoicesSampleData,
-                onRecord = {},
+                progressSeconds = 0,
+                isPlaying = false,
+                playbackSpeed = 0.5f,
+                duration = 0.0f,
+                onPlayProgressChange = {},
+                onPlaybackSpeedChange = {},
+                onSeekForward = {},
+                onSeekBack = {},
                 onStopPlayback = {},
                 onStartPlayback = { _, _ ->
                 },
                 onNavigateToSettings = {},
                 onNavigateToRecorder = {},
                 onBackPressed = {},
-                progressSeconds = 0,
-                duration = 0.0f,
-                isRecording = true,
-                recordingTimer = "00:01",
-                onPlayProgressChange = {},
                 onDeleteVoices = {},
                 onSaveVoiceFile = {},
                 rename = { _, _ -> },
-                onPlaybackSpeedChange = {},
-                playbackSpeed = 0.5f,
-                onSeekForward = {},
-                onSeekBack = {},
             )
         }
     }
