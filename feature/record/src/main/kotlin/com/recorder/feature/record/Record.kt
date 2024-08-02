@@ -6,15 +6,14 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.content.res.Configuration
 import android.os.IBinder
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,11 +22,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Circle
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.MicNone
+import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -42,6 +46,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -60,26 +65,25 @@ import com.recorder.core.designsystem.theme.VoiceRecorderTheme
 import com.recorder.service.RecorderService
 import com.recorder.service.RecorderService.Companion.RecordingState
 import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.milliseconds
 
 
 @Composable
 fun Record(
     onNavigateToPlaylist: () -> Unit,
 ) {
-    val recordViewModel: RecordViewModel = hiltViewModel()
-    val recordTime by recordViewModel.formattedTimer.collectAsStateWithLifecycle()
-    val isRecording by recordViewModel.isRecording.collectAsStateWithLifecycle()
+    val recorderViewModel: RecordViewModel = hiltViewModel()
     val context = LocalContext.current
-    val recordingTimer by recordViewModel.formattedTimer.collectAsStateWithLifecycle()
+    val recordingTimer by recorderViewModel.formattedTimer.collectAsStateWithLifecycle()
     var recorderService: RecorderService? by remember {
         mutableStateOf(null)
     }
     var isRecorderServiceBound by remember {
         mutableStateOf(false)
     }
-//    var isRecording by rememberSaveable {
-//        mutableStateOf(false)
-//    }
+    var isRecording by rememberSaveable {
+        mutableStateOf(false)
+    }
     var lastRecordTime by rememberSaveable {
         mutableLongStateOf(0)
     }
@@ -88,14 +92,14 @@ fun Record(
             override fun onServiceConnected(p0: ComponentName?, binder: IBinder?) {
                 recorderService = (binder as RecorderService.LocalBinder).getRecorderService()
                 isRecorderServiceBound = true
-//                isRecording =
-//                    recorderService?.recordingState == RecordingState.Recording
+                isRecording =
+                    recorderService?.recordingState == RecordingState.Recording
                 lastRecordTime = recorderService?.getRecordingStartMillis() ?: 0L
             }
 
             override fun onServiceDisconnected(p0: ComponentName?) {
-//                isRecording =
-//                    recorderService?.recordingState == RecordingState.Recording
+                isRecording =
+                    recorderService?.recordingState == RecordingState.Recording
                 isRecorderServiceBound = false
             }
         }
@@ -116,22 +120,41 @@ fun Record(
         //updates ui timer on first composition if `isRecording` is true
         //or fetch voice list after finished recording
         if (isRecording) {
-//            recorderViewModel.updateRecordState(
-//                isRecording = true,
-//                currentTime = recorderService?.getRecordingStartMillis()
-//            )
-//        } else {
-//            playerViewModel.getVoices(context)
+            recorderViewModel.updateRecordState(
+                isRecording = true,
+                currentTime = recorderService?.getRecordingStartMillis()
+            )
         }
     }
     RecordContent(
         modifier = Modifier
             .padding(16.dp),
         isRecording = isRecording,
-        recordingAllowed = true,
-        recordingTime = recordTime.toString(),
-        navigateToPlaylistEnabled = true,
-        onRecord = { recordViewModel.onRecord(context) },
+        recordingTime = recordingTimer,
+        onRecord = {
+            recorderService?.let { service ->
+                val recordingState = service.recordingState
+                isRecording = recordingState != RecordingState.Recording
+                if (recordingState != RecordingState.Recording) {
+                    Intent(context.applicationContext, RecorderService::class.java).apply {
+                        context.startService(this)
+                    }
+                    service.startRecording(context)
+                    service.setRecordingTimer(timeMillis = System.currentTimeMillis().milliseconds.inWholeSeconds)
+                    recorderViewModel.updateRecordState(
+                        isRecording = isRecording,
+                        currentTime = service.recordingStartTimeMillis
+                    )
+                } else {
+                    service.stopRecording {
+                        recorderViewModel.updateRecordState(
+                            isRecording = isRecording,
+                            currentTime = 0L
+                        )
+                    }
+                }
+            }
+        },
         onPlayListClicked = { onNavigateToPlaylist() }
     )
 }
@@ -140,9 +163,7 @@ fun Record(
 fun RecordContent(
     modifier: Modifier,
     isRecording: Boolean,
-    recordingAllowed: Boolean,
     recordingTime: String,
-    navigateToPlaylistEnabled: Boolean,
     onRecord: () -> Unit,
     onPlayListClicked: () -> Unit,
 ) {
@@ -154,35 +175,85 @@ fun RecordContent(
             haptics.performHapticFeedback(HapticFeedbackType.LongPress)
         }
     }
-    Box(modifier = Modifier.fillMaxSize() then modifier) {
-        //center
-        Column(modifier = Modifier.align(Alignment.Center)) {
-            AnimatedVisibility(
-                visible = isRecording,
-            ) {
-                RecordingTimer(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    recordingTime
-                )
-            }
-            RecordAudioButton(
+    Scaffold(modifier = modifier,
+        floatingActionButton = {
+            RecorderButton(
+                modifier = Modifier,
+                onRecord = { onRecord() },
+                isRecording = isRecording
+            )
+        },
+        floatingActionButtonPosition = FabPosition.Center,
+        bottomBar = {
+            NavigateToPlaylistButton(
                 modifier = Modifier
                     .fillMaxWidth(),
-                recordingAllowed = recordingAllowed,
-                isRecording = isRecording
+                isEnabled = !isRecording
             ) {
-                onRecord()
+                onPlayListClicked()
             }
-        }
-        //bottom
-        PlayListButton(
+        }) { padding ->
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.BottomCenter),
-            navigateToPlaylistEnabled = navigateToPlaylistEnabled
+                .fillMaxSize()
+                .padding(padding),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            onPlayListClicked()
+            RecordingTimer(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                recordingTime
+            )
+        }
+    }
+}
+
+@Composable
+private fun RecorderButton(
+    modifier: Modifier = Modifier,
+    onRecord: () -> Unit,
+    isRecording: Boolean,
+) {
+    Row(
+        modifier
+            .fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
+    ) {
+        IconButton(
+            modifier = Modifier
+                .size(60.dp),
+            onClick = { onRecord() }) {
+            if (!isRecording) {
+                Icon(
+                    imageVector = Icons.Filled.Circle,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(CircleShape)
+                        .border(
+                            width = 1.dp,
+                            color = Color.LightGray,
+                            shape = CircleShape
+                        ),
+                    tint = Color.Red.copy(green = 0.2f),
+                    contentDescription = "start recording icon"
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.Filled.Stop,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(CircleShape)
+                        .border(
+                            width = 1.dp,
+                            color = Color.LightGray,
+                            shape = CircleShape
+                        ),
+                    tint = Color.Red.copy(green = 0.2f),
+                    contentDescription = "stop recording icon"
+                )
+            }
         }
     }
 }
@@ -201,15 +272,15 @@ fun RecordingTimer(
         Text(
             text = time,
             fontSize = 40.sp,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = .75f)
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = .9f)
         )
     }
 }
 
 @Composable
-fun PlayListButton(
+fun NavigateToPlaylistButton(
     modifier: Modifier = Modifier,
-    navigateToPlaylistEnabled: Boolean,
+    isEnabled: Boolean,
     onListButtonClick: () -> Unit,
 ) {
     Row(
@@ -220,7 +291,7 @@ fun PlayListButton(
         TextButton(
             onClick = { onListButtonClick() },
             shape = CircleShape,
-            enabled = navigateToPlaylistEnabled
+            enabled = isEnabled
         ) {
             Icon(
                 imageVector = Icons.Default.List,
@@ -332,10 +403,7 @@ fun Prev() {
             RecordContent(
                 modifier = Modifier,
                 isRecording = false,
-                recordingAllowed = true,
                 recordingTime = "01",
-                navigateToPlaylistEnabled = true,
-//        "00",
                 onRecord = {},
                 onPlayListClicked = {})
         }

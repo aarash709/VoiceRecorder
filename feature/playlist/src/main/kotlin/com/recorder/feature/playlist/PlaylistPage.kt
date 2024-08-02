@@ -1,12 +1,7 @@
 package com.recorder.feature.playlist
 
-import android.content.ComponentName
-import android.content.Context
-import android.content.Intent
-import android.content.ServiceConnection
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
-import android.os.IBinder
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -28,7 +23,6 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Circle
-import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -39,12 +33,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -56,7 +48,6 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -70,9 +61,6 @@ import com.recorder.core.designsystem.theme.VoiceRecorderTheme
 import com.recorder.feature.playlist.components.OptionsSheet
 import com.recorder.feature.playlist.components.PlaylistBottomSheet
 import com.recorder.feature.playlist.components.RecordingBottomSheet
-import com.recorder.service.RecorderService
-import com.recorder.service.RecorderService.Companion.RecordingState
-import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 @Composable
@@ -240,7 +228,7 @@ fun Playlist(
                     play()
                 }
             },
-            onNavigateToSettings = { /*if (!isRecording) onNavigateToSettings()*/ },
+            onNavigateToSettings = { onNavigateToSettings() },
             onNavigateToRecorder = { onNavigateToRecorder() },
             onBackPressed = { onBackPressed() },
             progressSeconds = progress,
@@ -373,24 +361,24 @@ fun PlaylistContent(
                 else
                     BottomAppBar(
                         actions = {
-//                            Row(
-//                                modifier = Modifier.fillMaxWidth(),
-//                                horizontalArrangement = Arrangement.Center
-//                            ) {
-//                                Icon(
-//                                    imageVector = Icons.Filled.Circle,
-//                                    modifier = Modifier
-//                                        .clip(CircleShape)
-//                                        .border(
-//                                            width = 1.dp,
-//                                            color = Color.LightGray,
-//                                            shape = CircleShape
-//                                        )
-//                                        .clickable { onNavigateToRecorder() }
-//                                        .size(60.dp),
-//                                    tint = Color.Red.copy(green = 0.2f),
-//                                    contentDescription = "Recorder icon"
-//                                )
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.Circle,
+                                    modifier = Modifier
+                                        .clip(CircleShape)
+                                        .border(
+                                            width = 1.dp,
+                                            color = Color.LightGray,
+                                            shape = CircleShape
+                                        )
+                                        .clickable { onNavigateToRecorder() }
+                                        .size(60.dp),
+                                    tint = Color.Red.copy(green = 0.2f),
+                                    contentDescription = "Recorder icon"
+                                )
 //                                if (isRecording)
 //                                    Icon(
 //                                        imageVector = Icons.Filled.Stop,
@@ -406,7 +394,7 @@ fun PlaylistContent(
 //                                        contentDescription = "Recorder icon"
 //                                    )
 //                                else
-//                            }
+                            }
                         },
                         tonalElevation = 0.dp,
                         floatingActionButton = {
