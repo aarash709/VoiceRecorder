@@ -38,6 +38,7 @@ dependencies {
 
     implementation(project(":core:common"))
     implementation(project(":core:service"))
+    implementation(project(":core:datastore"))
     implementation(project(":core:designsystem"))
 
 

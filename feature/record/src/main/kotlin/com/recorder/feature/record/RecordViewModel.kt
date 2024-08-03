@@ -2,6 +2,7 @@ package com.recorder.feature.record
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.recorder.core.datastore.LocalUserSettings
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
@@ -23,7 +24,17 @@ import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
-class RecordViewModel @Inject constructor() : ViewModel() {
+class RecordViewModel @Inject constructor(
+    userSettingsData: LocalUserSettings,
+) : ViewModel() {
+
+    val qualitySetting = userSettingsData.getSettings().map {
+        it.recordingQuality.name + " quality"
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(1000L),
+        initialValue = ""
+    )
     private var _isRecording = MutableStateFlow(false)
     private var isRecording = _isRecording.stateIn(
         scope = viewModelScope,
@@ -48,7 +59,8 @@ class RecordViewModel @Inject constructor() : ViewModel() {
 
     private val formatter = DateTimeFormatter.ofPattern("mm:ss.S")
     val formattedTimer = currentRecordingSeconds.map { millis ->
-        val safeNanos = if (millis in 0..86399999999999) millis * 1_000_000 else 0 //86399999999999 is 24HRS
+        val safeNanos =
+            if (millis in 0..86399999999999) millis * 1_000_000 else 0 //86399999999999 is 24HRS
         LocalTime.ofNanoOfDay(safeNanos).format(formatter)
     }.stateIn(
         scope = viewModelScope,
@@ -66,6 +78,7 @@ class RecordViewModel @Inject constructor() : ViewModel() {
             _currentRecordingSeconds.update { it + currentSecond }
         }.launchIn(viewModelScope)
     }
+
     fun updateRecordState(isRecording: Boolean, currentTime: Long? = null) {
         viewModelScope.launch {
             _isRecording.update { isRecording }
@@ -94,5 +107,4 @@ class RecordViewModel @Inject constructor() : ViewModel() {
             _currentRecordingSeconds.update { 0 }
         }
     }
-
 }

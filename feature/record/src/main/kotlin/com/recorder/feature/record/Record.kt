@@ -30,11 +30,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.recorder.core.designsystem.theme.VoiceRecorderTheme
 import com.recorder.core.designsystem.theme.components.NavigateToPlaylistButton
@@ -53,6 +53,7 @@ fun Record(
     var recorderService: RecorderService? by remember {
         mutableStateOf(null)
     }
+    val qualitySetting by recorderViewModel.qualitySetting.collectAsStateWithLifecycle()
     var isRecorderServiceBound by remember {
         mutableStateOf(false)
     }
@@ -91,7 +92,7 @@ fun Record(
             }
         }
     }
-    LaunchedEffect(isRecording) {
+    LaunchedEffect(Unit) {
         //updates ui timer on first composition
         recorderViewModel.updateRecordState(
             isRecording = isRecording,
@@ -103,6 +104,7 @@ fun Record(
             .padding(16.dp),
         isRecording = isRecording,
         recordingTime = recordingTimer,
+        quality = qualitySetting,
         onRecord = {
             recorderService?.let { service ->
                 val recordingState = service.recordingState
@@ -136,6 +138,7 @@ fun RecordContent(
     modifier: Modifier,
     isRecording: Boolean,
     recordingTime: String,
+    quality: String,
     onRecord: () -> Unit,
     onPlayListClicked: () -> Unit,
 ) {
@@ -177,6 +180,7 @@ fun RecordContent(
                     .fillMaxWidth(),
                 recordingTime
             )
+            Text(text = quality, color = MaterialTheme.colorScheme.onSurface.copy(0.5f))
         }
     }
 }
@@ -194,8 +198,8 @@ fun RecordingTimer(
     ) {
         Text(
             text = time,
-            fontSize = 40.sp,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = .9f)
+            fontSize = 70.sp,
+            color = MaterialTheme.colorScheme.onSurface
         )
     }
 }
@@ -210,6 +214,7 @@ fun Prev() {
                 modifier = Modifier,
                 isRecording = false,
                 recordingTime = "01",
+                quality = "High quality",
                 onRecord = {},
                 onPlayListClicked = {})
         }
