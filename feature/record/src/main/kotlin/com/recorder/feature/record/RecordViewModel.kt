@@ -1,16 +1,14 @@
 package com.recorder.feature.record
 
-import android.content.Context
-import android.content.Intent
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.recorder.service.RecorderService
+import com.recorder.core.datastore.LocalUserSettings
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
@@ -26,73 +24,71 @@ import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
-class RecordViewModel @Inject constructor() : ViewModel() {
+class RecordViewModel @Inject constructor(
+    userSettingsData: LocalUserSettings,
+) : ViewModel() {
 
+    val qualitySetting = userSettingsData.getSettings().map {
+        it.recordingQuality.name + " quality"
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(1000L),
+        initialValue = ""
+    )
     private var _isRecording = MutableStateFlow(false)
-    var isRecording = _isRecording.stateIn(
+    private var isRecording = _isRecording.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(1_000L),
         initialValue = false
     )
-    private var _timerMillis = MutableStateFlow(0L)
 
-    private val timePattern = DateTimeFormatter.ofPattern("mm:ss")
+    private var _timeRecordingStarted = MutableStateFlow<Long?>(null)
+    private val timeRecordingStarted = _timeRecordingStarted.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(1_000L),
+        initialValue = 0L
+    )
 
-    val formattedTimer = _timerMillis.map { elapsedTime ->
-        LocalTime.ofNanoOfDay(elapsedTime * 1_000_000).format(timePattern)
+    private var _currentRecordingSeconds = MutableStateFlow(0L)
+    private val currentRecordingSeconds = _currentRecordingSeconds
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(1_000L),
+            initialValue = 0L
+        )
 
+    private val formatter = DateTimeFormatter.ofPattern("mm:ss.S")
+    val formattedTimer = currentRecordingSeconds.map { millis ->
+        val safeNanos =
+            if (millis in 0..86399999999999) millis * 1_000_000 else 0 //86399999999999 is 24HRS
+        LocalTime.ofNanoOfDay(safeNanos).format(formatter)
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(1_000L),
-        initialValue = "00:00:00"
+        initialValue = "00:00.0"
     )
 
     init {
-        _isRecording.flatMapLatest {
-            startTimer(it)
-        }.onEach { time ->
-            _timerMillis.update { it + time }
+        isRecording.combine(timeRecordingStarted) { isRecording, millis ->
+            if (!isRecording) resetTimer()
+            setTimer(isRecording, millis)
+        }.flatMapLatest {
+            it
+        }.onEach { currentSecond ->
+            _currentRecordingSeconds.update { it + currentSecond }
         }.launchIn(viewModelScope)
     }
 
-    fun onRecord(context: Context) {
-        if (_isRecording.value.not()) {
-            Intent(context, RecorderService::class.java).also {
-                it.action = "record"
-                context.startService(it)
-                _isRecording.update { true }
-            }
-        } else {
-            Intent(context, RecorderService::class.java).also {
-                it.action = "stop"
-                context.startService(it)
-                _isRecording.update { false }
-                resetTimer()
-            }
+    fun updateRecordState(isRecording: Boolean, currentTime: Long? = null) {
+        viewModelScope.launch {
+            _isRecording.update { isRecording }
+            _timeRecordingStarted.update { currentTime }
         }
     }
 
-    fun onPause(context: Context) {
-        if (_isRecording.value) {
-            Intent(context, RecorderService::class.java).also {
-                it.action = "pause"
-                context.startService(it)
-            }
-            _isRecording.update { false }
-            _timerMillis.update { it }
-        } else {
-            Intent(context, RecorderService::class.java).also {
-                it.action = "resume"
-                context.startService(it)
-                _isRecording.update { true }
-                startTimer(_isRecording.value, _timerMillis.value)
-            }
-        }
-    }
-
-    private fun startTimer(isRecording: Boolean, currentTime: Long? = null): Flow<Long> = flow {
+    private fun setTimer(isRecording: Boolean, currentTime: Long? = null) = flow {
+        Timber.e("timecur:$currentTime")
         var startMillis = currentTime ?: System.currentTimeMillis()
-        Timber.e(isRecording.toString())
         while (isRecording) {
             val currentMillis = System.currentTimeMillis()
             val elapsedTimeSinceStart =
@@ -108,8 +104,7 @@ class RecordViewModel @Inject constructor() : ViewModel() {
 
     private fun resetTimer() {
         viewModelScope.launch {
-            _timerMillis.update { 0 }
+            _currentRecordingSeconds.update { 0 }
         }
     }
-
 }

@@ -1,13 +1,9 @@
 package com.recorder.feature.playlist
 
-import android.content.ComponentName
-import android.content.Context
-import android.content.Intent
-import android.content.ServiceConnection
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
-import android.os.IBinder
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -27,7 +23,6 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Circle
-import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -38,12 +33,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -55,7 +48,6 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -64,24 +56,20 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import com.core.common.model.Voice
+import com.recorder.core.designsystem.theme.LocalSharedTransitionScope
 import com.recorder.core.designsystem.theme.VoiceRecorderTheme
 import com.recorder.feature.playlist.components.OptionsSheet
 import com.recorder.feature.playlist.components.PlaylistBottomSheet
-import com.recorder.feature.playlist.components.RecordingBottomSheet
-import com.recorder.service.RecorderService
-import com.recorder.service.RecorderService.Companion.RecordingState
-import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 @Composable
 fun Playlist(
     onNavigateToSettings: () -> Unit,
+    onNavigateToRecorder: () -> Unit,
     onBackPressed: () -> Unit,
 ) {
     val context = LocalContext.current
     val playerViewModel = hiltViewModel<PlaylistViewModel>()
-    val recorderViewModel = hiltViewModel<RecordViewModel>()
-
     val voiceList by playerViewModel.voices.collectAsStateWithLifecycle()
 
     val playerState = rememberPlayerState()
@@ -89,56 +77,7 @@ fun Playlist(
     val isPlaying by playerState.isVoicePlaying.collectAsStateWithLifecycle()
     val progress by playerState.progress.collectAsStateWithLifecycle()
     val duration by playerState.voiceDuration.collectAsStateWithLifecycle()
-    //recorder state
-    val recordingTimer by recorderViewModel.formattedTimer.collectAsStateWithLifecycle()
-    var recorderService: RecorderService? by remember {
-        mutableStateOf(null)
-    }
-    var isRecorderServiceBound by remember {
-        mutableStateOf(false)
-    }
-    var isRecording by rememberSaveable {
-        mutableStateOf(false)
-    }
-    var lastRecordTime by rememberSaveable {
-        mutableLongStateOf(0)
-    }
-    val connection = remember {
-        object : ServiceConnection {
-            override fun onServiceConnected(p0: ComponentName?, binder: IBinder?) {
-                recorderService = (binder as RecorderService.LocalBinder).getRecorderService()
-                isRecorderServiceBound = true
-                isRecording =
-                    recorderService?.recordingState == RecordingState.Recording
-                lastRecordTime = recorderService?.getRecordingStartMillis() ?: 0L
-            }
 
-            override fun onServiceDisconnected(p0: ComponentName?) {
-                isRecording =
-                    recorderService?.recordingState == RecordingState.Recording
-                isRecorderServiceBound = false
-            }
-        }
-    }
-//    val recorderState =
-//        rememberRecorderState(
-//            serviceConnection = connection,
-//            recorderService = recorderService,
-//            isServiceBound = isRecorderServiceBound
-//        )
-    DisposableEffect(key1 = LocalLifecycleOwner.current) {
-        if (!isRecorderServiceBound) {
-            Intent(context, RecorderService::class.java).apply {
-                context.bindService(this, connection, Context.BIND_AUTO_CREATE)
-            }
-        }
-        onDispose {
-            if (isRecorderServiceBound) {
-                context.unbindService(connection)
-            }
-        }
-    }
-    //
     var playingVoiceIndex by rememberSaveable(isPlaying, playerState.browser?.currentPosition) {
         mutableIntStateOf(
             if (isPlaying) {
@@ -158,18 +97,6 @@ fun Playlist(
             playerViewModel.getVoices(context)
         }
     }
-    LaunchedEffect(isRecording) {
-        //updates ui timer on first composition if `isRecording` is true
-        //or fetch voice list after finished recording
-        if (isRecording) {
-            recorderViewModel.updateRecordState(
-                isRecording = true,
-                currentTime = recorderService?.getRecordingStartMillis()
-            )
-        } else {
-            playerViewModel.getVoices(context)
-        }
-    }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -177,34 +104,9 @@ fun Playlist(
     ) {
         PlaylistContent(
             voices = voiceList,
+            isPlaying = isPlaying,
             duration = if (duration > 0f) duration else 0f,
             playbackSpeed = playerState.browser?.playbackParameters?.speed ?: 1.0f,
-            isRecording = isRecording,
-            recordingTimer = recordingTimer,
-            onRecord = {
-                recorderService?.let { service ->
-                    val recordingState = service.recordingState
-                    isRecording = recordingState != RecordingState.Recording
-                    if (recordingState != RecordingState.Recording) {
-                        Intent(context.applicationContext, RecorderService::class.java).apply {
-                            context.startService(this)
-                        }
-                        service.startRecording(context)
-                        service.setRecordingTimer(timeMillis = System.currentTimeMillis().milliseconds.inWholeSeconds)
-                        recorderViewModel.updateRecordState(
-                            isRecording = isRecording,
-                            currentTime = service.recordingStartTimeMillis
-                        )
-                    } else {
-                        service.stopRecording {
-                            recorderViewModel.updateRecordState(
-                                isRecording = isRecording,
-                                currentTime = 0L
-                            )
-                        }
-                    }
-                }
-            },
             onSeekForward = {
                 if (isPlaying) {
                     browser?.run {
@@ -237,7 +139,8 @@ fun Playlist(
                     play()
                 }
             },
-            onNavigateToSettings = { if (!isRecording) onNavigateToSettings() },
+            onNavigateToSettings = { onNavigateToSettings() },
+            onNavigateToRecorder = { onNavigateToRecorder() },
             onBackPressed = { onBackPressed() },
             progressSeconds = progress,
             onPlayProgressChange = { _ ->
@@ -266,17 +169,15 @@ fun Playlist(
 
 @OptIn(
     ExperimentalMaterial3Api::class,
-    ExperimentalFoundationApi::class
+    ExperimentalFoundationApi::class, ExperimentalSharedTransitionApi::class
 )
 @Composable
 fun PlaylistContent(
     voices: List<Voice>,
+    isPlaying: Boolean,
     progressSeconds: Long,
     playbackSpeed: Float,
     duration: Float,
-    isRecording: Boolean,
-    recordingTimer: String,
-    onRecord: () -> Unit,
     onPlayProgressChange: (Float) -> Unit,
     onPlaybackSpeedChange: (Float) -> Unit,
     onSeekForward: () -> Unit,
@@ -284,11 +185,14 @@ fun PlaylistContent(
     onStopPlayback: () -> Unit,
     onStartPlayback: (Int, Voice) -> Unit,
     onNavigateToSettings: () -> Unit,
+    onNavigateToRecorder: () -> Unit,
     onBackPressed: () -> Unit,
     onDeleteVoices: (Set<String>) -> Unit,
     onSaveVoiceFile: () -> Unit,
     rename: (current: String, desired: String) -> Unit,
 ) {
+    val sharedElementScope = LocalSharedTransitionScope.current
+        ?: throw IllegalStateException("no shared element scope found")
     var selectedVoices by remember {
         mutableStateOf(emptySet<String>())
     }
@@ -335,56 +239,41 @@ fun PlaylistContent(
             selectedVoices = emptySet()
         }
     }
-    Scaffold(
-        modifier = Modifier,
-        contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        topBar = {
-            PlaylistTopBar(
-                isInEditMode = isInSelectionMode,
-                selectedVoices = selectedVoices,
-                scrollBehavior = scrollBehavior,
-                onIsAllSelected = { isAllSelected = !isAllSelected },
-                onSelectedVoiceUpdate = { selectedVoices = emptySet() },
-                onNavigateToSettings = { onNavigateToSettings() },
-                onBackPressed = { onBackPressed() },
-            )
-        },
-        bottomBar = {
-            if (isInSelectionMode)
-                PlaylistBottomBar(
-                    isInEditMode = true,
-                    showRenameButton = showRenameButton,
+    with(sharedElementScope) {
+        Scaffold(
+            modifier = Modifier,
+            contentWindowInsets = WindowInsets(0, 0, 0, 0),
+            topBar = {
+                PlaylistTopBar(
+                    isInEditMode = isInSelectionMode,
                     selectedVoices = selectedVoices,
-                    onShowRenameSheet = { showRenameSheet = it },
-                    renameTextFieldValue = { renameTextFieldValue = it },
-                    onDeleteVoices = {
-                        onDeleteVoices(it)
-                        selectedVoices = emptySet()
-                    }
+                    scrollBehavior = scrollBehavior,
+                    onIsAllSelected = { isAllSelected = !isAllSelected },
+                    onSelectedVoiceUpdate = { selectedVoices = emptySet() },
+                    onNavigateToSettings = { onNavigateToSettings() },
+                    onBackPressed = { onBackPressed() },
                 )
-            else
-                BottomAppBar(
-                    actions = {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            if (isRecording)
-                                Icon(
-                                    imageVector = Icons.Filled.Stop,
-                                    modifier = Modifier
-                                        .clip(CircleShape)
-                                        .border(
-                                            width = 1.dp,
-                                            color = Color.LightGray,
-                                            shape = CircleShape
-                                        )
-                                        .clickable { onRecord() }
-                                        .size(50.dp),
-                                    tint = Color.Red.copy(green = 0.2f),
-                                    contentDescription = "Recorder icon"
-                                )
-                            else
+            },
+            bottomBar = {
+                if (isInSelectionMode)
+                    PlaylistBottomBar(
+                        isInEditMode = true,
+                        showRenameButton = showRenameButton,
+                        selectedVoices = selectedVoices,
+                        onShowRenameSheet = { showRenameSheet = it },
+                        renameTextFieldValue = { renameTextFieldValue = it },
+                        onDeleteVoices = {
+                            onDeleteVoices(it)
+                            selectedVoices = emptySet()
+                        }
+                    )
+                else
+                    BottomAppBar(
+                        actions = {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.Center
+                            ) {
                                 Icon(
                                     imageVector = Icons.Filled.Circle,
                                     modifier = Modifier
@@ -394,129 +283,116 @@ fun PlaylistContent(
                                             color = Color.LightGray,
                                             shape = CircleShape
                                         )
-                                        .clickable { onRecord() }
-                                        .size(50.dp),
+                                        .clickable { if (!isPlaying) onNavigateToRecorder() }
+                                        .size(60.dp),
                                     tint = Color.Red.copy(green = 0.2f),
                                     contentDescription = "Recorder icon"
                                 )
+                            }
+                        },
+                        tonalElevation = 0.dp,
+                    )
+            }
+        ) { paddingValues ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .nestedScroll(scrollBehavior.nestedScrollConnection),
+            ) {
+                var showPlayItemOptionsSheet by remember {
+                    mutableStateOf(false)
+                }
+                if (showPlayItemOptionsSheet) {
+                    OptionsSheet(
+                        onDismissRequest = { showPlayItemOptionsSheet = false },
+                        playbackSpeed = playbackSpeed,
+                        onPlaybackSpeedChange = { onPlaybackSpeedChange(it) }
+                    )
+                }
+                if (showRenameSheet) {
+                    PlaylistBottomSheet(
+                        focusRequester = focusRequester,
+                        sheetState = sheetState,
+                        selectedVoices = selectedVoices,
+                        showRenameSheet = { showRenameSheet = it },
+                        renameTextFieldValue = renameTextFieldValue,
+                        onTextFieldValueChange = { renameTextFieldValue = it },
+                        rename = { current, desired ->
+                            rename(current, desired)
+                            selectedVoices = emptySet()
                         }
-                    },
-                    tonalElevation = 0.dp
-                )
-        }
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .nestedScroll(scrollBehavior.nestedScrollConnection),
-        ) {
-            var showRecordingSheet by remember {
-                mutableStateOf(false)
-            }
-            var showPlayItemOptionsSheet by remember {
-                mutableStateOf(false)
-            }
-            LaunchedEffect(key1 = isRecording) {
-                showRecordingSheet = isRecording
-            }
-            if (showPlayItemOptionsSheet) {
-                OptionsSheet(
-                    onDismissRequest = { showPlayItemOptionsSheet = false },
-                    playbackSpeed = playbackSpeed,
-                    onPlaybackSpeedChange = { onPlaybackSpeedChange(it) }
-                )
-            }
-            if (showRenameSheet) {
-                PlaylistBottomSheet(
-                    focusRequester = focusRequester,
-                    sheetState = sheetState,
-                    selectedVoices = selectedVoices,
-                    showRenameSheet = { showRenameSheet = it },
-                    renameTextFieldValue = renameTextFieldValue,
-                    onTextFieldValueChange = { renameTextFieldValue = it },
-                    rename = { current, desired ->
-                        rename(current, desired)
-                        selectedVoices = emptySet()
-                    }
 
-                )
-            }
-            if (showRecordingSheet) {
-                RecordingBottomSheet(
-                    recordingTimer = recordingTimer,
-                    title = "Now Recording",
-                    sheetState = sheetState,
-                    showRecordingSheet = { showRecordingSheet = it },
-                    onRecord = { onRecord() })
-            }
-            if (voices.isEmpty()) {
-                EmptyListMessage()
-            } else {
-                LazyColumn(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    itemsIndexed(
-                        items = voices,
-                        key = { index, _ -> index }) { index, voice ->
-                        val isExpanded by remember(voices) {
-                            derivedStateOf {
-                                selectedVoice == voice.title
-                            }
-                        }
-                        val isSelected by remember(voices) {
-                            derivedStateOf {
-                                voice.title in selectedVoices
-                            }
-                        }
-                        PlaylistItem(
-                            modifier =
-                            if (isInSelectionMode) {
-                                Modifier.clickable {
-                                    if (isSelected)
-                                        selectedVoices -= voice.title
-                                    else selectedVoices += voice.title
+                    )
+                }
+                if (voices.isEmpty()) {
+                    EmptyListMessage()
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        itemsIndexed(
+                            items = voices,
+                            key = { index, _ -> index }) { index, voice ->
+                            val shouldExpand by remember(voices) {
+                                derivedStateOf {
+                                    selectedVoice == voice.title
                                 }
-                            } else {
-                                Modifier.combinedClickable(
-                                    onLongClick = {
-                                        if (!voice.isPlaying) {
-                                            selectedVoice = "" //shrink item first
-                                            selectedVoices += voices[index].title
-                                        }
-                                    },
-                                    onClick = {
-                                        selectedVoice = if (selectedVoice == voice.title) {
-                                            Voice().title //empty string; shrinks current expanded item
-                                        } else {
-                                            voice.title
-                                        }
+                            }
+                            val isSelected by remember(voices) {
+                                derivedStateOf {
+                                    voice.title in selectedVoices
+                                }
+                            }
+                            PlaylistItem(
+                                modifier =
+                                if (isInSelectionMode) {
+                                    Modifier.clickable {
+                                        if (isSelected)
+                                            selectedVoices -= voice.title
+                                        else selectedVoices += voice.title
                                     }
-                                )
-                            },
-                            voice = voice,
-                            progressSeconds = progressSeconds,
-                            duration = duration,
-                            shouldExpand = if (!isRecording) isExpanded else false,
-                            isSelected = isSelected,
-                            isInSelectionMode = isInSelectionMode,
-                            onProgressChange = { progress ->
-                                onPlayProgressChange(progress)
-                            },
-                            onPlay = { item ->
-                                if (!isRecording) onStartPlayback(
-                                    index,
-                                    item
-                                ) /*else show snack bar cannot play while recording*/
-                            },
-                            onStop = { onStopPlayback() },
-                            onDeleteVoice = { onDeleteVoices(setOf(it)) },
-                            onPlaybackOptions = { showPlayItemOptionsSheet = true },
-                            onItemActions = {},
-                            onSeekForward = { onSeekForward() },
-                            onSeekBack = { onSeekBack() },
-                        )
+                                } else {
+                                    Modifier.combinedClickable(
+                                        onLongClick = {
+                                            if (!voice.isPlaying) {
+                                                selectedVoice = "" //shrink item first
+                                                selectedVoices += voices[index].title
+                                            }
+                                        },
+                                        onClick = {
+                                            selectedVoice = if (selectedVoice == voice.title) {
+                                                Voice().title //empty string; shrinks current expanded item
+                                            } else {
+                                                voice.title
+                                            }
+                                        }
+                                    )
+                                },
+                                voice = voice,
+                                progressSeconds = progressSeconds,
+                                duration = duration,
+                                shouldExpand = shouldExpand,
+                                isSelected = isSelected,
+                                isInSelectionMode = isInSelectionMode,
+                                onProgressChange = { progress ->
+                                    onPlayProgressChange(progress)
+                                },
+                                onPlay = { item ->
+                                    onStartPlayback(
+                                        index,
+                                        item
+                                    )
+                                },
+                                onStop = { onStopPlayback() },
+                                onDeleteVoice = { onDeleteVoices(setOf(it)) },
+                                onPlaybackOptions = { showPlayItemOptionsSheet = true },
+                                onItemActions = {},
+                                onSeekForward = { onSeekForward() },
+                                onSeekBack = { onSeekBack() },
+                            )
+                        }
                     }
                 }
             }
@@ -547,24 +423,23 @@ fun PlaylistPagePreview() {
         Surface(color = MaterialTheme.colorScheme.background) {
             PlaylistContent(
                 VoicesSampleData,
-                onRecord = {},
+                progressSeconds = 0,
+                isPlaying = false,
+                playbackSpeed = 0.5f,
+                duration = 0.0f,
+                onPlayProgressChange = {},
+                onPlaybackSpeedChange = {},
+                onSeekForward = {},
+                onSeekBack = {},
                 onStopPlayback = {},
                 onStartPlayback = { _, _ ->
                 },
                 onNavigateToSettings = {},
+                onNavigateToRecorder = {},
                 onBackPressed = {},
-                progressSeconds = 0,
-                duration = 0.0f,
-                isRecording = true,
-                recordingTimer = "00:01",
-                onPlayProgressChange = {},
                 onDeleteVoices = {},
                 onSaveVoiceFile = {},
                 rename = { _, _ -> },
-                onPlaybackSpeedChange = {},
-                playbackSpeed = 0.5f,
-                onSeekForward = {},
-                onSeekBack = {},
             )
         }
     }

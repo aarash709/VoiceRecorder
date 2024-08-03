@@ -1,4 +1,4 @@
-package com.recorder.feature.playlist
+package com.recorder.feature.record
 
 import android.content.Context
 import android.content.Intent
