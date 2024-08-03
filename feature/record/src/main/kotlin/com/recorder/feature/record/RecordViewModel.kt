@@ -20,7 +20,6 @@ import timber.log.Timber
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
-import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -32,7 +31,7 @@ class RecordViewModel @Inject constructor() : ViewModel() {
         initialValue = false
     )
 
-    private var _timeRecordingStarted = MutableStateFlow(0L)
+    private var _timeRecordingStarted = MutableStateFlow<Long?>(null)
     private val timeRecordingStarted = _timeRecordingStarted.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(1_000L),
@@ -48,11 +47,9 @@ class RecordViewModel @Inject constructor() : ViewModel() {
         )
 
     private val formatter = DateTimeFormatter.ofPattern("mm:ss.S")
-    val formattedTimer = currentRecordingSeconds.map { seconds ->
-        Timber.e("timeS:$seconds")
-        val safeSeconds = if (seconds in 0..86399) seconds else 0 //86399 is 24HRS
-        LocalTime.ofNanoOfDay(seconds+1_000_000).format(formatter)
-//        formatter.format(LocalTime.ofSecondOfDay(seconds))
+    val formattedTimer = currentRecordingSeconds.map { millis ->
+        val safeNanos = if (millis in 0..86399999999999) millis * 1_000_000 else 0 //86399999999999 is 24HRS
+        LocalTime.ofNanoOfDay(safeNanos).format(formatter)
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(1_000L),
@@ -60,9 +57,9 @@ class RecordViewModel @Inject constructor() : ViewModel() {
     )
 
     init {
-        isRecording.combine(timeRecordingStarted) { isRecording, seconds ->
+        isRecording.combine(timeRecordingStarted) { isRecording, millis ->
             if (!isRecording) resetTimer()
-            setTimer(isRecording, seconds)
+            setTimer(isRecording, millis)
         }.flatMapLatest {
             it
         }.onEach { currentSecond ->
@@ -72,11 +69,12 @@ class RecordViewModel @Inject constructor() : ViewModel() {
     fun updateRecordState(isRecording: Boolean, currentTime: Long? = null) {
         viewModelScope.launch {
             _isRecording.update { isRecording }
-            _timeRecordingStarted.update { currentTime ?: 0L }
+            _timeRecordingStarted.update { currentTime }
         }
     }
 
     private fun setTimer(isRecording: Boolean, currentTime: Long? = null) = flow {
+        Timber.e("timecur:$currentTime")
         var startMillis = currentTime ?: System.currentTimeMillis()
         while (isRecording) {
             val currentMillis = System.currentTimeMillis()

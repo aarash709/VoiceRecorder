@@ -65,7 +65,6 @@ import com.recorder.core.designsystem.theme.VoiceRecorderTheme
 import com.recorder.service.RecorderService
 import com.recorder.service.RecorderService.Companion.RecordingState
 import kotlinx.coroutines.delay
-import kotlin.time.Duration.Companion.milliseconds
 
 
 @Composable
@@ -117,14 +116,11 @@ fun Record(
         }
     }
     LaunchedEffect(isRecording) {
-        //updates ui timer on first composition if `isRecording` is true
-        //or fetch voice list after finished recording
-        if (isRecording) {
-            recorderViewModel.updateRecordState(
-                isRecording = true,
-                currentTime = recorderService?.getRecordingStartMillis()
-            )
-        }
+        //updates ui timer on first composition
+        recorderViewModel.updateRecordState(
+            isRecording = isRecording,
+            currentTime = recorderService?.getRecordingStartMillis()
+        )
     }
     RecordContent(
         modifier = Modifier
@@ -139,8 +135,8 @@ fun Record(
                     Intent(context.applicationContext, RecorderService::class.java).apply {
                         context.startService(this)
                     }
-                    service.startRecording(context)
-                    service.setRecordingTimer(timeMillis = System.currentTimeMillis().milliseconds.inWholeSeconds)
+                    service.startRecording(context = context)
+                    service.setRecordingTimer(timeMillis = System.currentTimeMillis())
                     recorderViewModel.updateRecordState(
                         isRecording = isRecording,
                         currentTime = service.recordingStartTimeMillis
