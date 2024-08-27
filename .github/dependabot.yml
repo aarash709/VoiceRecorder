@@ -9,9 +9,10 @@ updates:
     directory: "/" # Location of package manifests
     labels: [ "version update" ]
     groups:
-      kotlin:
+      kotlin-ksp:
         patterns:
           - "org.jetbrains.kotlin:*"
+          - "com.google.devtools.ksp"
       android-plugins:
         patterns:
           - "com.android.*"
