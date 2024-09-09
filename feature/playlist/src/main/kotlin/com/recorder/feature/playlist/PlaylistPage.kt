@@ -329,7 +329,7 @@ fun PlaylistContent(
                     EmptyListMessage()
                 } else {
                     LazyColumn(
-                        modifier = Modifier.padding(horizontal = 16.dp),
+                        modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         itemsIndexed(
