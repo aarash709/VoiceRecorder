@@ -6,9 +6,7 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 @ExperimentalPermissionsApi
 @Composable
 fun RecorderApp() {
-    VoiceRecorderPermissionsHandler {
-        VoiceRecorderNavigation()
-    }
+    VoiceRecorderNavigation()
 }
 
 
