@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.compose)
     alias(libs.plugins.hilt)
     alias(libs.plugins.kotlinx.ksp)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -22,9 +23,6 @@ android {
 
     buildFeatures{
         compose =  true
-    }
-    composeCompiler{
-        enableStrongSkippingMode = true
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17

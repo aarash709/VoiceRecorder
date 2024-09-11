@@ -6,16 +6,17 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
+import kotlinx.serialization.Serializable
 
-const val SETTINGS_ROUTE = "SETTINGS_ROUTE"
+@Serializable
+object SettingsRoute
 
 fun NavController.toSettings(navOptions: NavOptions? = null) {
-    navigate(SETTINGS_ROUTE, navOptions)
+    navigate(SettingsRoute, navOptions)
 }
 
 fun NavGraphBuilder.settings(onNavigateBack: () -> Unit) {
-    composable(
-        route = SETTINGS_ROUTE,
+    composable<SettingsRoute>(
         enterTransition = {
             slideIntoContainer(
                 towards = AnimatedContentTransitionScope.SlideDirection.Left,

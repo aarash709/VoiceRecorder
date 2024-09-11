@@ -2,19 +2,17 @@ package com.experiment.voicerecorder.ui
 
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
-import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navOptions
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.recorder.core.designsystem.theme.LocalSharedTransitionScope
-import com.recorder.feature.playlist.PLAYLIST_ROUTE
+import com.recorder.feature.playlist.PlaylistRoute
 import com.recorder.feature.playlist.playlist
 import com.recorder.feature.playlist.toPlaylist
-import com.recorder.feature.record.RECORDER_ROUTE
+import com.recorder.feature.record.RecorderRoute
 import com.recorder.feature.record.recorder
 import com.recorder.feature.record.toRecorder
 import com.recorder.feature.settings.settings
@@ -31,13 +29,13 @@ fun VoiceRecorderNavigation(
         CompositionLocalProvider(value = LocalSharedTransitionScope provides this) {
             NavHost(
                 navController = navController,
-                startDestination = PLAYLIST_ROUTE
+                startDestination = PlaylistRoute
             ) {
                 playlist(
                     onNavigateToSettings = { navController.toSettings() },
                     onNavigateToRecorder = {
                         navController.toRecorder(navOptions = navOptions {
-                            popUpTo(route = PLAYLIST_ROUTE, popUpToBuilder = { inclusive = true })
+                            popUpTo(route = PlaylistRoute, popUpToBuilder = { inclusive = true })
                         })
                     },
                     onBackPressed = { navController.popBackStack() },
@@ -45,7 +43,7 @@ fun VoiceRecorderNavigation(
                 recorder(onNavigateToPlaylist = {
                     navController.toPlaylist(
                         navOptions = navOptions {
-                            popUpTo(route = RECORDER_ROUTE, popUpToBuilder = { inclusive = true })
+                            popUpTo(route = RecorderRoute, popUpToBuilder = { inclusive = true })
                         }
                     )
                 })
