@@ -4,9 +4,9 @@ import android.Manifest
 import android.os.Build
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.Button
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Modifier
@@ -113,10 +113,10 @@ fun VoiceRecorderPermissionsHandler(
                     permission.status.shouldShowRationale -> {
                         Column(modifier = Modifier.fillMaxSize()) {
                             Text(text = "accept write ratianale",
-                                color = MaterialTheme.colors.onSurface)
+                                color = MaterialTheme.colorScheme.onSurface)
                             Button(onClick = { permission.launchPermissionRequest() }) {
                                 Text(text = "grant permission",
-                                    color = MaterialTheme.colors.onSurface)
+                                    color = MaterialTheme.colorScheme.onSurface)
                             }
                         }
 
@@ -127,7 +127,7 @@ fun VoiceRecorderPermissionsHandler(
                         Text(text = "Write permission was permanently" +
                                 "denied. You can enable it in the app" +
                                 "settings.",
-                            color = MaterialTheme.colors.onSurface)
+                            color = MaterialTheme.colorScheme.onSurface)
                 }
             Manifest.permission.RECORD_AUDIO ->
                 when {
@@ -137,10 +137,10 @@ fun VoiceRecorderPermissionsHandler(
                     permission.status.shouldShowRationale -> {
                         Column(modifier = Modifier.fillMaxSize()) {
                             Text(text = "accept record ratianale",
-                                color = MaterialTheme.colors.onSurface)
+                                color = MaterialTheme.colorScheme.onSurface)
                             Button(onClick = { permission.launchPermissionRequest() }) {
                                 Text(text = "grant permission",
-                                    color = MaterialTheme.colors.onSurface)
+                                    color = MaterialTheme.colorScheme.onSurface)
                             }
                         }
 
@@ -152,7 +152,7 @@ fun VoiceRecorderPermissionsHandler(
                         Text(text = "Record audio permission was permanently" +
                                 "denied. You can enable it in the app" +
                                 "settings.",
-                            color = MaterialTheme.colors.onSurface)
+                            color = MaterialTheme.colorScheme.onSurface)
                 }
         }
     }
