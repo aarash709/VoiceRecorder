@@ -26,9 +26,11 @@ object ServiceModule {
         return MediaRecorder(context)
 
     }
-//    @AndroidSDK30MediaRecorder
+
+    //    @AndroidSDK30MediaRecorder
     @Provides
     fun providesMediaRecorderForAndroidR(): MediaRecorder {
+        @Suppress("DEPRECATION")
         return MediaRecorder()
     }
 
@@ -36,8 +38,7 @@ object ServiceModule {
     fun providesNotificationManager(
         @ApplicationContext context: Context,
     ): NotificationManager {
-        return context.
-        getSystemService(NotificationManager::class.java) as NotificationManager
+        return context.getSystemService(NotificationManager::class.java) as NotificationManager
     }
 }
 
