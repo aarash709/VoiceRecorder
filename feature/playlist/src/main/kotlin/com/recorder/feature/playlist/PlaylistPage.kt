@@ -368,15 +368,16 @@ fun PlaylistContent(
                                     )
                                 },
                                 voice = voice,
+                                isPlaying = isPlaying,
                                 progressSeconds = progressSeconds,
                                 duration = duration,
                                 shouldExpand = shouldExpand,
                                 isSelected = isSelected,
                                 isInSelectionMode = isInSelectionMode,
-                                onPlay = { item ->
+                                onPlay = {
                                     onStartPlayback(
                                         index,
-                                        item
+                                        voice
                                     )
                                 },
                                 onStop = { onStopPlayback() },

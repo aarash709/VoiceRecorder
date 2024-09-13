@@ -52,12 +52,13 @@ import kotlin.time.Duration.Companion.seconds
 fun PlaylistItem(
     modifier: Modifier = Modifier,
     voice: Voice,
+    isPlaying: Boolean,
     progressSeconds: Long,
     duration: Float,
     shouldExpand: Boolean,
     isSelected: Boolean,
     isInSelectionMode: Boolean,
-    onPlay: (Voice) -> Unit,
+    onPlay: () -> Unit,
     onSeekForward: () -> Unit,
     onSeekBack: () -> Unit,
     onStop: () -> Unit,
@@ -65,7 +66,7 @@ fun PlaylistItem(
     onPlaybackOptions: () -> Unit,
     onItemActions: () -> Unit,
 ) {
-    val isPlaying = voice.isPlaying
+//    val isPlaying = isPlaying
     Surface(
         modifier = Modifier
             .animateContentSize()
@@ -156,7 +157,7 @@ fun PlaylistItem(
                                 contentDescription = "playback options icon"
                             )
                         }
-                        PlaybackControls(voice = voice, onStop = onStop, onPlay = onPlay,
+                        PlaybackControls(isPlaying = isPlaying, onStop = onStop, onPlay = onPlay,
                             onSeekForward = { onSeekForward() },
                             onSeekBack = { onSeekBack() })
                         IconButton(onClick = { onDeleteVoice(voice.title) }, enabled = !isPlaying) {
@@ -195,19 +196,19 @@ fun PlayerSlider(value: Float, duration: Float) {
 
 @Composable
 private fun PlaybackControls(
-    voice: Voice,
+    isPlaying: Boolean,
     onStop: () -> Unit,
-    onPlay: (Voice) -> Unit,
+    onPlay: () -> Unit,
     onSeekForward: () -> Unit,
     onSeekBack: () -> Unit,
 ) {
     AnimatedContent(
-        targetState = voice.isPlaying,
+        targetState = isPlaying,
         transitionSpec = { fadeIn(tween(0)) togetherWith fadeOut(tween(0)) },
         label = "Play-Pause"
     ) { isPlaying ->
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            IconButton(onClick = { onSeekBack() }, enabled = voice.isPlaying) {
+            IconButton(onClick = { onSeekBack() }, enabled = isPlaying) {
                 Icon(
                     imageVector = Icons.Default.Replay10,
                     modifier = Modifier.size(28.dp),
@@ -224,7 +225,7 @@ private fun PlaybackControls(
                     )
                 }
             } else {
-                IconButton(onClick = { onPlay(voice) }) {
+                IconButton(onClick = { onPlay() }) {
                     Icon(
                         imageVector = Icons.Default.PlayArrow,
                         modifier = Modifier.size(50.dp),
@@ -233,7 +234,7 @@ private fun PlaybackControls(
                     )
                 }
             }
-            IconButton(onClick = { onSeekForward() }, enabled = voice.isPlaying) {
+            IconButton(onClick = { onSeekForward() }, enabled = isPlaying) {
                 Icon(
                     imageVector = Icons.Default.Forward10,
                     modifier = Modifier.size(28.dp),
@@ -305,6 +306,7 @@ private fun ListItemPreview() {
     VoiceRecorderTheme {
         PlaylistItem(
             voice = VoicesSampleData.first(),
+            isPlaying = false,
             modifier = Modifier,
             progressSeconds = 8,
             duration = 12f,
@@ -328,6 +330,7 @@ private fun SelectedPlayingItemPreview() {
     VoiceRecorderTheme {
         PlaylistItem(
             voice = VoicesSampleData.first().copy(isPlaying = true),
+            isPlaying = true,
             modifier = Modifier,
             progressSeconds = 13,
             duration = 18f,
@@ -351,6 +354,7 @@ private fun SelectedNotPlayingItemPreview() {
     VoiceRecorderTheme {
         PlaylistItem(
             voice = VoicesSampleData.first().copy(isPlaying = false),
+            isPlaying = false,
             modifier = Modifier,
             progressSeconds = 13,
             duration = 18f,
