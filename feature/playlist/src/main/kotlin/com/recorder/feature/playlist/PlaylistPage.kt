@@ -12,10 +12,8 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -25,6 +23,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Circle
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -251,6 +250,24 @@ fun PlaylistContent(
                     onBackPressed = { onBackPressed() },
                 )
             },
+            floatingActionButton = {
+                Icon(
+                    imageVector = Icons.Filled.Circle,
+                    modifier = Modifier
+                        .padding(bottom = 40.dp)
+                        .clip(CircleShape)
+                        .border(
+                            width = 1.dp,
+                            color = Color.LightGray,
+                            shape = CircleShape
+                        )
+                        .size(60.dp)
+                        .clickable { if (!isPlaying) onNavigateToRecorder() },
+                    tint = Color.Red.copy(green = 0.2f),
+                    contentDescription = "Recorder icon"
+                )
+            },
+            floatingActionButtonPosition = FabPosition.Center,
             bottomBar = {
                 if (isInSelectionMode)
                     PlaylistBottomBar(
@@ -263,31 +280,6 @@ fun PlaylistContent(
                             onDeleteVoices(it)
                             selectedVoices = emptySet()
                         }
-                    )
-                else
-                    BottomAppBar(
-                        actions = {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.Center
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Filled.Circle,
-                                    modifier = Modifier
-                                        .clip(CircleShape)
-                                        .border(
-                                            width = 1.dp,
-                                            color = Color.LightGray,
-                                            shape = CircleShape
-                                        )
-                                        .clickable { if (!isPlaying) onNavigateToRecorder() }
-                                        .size(60.dp),
-                                    tint = Color.Red.copy(green = 0.2f),
-                                    contentDescription = "Recorder icon"
-                                )
-                            }
-                        },
-                        tonalElevation = 0.dp,
                     )
             }
         ) { paddingValues ->

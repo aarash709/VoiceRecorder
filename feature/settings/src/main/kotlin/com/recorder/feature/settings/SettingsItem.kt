@@ -2,6 +2,7 @@ package com.recorder.feature.settings
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -13,10 +14,12 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.UnfoldMore
 import androidx.compose.material3.BasicAlertDialog
+import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -39,11 +42,13 @@ internal fun SettingsItemWithSwitch(
     isChecked: Boolean,
     onCheckChanged: (Boolean) -> Unit,
 ) {
-    Surface(modifier = Modifier
-        .fillMaxWidth()
-        .requiredHeight(80.dp)
-        .clickable { onCheckChanged(!isChecked) }
-            then modifier) {
+    Surface(
+        modifier = modifier
+            .fillMaxWidth()
+            .requiredHeight(80.dp)
+            .clickable { onCheckChanged(!isChecked) },
+        color = MaterialTheme.colorScheme.background
+    ) {
         Row(
             Modifier
                 .padding(16.dp),
@@ -78,10 +83,12 @@ internal fun SettingsItemWithOptions(
     var shouldShowOptions by remember {
         mutableStateOf(false)
     }
-    Surface(modifier = Modifier
-        .fillMaxWidth()
-        .clickable { shouldShowOptions = !shouldShowOptions }
-            then modifier) {
+    Surface(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable { shouldShowOptions = !shouldShowOptions },
+        color = MaterialTheme.colorScheme.background
+    ) {
         Row(
             Modifier
                 .padding(16.dp),
@@ -127,10 +134,15 @@ internal fun SettingsItemWithAction(
     var isClicked by remember {
         mutableStateOf(false)
     }
-    Surface(modifier = Modifier
-        .fillMaxWidth()
-        .clickable { isClicked = !isClicked }
-            then modifier) {
+    Surface(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable {
+                isClicked = !isClicked
+                action()
+            },
+        color = MaterialTheme.colorScheme.background
+    ) {
         Row(
             Modifier
                 .padding(16.dp),
