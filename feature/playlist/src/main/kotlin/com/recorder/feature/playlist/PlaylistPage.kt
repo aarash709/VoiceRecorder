@@ -326,7 +326,9 @@ fun PlaylistContent(
                     EmptyListMessage()
                 } else {
                     LazyColumn(
-                        modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 16.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         itemsIndexed(
@@ -359,10 +361,12 @@ fun PlaylistContent(
                                             }
                                         },
                                         onClick = {
-                                            selectedVoice = if (selectedVoice == voice.title) {
-                                                Voice().title //empty string; shrinks current expanded item
-                                            } else {
-                                                voice.title
+                                            if (!isPlaying) {
+                                                selectedVoice = if (selectedVoice == voice.title) {
+                                                    Voice().title //empty string; shrinks current expanded item
+                                                } else {
+                                                    voice.title
+                                                }
                                             }
                                         }
                                     )
