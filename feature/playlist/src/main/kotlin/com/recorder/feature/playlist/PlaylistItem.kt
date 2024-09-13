@@ -207,7 +207,7 @@ private fun PlaybackControls(
         label = "Play-Pause"
     ) { isPlaying ->
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            IconButton(onClick = { onSeekBack() }) {
+            IconButton(onClick = { onSeekBack() }, enabled = voice.isPlaying) {
                 Icon(
                     imageVector = Icons.Default.Replay10,
                     modifier = Modifier.size(28.dp),
@@ -233,7 +233,7 @@ private fun PlaybackControls(
                     )
                 }
             }
-            IconButton(onClick = { onSeekForward() }) {
+            IconButton(onClick = { onSeekForward() }, enabled = voice.isPlaying) {
                 Icon(
                     imageVector = Icons.Default.Forward10,
                     modifier = Modifier.size(28.dp),
