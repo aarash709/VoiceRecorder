@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
@@ -34,9 +33,6 @@ import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
-import androidx.compose.material3.SliderState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -44,12 +40,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.core.common.model.Voice
 import com.recorder.core.designsystem.theme.VoiceRecorderTheme
+import java.util.Locale
 import kotlin.time.Duration.Companion.seconds
 
 @Composable
@@ -61,7 +57,6 @@ fun PlaylistItem(
     shouldExpand: Boolean,
     isSelected: Boolean,
     isInSelectionMode: Boolean,
-    onProgressChange: (Float) -> Unit,
     onPlay: (Voice) -> Unit,
     onSeekForward: () -> Unit,
     onSeekBack: () -> Unit,
@@ -94,7 +89,7 @@ fun PlaylistItem(
                     SelectionRadioButton(
                         isSelected = isSelected,
                         isInSelectionMode = isInSelectionMode,
-                        isPlaying = voice.isPlaying
+                        isPlaying = isPlaying
                     )
                     Title(
                         title = voice.title,
@@ -119,23 +114,32 @@ fun PlaylistItem(
                 }
             }
             AnimatedVisibility(visible = shouldExpand) {
-                val progress = if (voice.isPlaying) progressSeconds else 0L
+                val progress = if (isPlaying) progressSeconds else 0L
                 Column {
                     Spacer(modifier = Modifier.height(16.dp))
                     PlayerSlider(value = progress.toFloat(), duration = duration)
                     val progressText = progress.let { progress ->
-                        "${String.format("%02d", progress.seconds.inWholeMinutes)}:" +
-                                String.format("%02d", progress.seconds.inWholeSeconds)
+                        "${
+                            String.format(
+                                Locale.ENGLISH,
+                                "%02d",
+                                progress.seconds.inWholeMinutes
+                            )
+                        }:" +
+                                String.format(
+                                    Locale.ENGLISH,
+                                    "%02d",
+                                    progress.seconds.inWholeSeconds
+                                )
                     }
                     Row(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 8.dp),
+                            .fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         val fontSize = 12.sp
                         val color =
-                            if (!voice.isPlaying) subTextColor else MaterialTheme.colorScheme.onSurface
+                            if (!isPlaying) subTextColor else MaterialTheme.colorScheme.onSurface
                         Text(text = progressText, fontSize = fontSize, color = color)
                         Text(text = voice.duration, fontSize = fontSize, color = color)
                     }
@@ -306,7 +310,6 @@ private fun ListItemPreview() {
             duration = 12f,
             shouldExpand = false,
             isSelected = true,
-            onProgressChange = {},
             onPlay = {},
             onStop = {},
             onDeleteVoice = {},
@@ -330,7 +333,6 @@ private fun SelectedPlayingItemPreview() {
             duration = 18f,
             shouldExpand = true,
             isSelected = false,
-            onProgressChange = {},
             onPlay = {},
             onStop = {},
             onDeleteVoice = {},
@@ -354,7 +356,6 @@ private fun SelectedNotPlayingItemPreview() {
             duration = 18f,
             shouldExpand = true,
             isSelected = false,
-            onProgressChange = {},
             onPlay = {},
             onStop = {},
             onDeleteVoice = {},
