@@ -143,8 +143,6 @@ fun Playlist(
             onNavigateToRecorder = { onNavigateToRecorder() },
             onBackPressed = { onBackPressed() },
             progressSeconds = progress,
-            onPlayProgressChange = { _ ->
-            },
             onDeleteVoices = { titles ->
                 playerViewModel.deleteVoice(titles.toList(), context)
             },
@@ -178,7 +176,6 @@ fun PlaylistContent(
     progressSeconds: Long,
     playbackSpeed: Float,
     duration: Float,
-    onPlayProgressChange: (Float) -> Unit,
     onPlaybackSpeedChange: (Float) -> Unit,
     onSeekForward: () -> Unit,
     onSeekBack: () -> Unit,
@@ -329,7 +326,9 @@ fun PlaylistContent(
                     EmptyListMessage()
                 } else {
                     LazyColumn(
-                        modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 16.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         itemsIndexed(
@@ -362,27 +361,27 @@ fun PlaylistContent(
                                             }
                                         },
                                         onClick = {
-                                            selectedVoice = if (selectedVoice == voice.title) {
-                                                Voice().title //empty string; shrinks current expanded item
-                                            } else {
-                                                voice.title
+                                            if (!isPlaying) {
+                                                selectedVoice = if (selectedVoice == voice.title) {
+                                                    Voice().title //empty string; shrinks current expanded item
+                                                } else {
+                                                    voice.title
+                                                }
                                             }
                                         }
                                     )
                                 },
                                 voice = voice,
+                                isPlaying = isPlaying,
                                 progressSeconds = progressSeconds,
                                 duration = duration,
                                 shouldExpand = shouldExpand,
                                 isSelected = isSelected,
                                 isInSelectionMode = isInSelectionMode,
-                                onProgressChange = { progress ->
-                                    onPlayProgressChange(progress)
-                                },
-                                onPlay = { item ->
+                                onPlay = {
                                     onStartPlayback(
                                         index,
-                                        item
+                                        voice
                                     )
                                 },
                                 onStop = { onStopPlayback() },
@@ -427,7 +426,6 @@ fun PlaylistPagePreview() {
                 isPlaying = false,
                 playbackSpeed = 0.5f,
                 duration = 0.0f,
-                onPlayProgressChange = {},
                 onPlaybackSpeedChange = {},
                 onSeekForward = {},
                 onSeekBack = {},

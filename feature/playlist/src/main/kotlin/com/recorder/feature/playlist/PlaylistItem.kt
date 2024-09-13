@@ -9,7 +9,9 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -31,7 +33,6 @@ import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -39,24 +40,25 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.core.common.model.Voice
 import com.recorder.core.designsystem.theme.VoiceRecorderTheme
+import java.util.Locale
 import kotlin.time.Duration.Companion.seconds
 
 @Composable
 fun PlaylistItem(
     modifier: Modifier = Modifier,
     voice: Voice,
+    isPlaying: Boolean,
     progressSeconds: Long,
     duration: Float,
     shouldExpand: Boolean,
     isSelected: Boolean,
     isInSelectionMode: Boolean,
-    onProgressChange: (Float) -> Unit,
-    onPlay: (Voice) -> Unit,
+    onPlay: () -> Unit,
     onSeekForward: () -> Unit,
     onSeekBack: () -> Unit,
     onStop: () -> Unit,
@@ -64,7 +66,7 @@ fun PlaylistItem(
     onPlaybackOptions: () -> Unit,
     onItemActions: () -> Unit,
 ) {
-    val isPlaying = voice.isPlaying
+//    val isPlaying = isPlaying
     Surface(
         modifier = Modifier
             .animateContentSize()
@@ -88,7 +90,7 @@ fun PlaylistItem(
                     SelectionRadioButton(
                         isSelected = isSelected,
                         isInSelectionMode = isInSelectionMode,
-                        isPlaying = voice.isPlaying
+                        isPlaying = isPlaying
                     )
                     Title(
                         title = voice.title,
@@ -113,29 +115,32 @@ fun PlaylistItem(
                 }
             }
             AnimatedVisibility(visible = shouldExpand) {
-                val progress = if (voice.isPlaying) progressSeconds else 0L
+                val progress = if (isPlaying) progressSeconds else 0L
                 Column {
                     Spacer(modifier = Modifier.height(16.dp))
-                    Slider(
-                        value = progress.toFloat(),
-                        modifier = Modifier.height(16.dp),
-                        enabled = voice.isPlaying,
-                        onValueChange = { onProgressChange(it) },
-                        valueRange = 0f..duration,
-                    )
+                    PlayerSlider(value = progress.toFloat(), duration = duration)
                     val progressText = progress.let { progress ->
-                        "${String.format("%02d", progress.seconds.inWholeMinutes)}:" +
-                                String.format("%02d", progress.seconds.inWholeSeconds)
+                        "${
+                            String.format(
+                                Locale.ENGLISH,
+                                "%02d",
+                                progress.seconds.inWholeMinutes
+                            )
+                        }:" +
+                                String.format(
+                                    Locale.ENGLISH,
+                                    "%02d",
+                                    progress.seconds.inWholeSeconds
+                                )
                     }
                     Row(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 8.dp),
+                            .fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         val fontSize = 12.sp
                         val color =
-                            if (!voice.isPlaying) subTextColor else MaterialTheme.colorScheme.onSurface
+                            if (!isPlaying) subTextColor else MaterialTheme.colorScheme.onSurface
                         Text(text = progressText, fontSize = fontSize, color = color)
                         Text(text = voice.duration, fontSize = fontSize, color = color)
                     }
@@ -152,7 +157,7 @@ fun PlaylistItem(
                                 contentDescription = "playback options icon"
                             )
                         }
-                        PlaybackControls(voice = voice, onStop = onStop, onPlay = onPlay,
+                        PlaybackControls(isPlaying = isPlaying, onStop = onStop, onPlay = onPlay,
                             onSeekForward = { onSeekForward() },
                             onSeekBack = { onSeekBack() })
                         IconButton(onClick = { onDeleteVoice(voice.title) }, enabled = !isPlaying) {
@@ -170,20 +175,40 @@ fun PlaylistItem(
 }
 
 @Composable
+fun PlayerSlider(value: Float, duration: Float) {
+    Box(Modifier.fillMaxWidth()) {
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .height(5.dp)
+                .clip(RoundedCornerShape(32.dp))
+                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f))
+        )
+        Box(
+            Modifier
+                .fillMaxWidth(value / duration)
+                .height(5.dp)
+                .clip(RoundedCornerShape(32.dp))
+                .background(MaterialTheme.colorScheme.primary)
+        )
+    }
+}
+
+@Composable
 private fun PlaybackControls(
-    voice: Voice,
+    isPlaying: Boolean,
     onStop: () -> Unit,
-    onPlay: (Voice) -> Unit,
+    onPlay: () -> Unit,
     onSeekForward: () -> Unit,
     onSeekBack: () -> Unit,
 ) {
     AnimatedContent(
-        targetState = voice.isPlaying,
+        targetState = isPlaying,
         transitionSpec = { fadeIn(tween(0)) togetherWith fadeOut(tween(0)) },
         label = "Play-Pause"
     ) { isPlaying ->
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            IconButton(onClick = { onSeekBack() }) {
+            IconButton(onClick = { onSeekBack() }, enabled = isPlaying) {
                 Icon(
                     imageVector = Icons.Default.Replay10,
                     modifier = Modifier.size(28.dp),
@@ -200,7 +225,7 @@ private fun PlaybackControls(
                     )
                 }
             } else {
-                IconButton(onClick = { onPlay(voice) }) {
+                IconButton(onClick = { onPlay() }) {
                     Icon(
                         imageVector = Icons.Default.PlayArrow,
                         modifier = Modifier.size(50.dp),
@@ -209,7 +234,7 @@ private fun PlaybackControls(
                     )
                 }
             }
-            IconButton(onClick = { onSeekForward() }) {
+            IconButton(onClick = { onSeekForward() }, enabled = isPlaying) {
                 Icon(
                     imageVector = Icons.Default.Forward10,
                     modifier = Modifier.size(28.dp),
@@ -275,18 +300,18 @@ fun Title(
     }
 }
 
-@Preview
+@PreviewLightDark
 @Composable
 private fun ListItemPreview() {
     VoiceRecorderTheme {
         PlaylistItem(
             voice = VoicesSampleData.first(),
+            isPlaying = false,
             modifier = Modifier,
             progressSeconds = 8,
             duration = 12f,
             shouldExpand = false,
             isSelected = true,
-            onProgressChange = {},
             onPlay = {},
             onStop = {},
             onDeleteVoice = {},
@@ -299,18 +324,42 @@ private fun ListItemPreview() {
     }
 }
 
-@Preview
+@PreviewLightDark
 @Composable
-private fun SelectedItemPreview() {
+private fun SelectedPlayingItemPreview() {
     VoiceRecorderTheme {
         PlaylistItem(
             voice = VoicesSampleData.first().copy(isPlaying = true),
+            isPlaying = true,
             modifier = Modifier,
             progressSeconds = 13,
             duration = 18f,
             shouldExpand = true,
             isSelected = false,
-            onProgressChange = {},
+            onPlay = {},
+            onStop = {},
+            onDeleteVoice = {},
+            onPlaybackOptions = {},
+            onItemActions = {},
+            isInSelectionMode = false,
+            onSeekForward = {},
+            onSeekBack = {},
+        )
+    }
+}
+
+@PreviewLightDark
+@Composable
+private fun SelectedNotPlayingItemPreview() {
+    VoiceRecorderTheme {
+        PlaylistItem(
+            voice = VoicesSampleData.first().copy(isPlaying = false),
+            isPlaying = false,
+            modifier = Modifier,
+            progressSeconds = 13,
+            duration = 18f,
+            shouldExpand = true,
+            isSelected = false,
             onPlay = {},
             onStop = {},
             onDeleteVoice = {},
