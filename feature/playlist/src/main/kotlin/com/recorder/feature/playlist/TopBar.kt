@@ -30,6 +30,7 @@ fun PlaylistTopBar(
     onNavigateToSettings: () -> Unit,
     onBackPressed: () -> Unit,
 ) {
+    val backgroundColor= MaterialTheme.colorScheme.background
     MediumTopAppBar(
         title = {
             AnimatedContent(
@@ -55,7 +56,7 @@ fun PlaylistTopBar(
                 IconButton(onClick = { onSelectedVoiceUpdate() }) {
                     Icon(
                         imageVector = Icons.Outlined.Close,
-                        tint = MaterialTheme.colorScheme.onBackground,
+                        tint = backgroundColor,
                         contentDescription = "Clear selection Button"
                     )
                 }
@@ -82,7 +83,8 @@ fun PlaylistTopBar(
         },
         colors = TopAppBarDefaults
             .mediumTopAppBarColors(
-                containerColor = MaterialTheme.colorScheme.background
+                containerColor = backgroundColor,
+                scrolledContainerColor = backgroundColor
             ),
         scrollBehavior = scrollBehavior
     )
