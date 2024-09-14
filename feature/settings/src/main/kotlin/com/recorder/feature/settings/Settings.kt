@@ -60,13 +60,13 @@ fun SettingsContent(
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val context = LocalContext.current
-    val currentRecordingFormat by remember {
+    val currentRecordingFormat by remember(uiState) {
         val value = when (uiState.recordingFormat) {
             RecordingFormat.Mp4 -> context.resources.getString(R.string.mp4)
         }
         mutableStateOf(value)
     }
-    val quality by remember {
+    val quality by remember(uiState) {
         val value = when (uiState.recordingQuality) {
             RecordingQuality.Low -> context.resources.getString(R.string.low)
             RecordingQuality.Standard -> context.resources.getString(R.string.standard)
