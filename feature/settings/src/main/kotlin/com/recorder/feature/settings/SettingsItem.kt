@@ -29,8 +29,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.recorder.core.designsystem.theme.VoiceRecorderTheme
 
 @Composable
 internal fun SettingsItemWithSwitch(
@@ -169,6 +171,7 @@ internal fun SettingsItemWithAction(
 fun OptionsItem(
     modifier: Modifier = Modifier,
     optionName: String,
+    description: String = "",
     isSelected: Boolean,
     isClickable: Boolean = true,
     onSelectOption: () -> Unit,
@@ -187,11 +190,21 @@ fun OptionsItem(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(
-                text = optionName,
-                modifier = Modifier,
-                color = color
-            )
+            Column {
+                Text(
+                    text = optionName,
+                    modifier = Modifier,
+                    color = color
+                )
+                if (description.isNotEmpty()) {
+                    Text(
+                        text = description,
+                        modifier = Modifier,
+                        fontSize = 12.sp,
+                        color = color
+                    )
+                }
+            }
             if (isSelected) {
                 Icon(
                     imageVector = Icons.Default.Check,
@@ -203,3 +216,10 @@ fun OptionsItem(
     }
 }
 
+@PreviewLightDark
+@Composable
+fun PreviewOptionsItem(modifier: Modifier = Modifier) {
+    VoiceRecorderTheme {
+        OptionsItem(optionName = "option", isSelected = true, description = "") { }
+    }
+}

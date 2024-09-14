@@ -19,14 +19,17 @@ internal fun RecordingQualityOptions(
     ) {
         OptionsItem(
             optionName = stringResource(id = R.string.low),
+            description = "~64 kbps",
             isSelected = currentRecordingQuality == stringResource(id = R.string.low),
             onSelectOption = { onSetQuality(RecordingQuality.Low) })
         OptionsItem(
             optionName = stringResource(id = R.string.standard),
+            description = "~128 kbps",
             isSelected = currentRecordingQuality == stringResource(id = R.string.standard),
             onSelectOption = { onSetQuality(RecordingQuality.Standard) })
         OptionsItem(
             optionName = stringResource(id = R.string.high),
+            description = "~192 kbps",
             isSelected = currentRecordingQuality == stringResource(id = R.string.high),
             onSelectOption = { onSetQuality(RecordingQuality.High) })
     }
