@@ -36,40 +36,44 @@ import com.recorder.core.designsystem.theme.VoiceRecorderTheme
 
 @Composable
 internal fun SettingsItemWithSwitch(
-    modifier: Modifier = Modifier,
-    title: String,
-    subtitle: String = "",
-    isChecked: Boolean,
-    onCheckChanged: (Boolean) -> Unit,
+	modifier: Modifier = Modifier,
+	title: String,
+	description: String = "",
+	isChecked: Boolean,
+	enabled: Boolean = true,
+	onCheckChanged: (Boolean) -> Unit,
 ) {
-    Surface(
-        modifier = modifier
-            .fillMaxWidth()
-            .requiredHeight(80.dp)
-            .clickable { onCheckChanged(!isChecked) },
-        color = MaterialTheme.colorScheme.background
-    ) {
-        Row(
-            Modifier
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column {
-                Text(text = title, fontSize = 16.sp)
-                if (subtitle.isNotEmpty()) {
-                    Text(
-                        text = subtitle,
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurface.copy(
-                            alpha = 0.5f
-                        )
-                    )
-                }
-            }
-            Switch(checked = isChecked, onCheckedChange = { onCheckChanged(!isChecked) })
-        }
-    }
+	Surface(
+		modifier = modifier
+			.fillMaxWidth()
+			.requiredHeight(80.dp)
+			.clickable(enabled = enabled) { onCheckChanged(!isChecked) },
+		color = MaterialTheme.colorScheme.background,
+	) {
+		val textColor =
+			if (!enabled) LocalContentColor.current.copy(alpha = 0.5f) else LocalContentColor.current
+		Row(
+			Modifier
+				.padding(16.dp),
+			horizontalArrangement = Arrangement.SpaceBetween,
+			verticalAlignment = Alignment.CenterVertically
+		) {
+			Column {
+				Text(text = title, fontSize = 16.sp, color = textColor)
+				if (description.isNotEmpty()) {
+					Text(
+						text = description,
+						fontSize = 12.sp,
+						color = textColor
+					)
+				}
+			}
+			Switch(
+				checked = isChecked,
+				enabled = enabled,
+				onCheckedChange = { onCheckChanged(!isChecked) })
+		}
+	}
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
