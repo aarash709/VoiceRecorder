@@ -1,5 +1,6 @@
 package com.recorder.service
 
+import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
@@ -28,8 +29,6 @@ import java.io.File
 import javax.inject.Inject
 
 const val RECORDER_SAMPLE_RATE = 44100
-const val RECORDER_BIT_RATE = 128.times(1_000)
-const val RECORDER_FORMAT = MediaRecorder.OutputFormat.MPEG_4
 const val KILO_BIT_64 = 64.times(1000)
 const val KILO_BIT_128 = 128.times(1000)
 const val KILO_BIT_192 = 192.times(1000)
@@ -117,13 +116,16 @@ class RecorderService @Inject constructor() : Service() {
 		updateRecordingState(RecordingState.Recording)
 	  }
 	}
-	val notification = NotificationCompat.Builder(this, "recorder_channel")
+	val notification = getNotification()
+	startForeground(1, notification)
+  }
+
+  private fun getNotification(): Notification =
+	NotificationCompat.Builder(this, "recorder_channel")
 	  .setColorized(true)
 	  .setContentTitle("Voice Recorder")
 	  .setContentText("Recording...")
 	  .build()
-	startForeground(1, notification)
-  }
 
   private fun getFormat(recordingFormat: RecordingFormat): Int =
 	when (recordingFormat) {
