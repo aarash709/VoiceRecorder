@@ -30,6 +30,7 @@ android {
 
 dependencies {
     implementation(project(":core:common"))
+    implementation(project(":core:datastore"))
 
     implementation(libs.androidx.coreKtx)
     implementation(libs.androidx.lifecycleRuntimeKtx)
