@@ -129,24 +129,33 @@ fun Record(
 			recorderService?.let { service ->
 				val recordingState = service.recordingState
 				isRecording = recordingState != RecordingState.Recording
-				if (recordingState != RecordingState.Recording) {
-					Intent(context.applicationContext, RecorderService::class.java).apply {
-						context.startService(this)
-					}
-					service.startRecording(context = context)
-					service.setRecordingTimer(timeMillis = System.currentTimeMillis())
-					recorderViewModel.updateRecordState(
-						isRecording = isRecording,
-						currentTime = service.recordingStartTimeMillis
-					)
-				} else {
+				if (!isRecording) {
 					service.stopRecording {
 						recorderViewModel.updateRecordState(
 							isRecording = isRecording,
 							currentTime = 0L
 						)
 					}
+					onNavigateToPlaylist()
 				}
+//				if (recordingState != RecordingState.Recording) {
+//					Intent(context.applicationContext, RecorderService::class.java).apply {
+//						context.startService(this)
+//					}
+//					service.startRecording(context = context)
+//					service.setRecordingTimer(timeMillis = System.currentTimeMillis())
+//					recorderViewModel.updateRecordState(
+//						isRecording = isRecording,
+//						currentTime = service.recordingStartTimeMillis
+//					)
+//				} else {
+//					service.stopRecording {
+//						recorderViewModel.updateRecordState(
+//							isRecording = isRecording,
+//							currentTime = 0L
+//						)
+//					}
+//				}
 			}
 		},
 		onPlayListClicked = { onNavigateToPlaylist() }
