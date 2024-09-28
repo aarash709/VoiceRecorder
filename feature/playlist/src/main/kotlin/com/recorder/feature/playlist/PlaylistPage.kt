@@ -23,7 +23,6 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Circle
-import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Icon
@@ -253,36 +252,39 @@ fun PlaylistContent(
 				)
 			},
 			floatingActionButton = {
-				Icon(
-					imageVector = Icons.Filled.Circle,
-					modifier = Modifier
-						.padding(bottom = 40.dp)
-						.clip(CircleShape)
-						.border(
-							width = 1.dp,
-							color = Color.LightGray,
-							shape = CircleShape
-						)
-						.size(60.dp)
-						.clickable { if (!isPlaying) onNavigateToRecorder() },
-					tint = Color.Red.copy(green = 0.2f),
-					contentDescription = "Recorder icon"
-				)
+				if (
+					!isInSelectionMode
+				) {
+					Icon(
+						imageVector = Icons.Filled.Circle,
+						modifier = Modifier
+							.padding(bottom = 40.dp)
+							.clip(CircleShape)
+							.border(
+								width = 1.dp,
+								color = Color.LightGray,
+								shape = CircleShape
+							)
+							.size(60.dp)
+							.clickable { if (!isPlaying) onNavigateToRecorder() },
+						tint = Color.Red.copy(green = 0.2f),
+						contentDescription = "Recorder icon"
+					)
+				}
 			},
 			floatingActionButtonPosition = FabPosition.Center,
 			bottomBar = {
-				if (isInSelectionMode)
-					PlaylistBottomBar(
-						isInEditMode = true,
-						showRenameButton = showRenameButton,
-						selectedVoices = selectedVoices,
-						onShowRenameSheet = { showRenameSheet = it },
-						renameTextFieldValue = { renameTextFieldValue = it },
-						onDeleteVoices = {
-							onDeleteVoices(it)
-							selectedVoices = emptySet()
-						}
-					)
+				PlaylistBottomBar(
+					isInEditMode = isInSelectionMode,
+					showRenameButton = showRenameButton,
+					selectedVoices = selectedVoices,
+					onShowRenameSheet = { showRenameSheet = it },
+					renameTextFieldValue = { renameTextFieldValue = it },
+					onDeleteVoices = {
+						onDeleteVoices(it)
+						selectedVoices = emptySet()
+					}
+				)
 			}
 		) { paddingValues ->
 			Column(
@@ -319,7 +321,6 @@ fun PlaylistContent(
 				if (voices.isEmpty()) {
 					EmptyListMessage()
 				} else {
-
 					LazyColumn(
 						modifier = Modifier
 							.fillMaxSize()

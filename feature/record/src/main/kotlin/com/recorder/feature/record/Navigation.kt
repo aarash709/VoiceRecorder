@@ -12,27 +12,29 @@ import kotlinx.serialization.Serializable
 object RecorderRoute
 
 fun NavController.toRecorder(navOptions: NavOptions? = null) {
-    navigate(RecorderRoute, navOptions)
+	navigate(RecorderRoute, navOptions)
 }
 
 fun NavGraphBuilder.recorder(
-    onNavigateToPlaylist: () -> Unit
-){
-    composable<RecorderRoute>(
-        enterTransition = {
-            slideIntoContainer(
-                towards = AnimatedContentTransitionScope.SlideDirection.Left,
-                animationSpec = tween(400),
-            )
-        },
-        exitTransition = {
-            slideOutOfContainer(
-                towards = AnimatedContentTransitionScope.SlideDirection.Right,
-                animationSpec = tween(400),
-            )
-        }){
-        Record(
-            onNavigateToPlaylist = { onNavigateToPlaylist() }
-        )
-    }
+	onNavigateToPlaylist: () -> Unit,
+) {
+	composable<RecorderRoute>(
+		enterTransition = {
+			slideIntoContainer(
+				towards = AnimatedContentTransitionScope.SlideDirection.Left,
+				animationSpec = tween(400),
+			)
+		},
+		exitTransition = {
+			slideOutOfContainer(
+				towards = AnimatedContentTransitionScope.SlideDirection.Right,
+				animationSpec = tween(400),
+			)
+		}) {
+		val isTransitionAnimationRunning = transition.isRunning
+		Record(
+			isTransitionAnimationRunning = isTransitionAnimationRunning,
+			onNavigateToPlaylist = { onNavigateToPlaylist() }
+		)
+	}
 }
