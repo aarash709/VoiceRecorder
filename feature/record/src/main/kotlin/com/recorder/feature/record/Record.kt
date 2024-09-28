@@ -46,10 +46,12 @@ import timber.log.Timber
 
 @Composable
 fun Record(
+	isTransitionAnimationRunning: Boolean = false,
 	onNavigateToPlaylist: () -> Unit,
 ) {
 	val recorderViewModel: RecordViewModel = hiltViewModel()
 	val context = LocalContext.current
+	val hapticFeedback = LocalHapticFeedback.current
 	val recordingTimer by recorderViewModel.formattedTimer.collectAsStateWithLifecycle()
 	var recorderService: RecorderService? by remember {
 		mutableStateOf(null)
@@ -93,31 +95,30 @@ fun Record(
 			}
 		}
 	}
-	LaunchedEffect(Unit) {
+	LaunchedEffect(isRecorderServiceBound) {
 		//updates ui timer on first composition
 		recorderViewModel.updateRecordState(
 			isRecording = isRecording,
 			currentTime = recorderService?.getRecordingStartMillis()
 		)
-	}
-	LaunchedEffect(isRecorderServiceBound) {
-		recorderService?.let { service ->
-			isRecording = service.recordingState != RecordingState.Recording
-			if (isRecording) {
-				Intent(context.applicationContext, RecorderService::class.java).apply {
-					context.startService(this)
+		if (isTransitionAnimationRunning){
+			delay(500)
+			hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+			recorderService?.let { service ->
+				isRecording = service.recordingState != RecordingState.Recording
+				if (isRecording) {
+					Intent(context.applicationContext, RecorderService::class.java).apply {
+						context.startService(this)
+					}
+					service.startRecording(context = context)
+					service.setRecordingTimer(timeMillis = System.currentTimeMillis())
+					recorderViewModel.updateRecordState(
+						isRecording = isRecording,
+						currentTime = service.recordingStartTimeMillis
+					)
 				}
-				service.startRecording(context = context)
-				service.setRecordingTimer(timeMillis = System.currentTimeMillis())
-				recorderViewModel.updateRecordState(
-					isRecording = isRecording,
-					currentTime = service.recordingStartTimeMillis
-				)
-			} else {
-				Unit
 			}
 		}
-
 	}
 	RecordContent(
 		modifier = Modifier
