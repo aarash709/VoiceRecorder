@@ -42,7 +42,6 @@ import com.recorder.core.designsystem.theme.components.RecorderButton
 import com.recorder.service.RecorderService
 import com.recorder.service.RecorderService.Companion.RecordingState
 import kotlinx.coroutines.delay
-import timber.log.Timber
 
 @Composable
 fun Record(
@@ -101,7 +100,7 @@ fun Record(
 			isRecording = isRecording,
 			currentTime = recorderService?.getRecordingStartMillis()
 		)
-		if (isTransitionAnimationRunning){
+		if (isTransitionAnimationRunning) {
 			delay(500)
 			hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
 			recorderService?.let { service ->
@@ -126,7 +125,7 @@ fun Record(
 		isRecording = isRecording,
 		recordingTime = recordingTimer,
 		quality = qualitySetting,
-		onRecord = {
+		onStopRecording = {
 			recorderService?.let { service ->
 				val recordingState = service.recordingState
 				isRecording = recordingState != RecordingState.Recording
@@ -139,27 +138,8 @@ fun Record(
 					}
 					onNavigateToPlaylist()
 				}
-//				if (recordingState != RecordingState.Recording) {
-//					Intent(context.applicationContext, RecorderService::class.java).apply {
-//						context.startService(this)
-//					}
-//					service.startRecording(context = context)
-//					service.setRecordingTimer(timeMillis = System.currentTimeMillis())
-//					recorderViewModel.updateRecordState(
-//						isRecording = isRecording,
-//						currentTime = service.recordingStartTimeMillis
-//					)
-//				} else {
-//					service.stopRecording {
-//						recorderViewModel.updateRecordState(
-//							isRecording = isRecording,
-//							currentTime = 0L
-//						)
-//					}
-//				}
 			}
-		},
-		onPlayListClicked = { onNavigateToPlaylist() }
+		}
 	)
 }
 
@@ -169,8 +149,7 @@ fun RecordContent(
 	isRecording: Boolean,
 	recordingTime: String,
 	quality: String,
-	onRecord: () -> Unit,
-	onPlayListClicked: () -> Unit,
+	onStopRecording: () -> Unit,
 ) {
 	val haptics = LocalHapticFeedback.current
 	LaunchedEffect(key1 = isRecording) {
@@ -180,24 +159,17 @@ fun RecordContent(
 			haptics.performHapticFeedback(HapticFeedbackType.LongPress)
 		}
 	}
-	Scaffold(modifier = modifier,
+	Scaffold(
+		modifier = modifier,
 		floatingActionButton = {
 			RecorderButton(
 				modifier = Modifier,
-				onRecord = { onRecord() },
+				onStopRecording = { onStopRecording() },
 				isRecording = isRecording
 			)
 		},
-		floatingActionButtonPosition = FabPosition.Center,
-		bottomBar = {
-			NavigateToPlaylistButton(
-				modifier = Modifier
-					.fillMaxWidth(),
-				isEnabled = !isRecording
-			) {
-				onPlayListClicked()
-			}
-		}) { padding ->
+		floatingActionButtonPosition = FabPosition.Center
+	) { padding ->
 		Column(
 			modifier = Modifier
 				.fillMaxSize()
@@ -245,8 +217,8 @@ fun Prev() {
 				isRecording = false,
 				recordingTime = "01",
 				quality = "High quality",
-				onRecord = {},
-				onPlayListClicked = {})
+				onStopRecording = {}
+			)
 		}
 	}
 }
