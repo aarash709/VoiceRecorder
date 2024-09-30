@@ -38,6 +38,7 @@ dependencies {
     implementation(project(":core:common"))
     implementation(project(":core:designsystem"))
     implementation(project(":core:service"))
+    implementation(project(":core:datastore"))
 
     implementation(libs.material)
     implementation(libs.kotlix.coroutines.core)

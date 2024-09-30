@@ -4,6 +4,7 @@ import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -25,6 +27,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Circle
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -55,6 +58,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import com.core.common.model.SortOrder
 import com.core.common.model.Voice
 import com.recorder.core.designsystem.theme.LocalSharedTransitionScope
 import com.recorder.core.designsystem.theme.VoiceRecorderTheme
@@ -71,6 +75,7 @@ fun Playlist(
 	val context = LocalContext.current
 	val playerViewModel = hiltViewModel<PlaylistViewModel>()
 	val voiceList by playerViewModel.voices.collectAsStateWithLifecycle()
+	val sortOrder by playerViewModel.sortOrder.collectAsStateWithLifecycle()
 
 	val playerState = rememberPlayerState()
 	val browser = playerState.browser
@@ -87,7 +92,7 @@ fun Playlist(
 			}
 		)
 	}
-	LaunchedEffect(key1 = isPlaying, playerState.browser?.currentPosition) {
+	LaunchedEffect(key1 = isPlaying, playerState.browser?.currentPosition, sortOrder) {
 		if (isPlaying && voiceList.isNotEmpty()) {
 			playerViewModel.updateVoiceList(
 				selectedVoiceIndex = playingVoiceIndex,
@@ -107,6 +112,7 @@ fun Playlist(
 			isPlaying = isPlaying,
 			duration = if (duration > 0f) duration else 0f,
 			playbackSpeed = playerState.browser?.playbackParameters?.speed ?: 1.0f,
+			sortOrder = sortOrder,
 			onSeekForward = {
 				if (isPlaying) {
 					browser?.run {
@@ -160,6 +166,9 @@ fun Playlist(
 					}
 				}
 			},
+			setSortOrder = {
+				playerViewModel.setSortOrder(it)
+			}
 		)
 	}
 }
@@ -176,6 +185,7 @@ fun PlaylistContent(
 	progressSeconds: Long,
 	playbackSpeed: Float,
 	duration: Float,
+	sortOrder: SortOrder,
 	onPlaybackSpeedChange: (Float) -> Unit,
 	onSeekForward: () -> Unit,
 	onSeekBack: () -> Unit,
@@ -187,6 +197,7 @@ fun PlaylistContent(
 	onDeleteVoices: (Set<String>) -> Unit,
 	onSaveVoiceFile: () -> Unit,
 	rename: (current: String, desired: String) -> Unit,
+	setSortOrder: (SortOrder) -> Unit,
 ) {
 	val sharedElementScope = LocalSharedTransitionScope.current
 		?: throw IllegalStateException("no shared element scope found")
@@ -318,7 +329,17 @@ fun PlaylistContent(
 
 					)
 				}
-				if (voices.isEmpty()) {
+				SortOptions(sortOrder = sortOrder, setSortOrder = setSortOrder)
+				val list by remember(voices, sortOrder) {
+					mutableStateOf(voices.sortedBy { voice ->
+						when (sortOrder) {
+							SortOrder.ByName -> voice.title
+							SortOrder.ByRecordingDate -> voice.recordTime
+							SortOrder.ByRecordingDuration -> voice.duration
+						}
+					})
+				}
+				if (list.isEmpty()) {
 					EmptyListMessage()
 				} else {
 					LazyColumn(
@@ -329,7 +350,7 @@ fun PlaylistContent(
 						verticalArrangement = Arrangement.spacedBy(8.dp)
 					) {
 						itemsIndexed(
-							items = voices,
+							items = list,
 							key = { index, _ -> index }) { index, voice ->
 							val shouldExpand by remember(voices) {
 								derivedStateOf {
@@ -396,6 +417,32 @@ fun PlaylistContent(
 	}
 }
 
+@Composable
+private fun SortOptions(
+	sortOrder: SortOrder,
+	setSortOrder: (SortOrder) -> Unit
+) {
+	Row(
+		modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+		horizontalArrangement = Arrangement.spacedBy(16.dp)
+	) {
+		FilterChip(
+			selected = sortOrder == SortOrder.ByRecordingDate,
+			onClick = { setSortOrder(SortOrder.ByRecordingDate) },
+			label = { Text("Date") }, border = BorderStroke(0.dp, Color.Transparent)
+		)
+		FilterChip(
+			selected = sortOrder == SortOrder.ByName,
+			onClick = { setSortOrder(SortOrder.ByName) },
+			label = { Text("Name") }, border = BorderStroke(0.dp, Color.Transparent)
+		)
+		FilterChip(
+			selected = sortOrder == SortOrder.ByRecordingDuration,
+			onClick = { setSortOrder(SortOrder.ByRecordingDuration) },
+			label = { Text("Duration") }, border = BorderStroke(0.dp, Color.Transparent)
+		)
+	}
+}
 
 @Composable
 fun EmptyListMessage() {
@@ -423,6 +470,7 @@ fun PlaylistPagePreview() {
 				isPlaying = false,
 				playbackSpeed = 0.5f,
 				duration = 0.0f,
+				sortOrder = SortOrder.ByRecordingDate,
 				onPlaybackSpeedChange = {},
 				onSeekForward = {},
 				onSeekBack = {},
@@ -435,6 +483,7 @@ fun PlaylistPagePreview() {
 				onDeleteVoices = {},
 				onSaveVoiceFile = {},
 				rename = { _, _ -> },
+				setSortOrder = {}
 			)
 		}
 	}
