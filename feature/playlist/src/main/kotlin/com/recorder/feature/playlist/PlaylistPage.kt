@@ -349,7 +349,16 @@ fun PlaylistContent(
 						label = { Text("Duration") }, border = BorderStroke(0.dp, Color.Transparent)
 					)
 				}
-				if (voices.isEmpty()) {
+				val list by remember(voices,sortOrder) {
+					mutableStateOf(voices.sortedBy { voice ->
+						when (sortOrder) {
+							SortOrder.ByName -> voice.title
+							SortOrder.ByRecordingDate -> voice.recordTime
+							SortOrder.ByRecordingDuration -> voice.duration
+						}
+					})
+				}
+				if (list.isEmpty()) {
 					EmptyListMessage()
 				} else {
 					LazyColumn(
@@ -360,7 +369,7 @@ fun PlaylistContent(
 						verticalArrangement = Arrangement.spacedBy(8.dp)
 					) {
 						itemsIndexed(
-							items = voices,
+							items = list,
 							key = { index, _ -> index }) { index, voice ->
 							val shouldExpand by remember(voices) {
 								derivedStateOf {

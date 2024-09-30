@@ -29,16 +29,7 @@ class PlaylistViewModel @Inject constructor(
 ) : ViewModel() {
 
 	private val _voices = MutableStateFlow(listOf<Voice>())
-	val voices = _voices.map {
-		val sortOrder = getSortOrder().first()
-		it.sortedBy { voice ->
-			when (sortOrder) {
-				SortOrder.ByName -> voice.title
-				SortOrder.ByRecordingDate -> voice.recordTime
-				SortOrder.ByRecordingDuration -> voice.duration
-			}
-		}
-	}.stateIn(
+	val voices = _voices.stateIn(
 		scope = viewModelScope,
 		started = SharingStarted.WhileSubscribed(1_000),
 		initialValue = listOf()
