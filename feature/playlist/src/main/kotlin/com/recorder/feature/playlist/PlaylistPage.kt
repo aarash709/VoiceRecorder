@@ -329,27 +329,8 @@ fun PlaylistContent(
 
 					)
 				}
-				Row(
-					modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-					horizontalArrangement = Arrangement.spacedBy(16.dp)
-				) {
-					FilterChip(
-						selected = sortOrder == SortOrder.ByRecordingDate,
-						onClick = { setSortOrder(SortOrder.ByRecordingDate) },
-						label = { Text("Date") }, border = BorderStroke(0.dp, Color.Transparent)
-					)
-					FilterChip(
-						selected = sortOrder == SortOrder.ByName,
-						onClick = { setSortOrder(SortOrder.ByName) },
-						label = { Text("Name") }, border = BorderStroke(0.dp, Color.Transparent)
-					)
-					FilterChip(
-						selected = sortOrder == SortOrder.ByRecordingDuration,
-						onClick = { setSortOrder(SortOrder.ByRecordingDuration) },
-						label = { Text("Duration") }, border = BorderStroke(0.dp, Color.Transparent)
-					)
-				}
-				val list by remember(voices,sortOrder) {
+				SortOptions(sortOrder = sortOrder, setSortOrder = setSortOrder)
+				val list by remember(voices, sortOrder) {
 					mutableStateOf(voices.sortedBy { voice ->
 						when (sortOrder) {
 							SortOrder.ByName -> voice.title
@@ -436,6 +417,32 @@ fun PlaylistContent(
 	}
 }
 
+@Composable
+private fun SortOptions(
+	sortOrder: SortOrder,
+	setSortOrder: (SortOrder) -> Unit
+) {
+	Row(
+		modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+		horizontalArrangement = Arrangement.spacedBy(16.dp)
+	) {
+		FilterChip(
+			selected = sortOrder == SortOrder.ByRecordingDate,
+			onClick = { setSortOrder(SortOrder.ByRecordingDate) },
+			label = { Text("Date") }, border = BorderStroke(0.dp, Color.Transparent)
+		)
+		FilterChip(
+			selected = sortOrder == SortOrder.ByName,
+			onClick = { setSortOrder(SortOrder.ByName) },
+			label = { Text("Name") }, border = BorderStroke(0.dp, Color.Transparent)
+		)
+		FilterChip(
+			selected = sortOrder == SortOrder.ByRecordingDuration,
+			onClick = { setSortOrder(SortOrder.ByRecordingDuration) },
+			label = { Text("Duration") }, border = BorderStroke(0.dp, Color.Transparent)
+		)
+	}
+}
 
 @Composable
 fun EmptyListMessage() {
