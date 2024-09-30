@@ -9,8 +9,10 @@ import com.core.common.model.RecordingFormat
 import com.core.common.model.RecordingQuality
 import com.core.common.model.SortOrder
 import com.core.common.model.UserSettings
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
 import javax.inject.Inject
@@ -73,7 +75,7 @@ class LocalUserSettings @Inject constructor(private val dataStore: DataStore<Pre
             } else {
                 SortOrder.ByRecordingDate
             }
-        }
+        }.flowOn(Dispatchers.IO)
     }
 
     //store values

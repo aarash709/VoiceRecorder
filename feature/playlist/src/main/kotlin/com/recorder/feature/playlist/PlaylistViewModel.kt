@@ -12,8 +12,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -25,7 +23,7 @@ import javax.inject.Inject
 @HiltViewModel
 class PlaylistViewModel @Inject constructor(
 	private val storage: Storage,
-	private val dataStore: LocalUserSettings
+	private val localUserData: LocalUserSettings
 ) : ViewModel() {
 
 	private val _voices = MutableStateFlow(listOf<Voice>())
@@ -91,13 +89,13 @@ class PlaylistViewModel @Inject constructor(
 	}
 
 	private fun getSortOrder(): Flow<SortOrder> {
-		return dataStore.getSortOrder()
+		return localUserData.getSortOrder()
 	}
 
 	fun setSortOrder(orderBy: SortOrder) {
 		viewModelScope.launch {
 			val value = Json.encodeToString(orderBy)
-			dataStore.setSortOrder(value)
+			localUserData.setSortOrder(value)
 		}
 	}
 }
