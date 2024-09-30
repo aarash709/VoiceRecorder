@@ -25,15 +25,12 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Circle
-import androidx.compose.material3.DockedSearchBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SearchBar
-import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
@@ -61,6 +58,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import com.core.common.model.SortOrder
 import com.core.common.model.Voice
 import com.recorder.core.designsystem.theme.LocalSharedTransitionScope
 import com.recorder.core.designsystem.theme.VoiceRecorderTheme
@@ -77,6 +75,7 @@ fun Playlist(
 	val context = LocalContext.current
 	val playerViewModel = hiltViewModel<PlaylistViewModel>()
 	val voiceList by playerViewModel.voices.collectAsStateWithLifecycle()
+	val sortOrder by playerViewModel.sortOrder.collectAsStateWithLifecycle()
 
 	val playerState = rememberPlayerState()
 	val browser = playerState.browser
@@ -93,7 +92,7 @@ fun Playlist(
 			}
 		)
 	}
-	LaunchedEffect(key1 = isPlaying, playerState.browser?.currentPosition) {
+	LaunchedEffect(key1 = isPlaying, playerState.browser?.currentPosition, sortOrder) {
 		if (isPlaying && voiceList.isNotEmpty()) {
 			playerViewModel.updateVoiceList(
 				selectedVoiceIndex = playingVoiceIndex,
@@ -113,6 +112,7 @@ fun Playlist(
 			isPlaying = isPlaying,
 			duration = if (duration > 0f) duration else 0f,
 			playbackSpeed = playerState.browser?.playbackParameters?.speed ?: 1.0f,
+			sortOrder = sortOrder,
 			onSeekForward = {
 				if (isPlaying) {
 					browser?.run {
@@ -166,6 +166,9 @@ fun Playlist(
 					}
 				}
 			},
+			setSortOrder = {
+				playerViewModel.setSortOrder(it)
+			}
 		)
 	}
 }
@@ -182,6 +185,7 @@ fun PlaylistContent(
 	progressSeconds: Long,
 	playbackSpeed: Float,
 	duration: Float,
+	sortOrder: SortOrder,
 	onPlaybackSpeedChange: (Float) -> Unit,
 	onSeekForward: () -> Unit,
 	onSeekBack: () -> Unit,
@@ -193,6 +197,7 @@ fun PlaylistContent(
 	onDeleteVoices: (Set<String>) -> Unit,
 	onSaveVoiceFile: () -> Unit,
 	rename: (current: String, desired: String) -> Unit,
+	setSortOrder: (SortOrder) -> Unit,
 ) {
 	val sharedElementScope = LocalSharedTransitionScope.current
 		?: throw IllegalStateException("no shared element scope found")
@@ -324,24 +329,23 @@ fun PlaylistContent(
 
 					)
 				}
-				var selectChip by remember { mutableStateOf(false) }
 				Row(
 					modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
 					horizontalArrangement = Arrangement.spacedBy(16.dp)
 				) {
 					FilterChip(
-						selected = selectChip,
-						onClick = { selectChip = !selectChip },
+						selected = sortOrder == SortOrder.ByRecordingDate,
+						onClick = { setSortOrder(SortOrder.ByRecordingDate) },
 						label = { Text("Date") }, border = BorderStroke(0.dp, Color.Transparent)
 					)
 					FilterChip(
-						selected = selectChip,
-						onClick = { selectChip = !selectChip },
+						selected = sortOrder == SortOrder.ByName,
+						onClick = { setSortOrder(SortOrder.ByName) },
 						label = { Text("Name") }, border = BorderStroke(0.dp, Color.Transparent)
 					)
 					FilterChip(
-						selected = selectChip,
-						onClick = { selectChip = !selectChip },
+						selected = sortOrder == SortOrder.ByRecordingDuration,
+						onClick = { setSortOrder(SortOrder.ByRecordingDuration) },
 						label = { Text("Duration") }, border = BorderStroke(0.dp, Color.Transparent)
 					)
 				}
@@ -450,6 +454,7 @@ fun PlaylistPagePreview() {
 				isPlaying = false,
 				playbackSpeed = 0.5f,
 				duration = 0.0f,
+				sortOrder = SortOrder.ByRecordingDate,
 				onPlaybackSpeedChange = {},
 				onSeekForward = {},
 				onSeekBack = {},
@@ -462,6 +467,7 @@ fun PlaylistPagePreview() {
 				onDeleteVoices = {},
 				onSaveVoiceFile = {},
 				rename = { _, _ -> },
+				setSortOrder = {}
 			)
 		}
 	}
