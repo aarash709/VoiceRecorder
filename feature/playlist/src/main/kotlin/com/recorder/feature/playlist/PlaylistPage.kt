@@ -4,7 +4,6 @@ import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -14,7 +13,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -27,7 +25,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Circle
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -62,8 +59,10 @@ import com.core.common.model.SortOrder
 import com.core.common.model.Voice
 import com.recorder.core.designsystem.theme.LocalSharedTransitionScope
 import com.recorder.core.designsystem.theme.VoiceRecorderTheme
+import com.recorder.feature.playlist.components.EmptyListMessage
 import com.recorder.feature.playlist.components.OptionsSheet
 import com.recorder.feature.playlist.components.PlaylistBottomSheet
+import com.recorder.feature.playlist.components.SortOptions
 import kotlin.time.Duration.Companion.seconds
 
 @Composable
@@ -329,7 +328,7 @@ fun PlaylistContent(
 
 					)
 				}
-				SortOptions(sortOrder = sortOrder, setSortOrder = setSortOrder)
+				SortOptions(sortOrder = sortOrder, onSetSortOrder = setSortOrder)
 				val list by remember(voices, sortOrder) {
 					mutableStateOf(voices.sortedBy { voice ->
 						when (sortOrder) {
@@ -417,46 +416,6 @@ fun PlaylistContent(
 	}
 }
 
-@Composable
-private fun SortOptions(
-	sortOrder: SortOrder,
-	setSortOrder: (SortOrder) -> Unit
-) {
-	Row(
-		modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-		horizontalArrangement = Arrangement.spacedBy(16.dp)
-	) {
-		FilterChip(
-			selected = sortOrder == SortOrder.ByRecordingDate,
-			onClick = { setSortOrder(SortOrder.ByRecordingDate) },
-			label = { Text("Date") }, border = BorderStroke(0.dp, Color.Transparent)
-		)
-		FilterChip(
-			selected = sortOrder == SortOrder.ByName,
-			onClick = { setSortOrder(SortOrder.ByName) },
-			label = { Text("Name") }, border = BorderStroke(0.dp, Color.Transparent)
-		)
-		FilterChip(
-			selected = sortOrder == SortOrder.ByRecordingDuration,
-			onClick = { setSortOrder(SortOrder.ByRecordingDuration) },
-			label = { Text("Duration") }, border = BorderStroke(0.dp, Color.Transparent)
-		)
-	}
-}
-
-@Composable
-fun EmptyListMessage() {
-	Column(
-		modifier = Modifier.fillMaxSize(),
-		horizontalAlignment = Alignment.CenterHorizontally,
-		verticalArrangement = Arrangement.Center
-	) {
-		Text(
-			text = "Tap on record button to add a voice recording",
-			color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-		)
-	}
-}
 
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_NO)
