@@ -1,5 +1,6 @@
 package com.recorder.feature.playlist.components
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -20,14 +21,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.core.common.model.SortByDateOptions
 import com.core.common.model.SortByDurationOptions
-import com.core.common.model.SortOrder
 
 @Composable
 internal fun DateSortChip(
 	modifier: Modifier = Modifier,
-	sortOrder: SortOrder,
-	onSetSortOrder: (SortOrder) -> Unit
+	sortByDateOptions: SortByDateOptions,
+	onSetSortByDate: (SortByDateOptions) -> Unit
 ) {
 	Box(modifier = modifier) {
 		var expand by remember {
@@ -44,18 +45,24 @@ internal fun DateSortChip(
 					)
 				},
 				onClick = { expand = true },
-				label = { Text("Duration") },
+				label = { Text(sortByDateOptions.name, modifier = Modifier.animateContentSize()) },
 				border = BorderStroke(0.dp, Color.Transparent)
 			)
 		}
 		DropdownMenu(expanded = expand, onDismissRequest = { expand = false }) {
 			DropdownMenuItem(
-				text = { Text("Ascending") },
-				onClick = { onSetSortOrder(SortOrder.ByRecordingDuration) }
+				text = { Text("MostRecent") },
+				onClick = {
+					onSetSortByDate(SortByDateOptions.MostRecent)
+					expand = false
+				}
 			)
 			DropdownMenuItem(
-				text = { Text("Descending") },
-				onClick = { onSetSortOrder(SortOrder.ByRecordingDuration) }
+				text = { Text("Oldest") },
+				onClick = {
+					onSetSortByDate(SortByDateOptions.Oldest)
+					expand = false
+				}
 			)
 		}
 	}
@@ -82,20 +89,20 @@ internal fun DurationSortChip(
 						contentDescription = null
 					)
 				},
-				label = { Text(sortedByDuration.name) },
+				label = { Text(sortedByDuration.name, modifier = Modifier.animateContentSize()) },
 				border = BorderStroke(0.dp, Color.Transparent)
 			)
 		}
 		DropdownMenu(expanded = expand, onDismissRequest = { expand = false }) {
 			DropdownMenuItem(
-				text = { Text("Recent") },
+				text = { Text("Longest") },
 				onClick = {
 					onSetByDurationChange(SortByDurationOptions.Ascending)
 					expand = false
 				}
 			)
 			DropdownMenuItem(
-				text = { Text("Oldest") },
+				text = { Text("Shortest") },
 				onClick = {
 					onSetByDurationChange(SortByDurationOptions.Descending)
 					expand = false

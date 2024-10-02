@@ -53,6 +53,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import com.core.common.model.SortByDateOptions
 import com.core.common.model.SortByDurationOptions
 import com.core.common.model.Voice
 import com.recorder.core.designsystem.theme.LocalSharedTransitionScope
@@ -70,10 +71,10 @@ fun Playlist(
 	onBackPressed: () -> Unit,
 ) {
 	val context = LocalContext.current
-	val playerViewModel = hiltViewModel<PlaylistViewModel>()
-	val voiceList by playerViewModel.voices.collectAsStateWithLifecycle()
-	val state by playerViewModel.uiState.collectAsStateWithLifecycle()
-	val sortOrder by playerViewModel.sortOrder.collectAsStateWithLifecycle()
+	val playlistViewModel = hiltViewModel<PlaylistViewModel>()
+	val voiceList by playlistViewModel.voices.collectAsStateWithLifecycle()
+	val state by playlistViewModel.uiState.collectAsStateWithLifecycle()
+	val sortOrder by playlistViewModel.sortOrder.collectAsStateWithLifecycle()
 
 	val playerState = rememberPlayerState()
 	val browser = playerState.browser
@@ -95,12 +96,12 @@ fun Playlist(
 	}
 	LaunchedEffect(key1 = isPlaying, playerState.browser?.currentPosition, sortOrder) {
 		if (isPlaying && voiceList.isNotEmpty()) {
-			playerViewModel.updateVoiceList(
+			playlistViewModel.updateVoiceList(
 				selectedVoiceIndex = playingVoiceIndex,
 				isPlaying = true
 			)
 		} else {
-			playerViewModel.getVoices(context)
+			playlistViewModel.getVoices(context)
 		}
 	}
 	Box(
@@ -152,14 +153,14 @@ fun Playlist(
 			onBackPressed = { onBackPressed() },
 			progressSeconds = progress,
 			onDeleteVoices = { titles ->
-				playerViewModel.deleteVoice(titles.toList(), context)
+				playlistViewModel.deleteVoice(titles.toList(), context)
 			},
 			onSaveVoiceFile = {
 				// TODO: implement save functionality
 				//save to shared storage: eg. recording or music or downloads folder
 			},
 			rename = { current, desired ->
-				playerViewModel.renameVoice(current, desired, context)
+				playlistViewModel.renameVoice(current, desired, context)
 			},
 			onPlaybackSpeedChange = { speedFactor ->
 				browser?.run {
@@ -169,9 +170,11 @@ fun Playlist(
 				}
 			},
 			onSetSortByName = {
-				playerViewModel.setIsSortByName(!state.isSortByName)
+				playlistViewModel.setIsSortByName(!state.isSortByName)
 			},
-			onSetSortByDuration = { playerViewModel.setDurationSort(it) }
+			onSetSortByDuration = { playlistViewModel.setDurationSort(it) },
+			sortByDate = state.sortByDateOption,
+			onSetSortByDate = { playlistViewModel.setDateSort(it) }
 		)
 	}
 }
@@ -190,6 +193,7 @@ fun PlaylistContent(
 	duration: Float,
 	isSortByName: Boolean,
 	sortByDuration: SortByDurationOptions,
+	sortByDate: SortByDateOptions,
 	onPlaybackSpeedChange: (Float) -> Unit,
 	onSeekForward: () -> Unit,
 	onSeekBack: () -> Unit,
@@ -203,6 +207,7 @@ fun PlaylistContent(
 	rename: (current: String, desired: String) -> Unit,
 	onSetSortByName: () -> Unit,
 	onSetSortByDuration: (SortByDurationOptions) -> Unit,
+	onSetSortByDate: (SortByDateOptions) -> Unit,
 ) {
 	val sharedElementScope = LocalSharedTransitionScope.current
 		?: throw IllegalStateException("no shared element scope found")
@@ -338,7 +343,9 @@ fun PlaylistContent(
 					isSortByName = isSortByName,
 					onSetSortByName = onSetSortByName,
 					sortedByDuration = sortByDuration,
-					onSetByDurationChange = onSetSortByDuration
+					onSetByDuration = onSetSortByDuration,
+					sortedByDateOptions = sortByDate,
+					onSetByDate = onSetSortByDate,
 				)
 				val list by remember(voices, isSortByName) {
 					val value = voices.sortedWith(
@@ -442,6 +449,7 @@ fun PlaylistPagePreview() {
 				duration = 0.0f,
 				isSortByName = false,
 				sortByDuration = SortByDurationOptions.Ascending,
+				sortByDate = SortByDateOptions.MostRecent,
 				onPlaybackSpeedChange = {},
 				onSeekForward = {},
 				onSeekBack = {},
@@ -455,7 +463,8 @@ fun PlaylistPagePreview() {
 				onSaveVoiceFile = {},
 				rename = { _, _ -> },
 				onSetSortByName = {},
-				onSetSortByDuration = {}
+				onSetSortByDuration = {},
+				onSetSortByDate = {}
 			)
 		}
 	}

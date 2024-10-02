@@ -12,14 +12,17 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.core.common.model.SortByDateOptions
 import com.core.common.model.SortByDurationOptions
 
 @Composable
 internal fun SortOptions(
 	isSortByName: Boolean,
 	sortedByDuration: SortByDurationOptions,
+	sortedByDateOptions: SortByDateOptions,
 	onSetSortByName: () -> Unit,
-	onSetByDurationChange: (SortByDurationOptions) -> Unit
+	onSetByDuration: (SortByDurationOptions) -> Unit,
+	onSetByDate: (SortByDateOptions) -> Unit
 ) {
 	Row(
 		modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
@@ -40,8 +43,11 @@ internal fun SortOptions(
 		)
 		DurationSortChip(
 			sortedByDuration = sortedByDuration,
-			onSetByDurationChange = onSetByDurationChange
+			onSetByDurationChange = onSetByDuration
 		)
-//		DateSortChip(sortOrder = isSortByName, onSetSortOrder = onSetSortByName)
+		DateSortChip(
+			sortByDateOptions = sortedByDateOptions,
+			onSetSortByDate = onSetByDate
+		)
 	}
 }
