@@ -20,6 +20,6 @@ enum class SortByDateOptions() {
 
 @Serializable
 enum class SortByDurationOptions {
-	Ascending,
-	Descending
+	Longest,
+	Shortest
 }

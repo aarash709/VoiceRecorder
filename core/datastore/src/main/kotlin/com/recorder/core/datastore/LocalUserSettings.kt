@@ -93,7 +93,7 @@ class LocalUserSettings @Inject constructor(private val dataStore: DataStore<Pre
             if (orderByString != null) {
                 Json.decodeFromString<SortByDurationOptions>(orderByString)
             } else {
-                SortByDurationOptions.Ascending
+                SortByDurationOptions.Longest
             }
         }.flowOn(Dispatchers.IO)
     }

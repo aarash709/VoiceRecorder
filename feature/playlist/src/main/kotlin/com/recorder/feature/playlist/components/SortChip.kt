@@ -97,14 +97,14 @@ internal fun DurationSortChip(
 			DropdownMenuItem(
 				text = { Text("Longest") },
 				onClick = {
-					onSetByDurationChange(SortByDurationOptions.Ascending)
+					onSetByDurationChange(SortByDurationOptions.Longest)
 					expand = false
 				}
 			)
 			DropdownMenuItem(
 				text = { Text("Shortest") },
 				onClick = {
-					onSetByDurationChange(SortByDurationOptions.Descending)
+					onSetByDurationChange(SortByDurationOptions.Shortest)
 					expand = false
 				}
 			)

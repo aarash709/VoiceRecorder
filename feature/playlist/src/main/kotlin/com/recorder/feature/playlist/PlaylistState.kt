@@ -10,5 +10,5 @@ data class PlaylistUiState(
 	val isLoading: Boolean = false,
 	val isSortByName: Boolean = false,
 	val sortByDateOption: SortByDateOptions = SortByDateOptions.MostRecent,
-	val sortByDurationOption: SortByDurationOptions = SortByDurationOptions.Ascending
+	val sortByDurationOption: SortByDurationOptions = SortByDurationOptions.Longest
 )

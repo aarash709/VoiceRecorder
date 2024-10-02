@@ -448,7 +448,7 @@ fun PlaylistPagePreview() {
 				playbackSpeed = 0.5f,
 				duration = 0.0f,
 				isSortByName = false,
-				sortByDuration = SortByDurationOptions.Ascending,
+				sortByDuration = SortByDurationOptions.Longest,
 				sortByDate = SortByDateOptions.MostRecent,
 				onPlaybackSpeedChange = {},
 				onSeekForward = {},
