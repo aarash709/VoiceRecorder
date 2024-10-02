@@ -20,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.core.common.model.SortByDurationOptions
 import com.core.common.model.SortOrder
 
 @Composable
@@ -61,10 +62,10 @@ internal fun DateSortChip(
 }
 
 @Composable
-internal fun NameSortChip(
+internal fun DurationSortChip(
 	modifier: Modifier = Modifier,
-	sortOrder: SortOrder,
-	onSetSortOrder: (SortOrder) -> Unit
+	sortedByDuration: SortByDurationOptions,
+	onSetByDurationChange: (SortByDurationOptions) -> Unit
 ) {
 	Box(modifier = modifier) {
 		var expand by remember {
@@ -81,17 +82,24 @@ internal fun NameSortChip(
 						contentDescription = null
 					)
 				},
-				label = { Text("Date") }, border = BorderStroke(0.dp, Color.Transparent)
+				label = { Text(sortedByDuration.name) },
+				border = BorderStroke(0.dp, Color.Transparent)
 			)
 		}
 		DropdownMenu(expanded = expand, onDismissRequest = { expand = false }) {
 			DropdownMenuItem(
 				text = { Text("Recent") },
-				onClick = { onSetSortOrder(SortOrder.ByRecordingDate) }
+				onClick = {
+					onSetByDurationChange(SortByDurationOptions.Ascending)
+					expand = false
+				}
 			)
 			DropdownMenuItem(
 				text = { Text("Oldest") },
-				onClick = { onSetSortOrder(SortOrder.ByRecordingDate) }
+				onClick = {
+					onSetByDurationChange(SortByDurationOptions.Descending)
+					expand = false
+				}
 			)
 		}
 	}

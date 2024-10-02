@@ -53,7 +53,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
-import com.core.common.model.SortOrder
+import com.core.common.model.SortByDurationOptions
 import com.core.common.model.Voice
 import com.recorder.core.designsystem.theme.LocalSharedTransitionScope
 import com.recorder.core.designsystem.theme.VoiceRecorderTheme
@@ -114,6 +114,7 @@ fun Playlist(
 			duration = if (duration > 0f) duration else 0f,
 			playbackSpeed = playerState.browser?.playbackParameters?.speed ?: 1.0f,
 			isSortByName = state.isSortByName,
+			sortByDuration = state.sortByDurationOption,
 			onSeekForward = {
 				if (isPlaying) {
 					browser?.run {
@@ -167,9 +168,10 @@ fun Playlist(
 					}
 				}
 			},
-			setSortByName = {
+			onSetSortByName = {
 				playerViewModel.setIsSortByName(!state.isSortByName)
-			}
+			},
+			onSetSortByDuration = { playerViewModel.setDurationSort(it) }
 		)
 	}
 }
@@ -187,6 +189,7 @@ fun PlaylistContent(
 	playbackSpeed: Float,
 	duration: Float,
 	isSortByName: Boolean,
+	sortByDuration: SortByDurationOptions,
 	onPlaybackSpeedChange: (Float) -> Unit,
 	onSeekForward: () -> Unit,
 	onSeekBack: () -> Unit,
@@ -198,7 +201,8 @@ fun PlaylistContent(
 	onDeleteVoices: (Set<String>) -> Unit,
 	onSaveVoiceFile: () -> Unit,
 	rename: (current: String, desired: String) -> Unit,
-	setSortByName: () -> Unit,
+	onSetSortByName: () -> Unit,
+	onSetSortByDuration: (SortByDurationOptions) -> Unit,
 ) {
 	val sharedElementScope = LocalSharedTransitionScope.current
 		?: throw IllegalStateException("no shared element scope found")
@@ -330,7 +334,12 @@ fun PlaylistContent(
 
 					)
 				}
-				SortOptions(isSortByName = isSortByName, onSetSortByName = setSortByName)
+				SortOptions(
+					isSortByName = isSortByName,
+					onSetSortByName = onSetSortByName,
+					sortedByDuration = sortByDuration,
+					onSetByDurationChange = onSetSortByDuration
+				)
 				val list by remember(voices, isSortByName) {
 					val value = voices.sortedWith(
 						comparator = compareBy(
@@ -432,6 +441,7 @@ fun PlaylistPagePreview() {
 				playbackSpeed = 0.5f,
 				duration = 0.0f,
 				isSortByName = false,
+				sortByDuration = SortByDurationOptions.Ascending,
 				onPlaybackSpeedChange = {},
 				onSeekForward = {},
 				onSeekBack = {},
@@ -444,7 +454,8 @@ fun PlaylistPagePreview() {
 				onDeleteVoices = {},
 				onSaveVoiceFile = {},
 				rename = { _, _ -> },
-				setSortByName = {}
+				onSetSortByName = {},
+				onSetSortByDuration = {}
 			)
 		}
 	}
