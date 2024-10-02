@@ -29,6 +29,25 @@ class PlaylistViewModel @Inject constructor(
 	private val localUserData: LocalUserSettings
 ) : ViewModel() {
 
+	val uiState = combine(
+		getIsSortByName(),
+		getSortByDuration(),
+		getSortByDate()
+	) { isByName,
+		sortByDuration,
+		sortByDate ->
+		PlaylistUiState(
+			voices = _voices.value,
+			isLoading = false,
+			isSortByName = isByName,
+			sortByDateOption = sortByDate,
+			sortByDurationOption = sortByDuration,
+		)
+	}.stateIn(
+		scope = viewModelScope,
+		started = SharingStarted.WhileSubscribed(1_000),
+		initialValue = PlaylistUiState()
+	)
 	private val _voices = MutableStateFlow(listOf<Voice>())
 	val voices = _voices.stateIn(
 		scope = viewModelScope,
@@ -96,7 +115,7 @@ class PlaylistViewModel @Inject constructor(
 	}
 
 	private fun getIsSortByName(): Flow<Boolean> {
-		return localUserData.getSortByName()
+		return localUserData.getIsSortByName()
 	}
 
 	private fun getSortByDuration(): Flow<SortByDurationOptions> {
@@ -114,10 +133,23 @@ class PlaylistViewModel @Inject constructor(
 		}
 	}
 
-	fun setDurationSort(sortDuration: SortByDurationOptions){
+	fun setIsSortByName(isSortByName: Boolean) {
+		viewModelScope.launch {
+			localUserData.setSortByName(isSortByName)
+		}
+	}
+
+	fun setDurationSort(sortDuration: SortByDurationOptions) {
 		viewModelScope.launch {
 			val value = Json.encodeToString(sortDuration)
 			localUserData.setSortByDuration(value)
+		}
+	}
+
+	fun setDateSort(sortDate: SortByDateOptions) {
+		viewModelScope.launch {
+			val value = Json.encodeToString(sortDate)
+			localUserData.setSortByDate(value)
 		}
 	}
 }

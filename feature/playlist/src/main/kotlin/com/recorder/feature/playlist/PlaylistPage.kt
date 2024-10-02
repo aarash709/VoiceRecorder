@@ -29,7 +29,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -41,7 +40,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
@@ -74,6 +72,7 @@ fun Playlist(
 	val context = LocalContext.current
 	val playerViewModel = hiltViewModel<PlaylistViewModel>()
 	val voiceList by playerViewModel.voices.collectAsStateWithLifecycle()
+	val state by playerViewModel.uiState.collectAsStateWithLifecycle()
 	val sortOrder by playerViewModel.sortOrder.collectAsStateWithLifecycle()
 
 	val playerState = rememberPlayerState()
@@ -85,6 +84,9 @@ fun Playlist(
 	var playingVoiceIndex by rememberSaveable(isPlaying, playerState.browser?.currentPosition) {
 		mutableIntStateOf(
 			if (isPlaying) {
+//				state.voices.indexOfFirst {
+//					it.title == playerState.browser?.currentMediaItem?.mediaId
+//				}
 				voiceList.indexOf(voiceList.firstOrNull { it.title == playerState.browser?.currentMediaItem?.mediaId })
 			} else {
 				-1
@@ -111,7 +113,7 @@ fun Playlist(
 			isPlaying = isPlaying,
 			duration = if (duration > 0f) duration else 0f,
 			playbackSpeed = playerState.browser?.playbackParameters?.speed ?: 1.0f,
-			sortOrder = sortOrder,
+			isSortByName = state.isSortByName,
 			onSeekForward = {
 				if (isPlaying) {
 					browser?.run {
@@ -165,8 +167,8 @@ fun Playlist(
 					}
 				}
 			},
-			setSortOrder = {
-				playerViewModel.setSortOrder(it)
+			setSortByName = {
+				playerViewModel.setIsSortByName(!state.isSortByName)
 			}
 		)
 	}
@@ -184,7 +186,7 @@ fun PlaylistContent(
 	progressSeconds: Long,
 	playbackSpeed: Float,
 	duration: Float,
-	sortOrder: SortOrder,
+	isSortByName: Boolean,
 	onPlaybackSpeedChange: (Float) -> Unit,
 	onSeekForward: () -> Unit,
 	onSeekBack: () -> Unit,
@@ -196,7 +198,7 @@ fun PlaylistContent(
 	onDeleteVoices: (Set<String>) -> Unit,
 	onSaveVoiceFile: () -> Unit,
 	rename: (current: String, desired: String) -> Unit,
-	setSortOrder: (SortOrder) -> Unit,
+	setSortByName: () -> Unit,
 ) {
 	val sharedElementScope = LocalSharedTransitionScope.current
 		?: throw IllegalStateException("no shared element scope found")
@@ -328,15 +330,15 @@ fun PlaylistContent(
 
 					)
 				}
-				SortOptions(sortOrder = sortOrder, onSetSortOrder = setSortOrder)
-				val list by remember(voices, sortOrder) {
-					mutableStateOf(voices.sortedBy { voice ->
-						when (sortOrder) {
-							SortOrder.ByName -> voice.title
-							SortOrder.ByRecordingDate -> voice.recordTime
-							SortOrder.ByRecordingDuration -> voice.duration
-						}
-					})
+				SortOptions(isSortByName = isSortByName, onSetSortByName = setSortByName)
+				val list by remember(voices, isSortByName) {
+					val value = voices.sortedWith(
+						comparator = compareBy(
+							{
+								if (isSortByName) it.title else null
+							})
+					)
+					mutableStateOf(value)
 				}
 				if (list.isEmpty()) {
 					EmptyListMessage()
@@ -429,7 +431,7 @@ fun PlaylistPagePreview() {
 				isPlaying = false,
 				playbackSpeed = 0.5f,
 				duration = 0.0f,
-				sortOrder = SortOrder.ByRecordingDate,
+				isSortByName = false,
 				onPlaybackSpeedChange = {},
 				onSeekForward = {},
 				onSeekBack = {},
@@ -442,7 +444,7 @@ fun PlaylistPagePreview() {
 				onDeleteVoices = {},
 				onSaveVoiceFile = {},
 				rename = { _, _ -> },
-				setSortOrder = {}
+				setSortByName = {}
 			)
 		}
 	}
