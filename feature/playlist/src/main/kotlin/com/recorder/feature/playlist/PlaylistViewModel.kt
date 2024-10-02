@@ -4,6 +4,8 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.core.common.Storage
+import com.core.common.model.SortByDateOptions
+import com.core.common.model.SortByDurationOptions
 import com.core.common.model.SortOrder
 import com.core.common.model.Voice
 import com.recorder.core.datastore.LocalUserSettings
@@ -12,6 +14,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -92,10 +95,29 @@ class PlaylistViewModel @Inject constructor(
 		return localUserData.getSortOrder()
 	}
 
+	private fun getIsSortByName(): Flow<Boolean> {
+		return localUserData.getSortByName()
+	}
+
+	private fun getSortByDuration(): Flow<SortByDurationOptions> {
+		return localUserData.getSortByDuration()
+	}
+
+	private fun getSortByDate(): Flow<SortByDateOptions> {
+		return localUserData.getSortByDate()
+	}
+
 	fun setSortOrder(orderBy: SortOrder) {
 		viewModelScope.launch {
 			val value = Json.encodeToString(orderBy)
 			localUserData.setSortOrder(value)
+		}
+	}
+
+	fun setDurationSort(sortDuration: SortByDurationOptions){
+		viewModelScope.launch {
+			val value = Json.encodeToString(sortDuration)
+			localUserData.setSortByDuration(value)
 		}
 	}
 }

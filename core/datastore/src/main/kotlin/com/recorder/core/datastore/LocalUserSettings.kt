@@ -7,6 +7,8 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.core.common.model.RecordingFormat
 import com.core.common.model.RecordingQuality
+import com.core.common.model.SortByDateOptions
+import com.core.common.model.SortByDurationOptions
 import com.core.common.model.SortOrder
 import com.core.common.model.UserSettings
 import kotlinx.coroutines.Dispatchers
@@ -78,6 +80,39 @@ class LocalUserSettings @Inject constructor(private val dataStore: DataStore<Pre
         }.flowOn(Dispatchers.IO)
     }
 
+    fun getSortByName(): Flow<Boolean> {
+        return dataStore.data.map {
+            val orderByString = it[BY_NAME_KEY]
+            if (orderByString != null) {
+                Json.decodeFromString<Boolean>(orderByString)
+            } else {
+                false
+            }
+        }.flowOn(Dispatchers.IO)
+    }
+
+    fun getSortByDuration(): Flow<SortByDurationOptions> {
+        return dataStore.data.map {
+            val orderByString = it[DURATION_SORT_KEY]
+            if (orderByString != null) {
+                Json.decodeFromString<SortByDurationOptions>(orderByString)
+            } else {
+                SortByDurationOptions.Ascending
+            }
+        }.flowOn(Dispatchers.IO)
+    }
+
+    fun getSortByDate(): Flow<SortByDateOptions> {
+        return dataStore.data.map {
+            val orderByString = it[DATE_SORT_KEY]
+            if (orderByString != null) {
+                Json.decodeFromString<SortByDateOptions>(orderByString)
+            } else {
+                SortByDateOptions.MostRecent
+            }
+        }.flowOn(Dispatchers.IO)
+    }
+
     //store values
     suspend fun setEarpieceMode(value: Boolean) {
         dataStore.edit {
@@ -109,11 +144,32 @@ class LocalUserSettings @Inject constructor(private val dataStore: DataStore<Pre
         }
     }
 
+    suspend fun setSortByName(value: String) {
+        dataStore.edit {
+            it[BY_NAME_KEY] = value
+        }
+    }
+
+    suspend fun setSortByDate(value: String) {
+        dataStore.edit {
+            it[DATE_SORT_KEY] = value
+        }
+    }
+
+    suspend fun setSortByDuration(value: String) {
+        dataStore.edit {
+            it[DURATION_SORT_KEY] = value
+        }
+    }
+
     companion object Keys {
         val EARPIECE_KEY = booleanPreferencesKey("EARPIECE_KEY")
         val RENAME_MANUALLY_KEY = booleanPreferencesKey("NAME_MANUALLY_KEY")
         val RECORDER_FORMAT_KEY = stringPreferencesKey("RECORDER_FORMAT_KEY")
         val RECORDER_QUALITY_KEY = stringPreferencesKey("RECORDER_QUALITY_KEY")
         val ORDER_BY_KEY = stringPreferencesKey("ORDER_BY_KEY")
+        val BY_NAME_KEY = stringPreferencesKey("NAME_BY_KEY")
+        val DURATION_SORT_KEY = stringPreferencesKey("DURATION_SORT_KEY")
+        val DATE_SORT_KEY = stringPreferencesKey("DATE_SORT_KEY")
     }
 }
