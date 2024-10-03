@@ -8,7 +8,6 @@ import com.core.common.model.Voice
 data class PlaylistUiState(
 	val voices: List<Voice> = listOf(),
 	val isLoading: Boolean = false,
-	val isSortByName: Boolean = false,
 	val sortByDateOption: SortByDateOptions = SortByDateOptions.MostRecent,
 	val sortByDurationOption: SortByDurationOptions = SortByDurationOptions.Longest
 )

@@ -30,16 +30,12 @@ class PlaylistViewModel @Inject constructor(
 ) : ViewModel() {
 
 	val uiState = combine(
-		getIsSortByName(),
 		getSortByDuration(),
 		getSortByDate()
-	) { isByName,
-		sortByDuration,
-		sortByDate ->
+	) { sortByDuration, sortByDate ->
 		PlaylistUiState(
 			voices = _voices.value,
 			isLoading = false,
-			isSortByName = isByName,
 			sortByDateOption = sortByDate,
 			sortByDurationOption = sortByDuration,
 		)
@@ -114,10 +110,6 @@ class PlaylistViewModel @Inject constructor(
 		return localUserData.getSortOrder()
 	}
 
-	private fun getIsSortByName(): Flow<Boolean> {
-		return localUserData.getIsSortByName()
-	}
-
 	private fun getSortByDuration(): Flow<SortByDurationOptions> {
 		return localUserData.getSortByDuration()
 	}
@@ -130,12 +122,6 @@ class PlaylistViewModel @Inject constructor(
 		viewModelScope.launch {
 			val value = Json.encodeToString(orderBy)
 			localUserData.setSortOrder(value)
-		}
-	}
-
-	fun setIsSortByName(isSortByName: Boolean) {
-		viewModelScope.launch {
-			localUserData.setSortByName(isSortByName)
 		}
 	}
 

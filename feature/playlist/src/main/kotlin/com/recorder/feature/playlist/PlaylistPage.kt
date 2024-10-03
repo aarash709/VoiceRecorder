@@ -112,10 +112,18 @@ fun Playlist(
 		PlaylistContent(
 			voices = voiceList,
 			isPlaying = isPlaying,
-			duration = if (duration > 0f) duration else 0f,
+			progressSeconds = progress,
 			playbackSpeed = playerState.browser?.playbackParameters?.speed ?: 1.0f,
-			isSortByName = state.isSortByName,
+			duration = if (duration > 0f) duration else 0f,
 			sortByDuration = state.sortByDurationOption,
+			sortByDate = state.sortByDateOption,
+			onPlaybackSpeedChange = { speedFactor ->
+				browser?.run {
+					if (!isPlaying) {
+						setPlaybackSpeed(speedFactor)
+					}
+				}
+			},
 			onSeekForward = {
 				if (isPlaying) {
 					browser?.run {
@@ -151,7 +159,6 @@ fun Playlist(
 			onNavigateToSettings = { onNavigateToSettings() },
 			onNavigateToRecorder = { onNavigateToRecorder() },
 			onBackPressed = { onBackPressed() },
-			progressSeconds = progress,
 			onDeleteVoices = { titles ->
 				playlistViewModel.deleteVoice(titles.toList(), context)
 			},
@@ -162,18 +169,7 @@ fun Playlist(
 			rename = { current, desired ->
 				playlistViewModel.renameVoice(current, desired, context)
 			},
-			onPlaybackSpeedChange = { speedFactor ->
-				browser?.run {
-					if (!isPlaying) {
-						setPlaybackSpeed(speedFactor)
-					}
-				}
-			},
-			onSetSortByName = {
-				playlistViewModel.setIsSortByName(!state.isSortByName)
-			},
 			onSetSortByDuration = { playlistViewModel.setDurationSort(it) },
-			sortByDate = state.sortByDateOption,
 			onSetSortByDate = { playlistViewModel.setDateSort(it) }
 		)
 	}
@@ -191,7 +187,6 @@ fun PlaylistContent(
 	progressSeconds: Long,
 	playbackSpeed: Float,
 	duration: Float,
-	isSortByName: Boolean,
 	sortByDuration: SortByDurationOptions,
 	sortByDate: SortByDateOptions,
 	onPlaybackSpeedChange: (Float) -> Unit,
@@ -205,7 +200,6 @@ fun PlaylistContent(
 	onDeleteVoices: (Set<String>) -> Unit,
 	onSaveVoiceFile: () -> Unit,
 	rename: (current: String, desired: String) -> Unit,
-	onSetSortByName: () -> Unit,
 	onSetSortByDuration: (SortByDurationOptions) -> Unit,
 	onSetSortByDate: (SortByDateOptions) -> Unit,
 ) {
@@ -340,20 +334,13 @@ fun PlaylistContent(
 					)
 				}
 				SortOptions(
-					isSortByName = isSortByName,
-					onSetSortByName = onSetSortByName,
 					sortedByDuration = sortByDuration,
-					onSetByDuration = onSetSortByDuration,
 					sortedByDateOptions = sortByDate,
+					onSetByDuration = onSetSortByDuration,
 					onSetByDate = onSetSortByDate,
 				)
-				val list by remember(voices, isSortByName) {
-					val value = voices.sortedWith(
-						comparator = compareBy(
-							{
-								if (isSortByName) it.title else null
-							})
-					)
+				val list by remember(voices) {
+					val value = voices
 					mutableStateOf(value)
 				}
 				if (list.isEmpty()) {
@@ -443,11 +430,10 @@ fun PlaylistPagePreview() {
 		Surface(color = MaterialTheme.colorScheme.background) {
 			PlaylistContent(
 				VoicesSampleData,
-				progressSeconds = 0,
 				isPlaying = false,
+				progressSeconds = 0,
 				playbackSpeed = 0.5f,
 				duration = 0.0f,
-				isSortByName = false,
 				sortByDuration = SortByDurationOptions.Longest,
 				sortByDate = SortByDateOptions.MostRecent,
 				onPlaybackSpeedChange = {},
@@ -462,7 +448,6 @@ fun PlaylistPagePreview() {
 				onDeleteVoices = {},
 				onSaveVoiceFile = {},
 				rename = { _, _ -> },
-				onSetSortByName = {},
 				onSetSortByDuration = {},
 				onSetSortByDate = {}
 			)
