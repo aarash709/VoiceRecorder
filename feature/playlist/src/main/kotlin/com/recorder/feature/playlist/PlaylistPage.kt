@@ -54,6 +54,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import com.core.common.model.SortByDateOptions
+import com.core.common.model.SortByDuration
 import com.core.common.model.SortByDurationOptions
 import com.core.common.model.Voice
 import com.recorder.core.designsystem.theme.LocalSharedTransitionScope
@@ -187,7 +188,7 @@ fun PlaylistContent(
 	progressSeconds: Long,
 	playbackSpeed: Float,
 	duration: Float,
-	sortByDuration: SortByDurationOptions,
+	sortByDuration: SortByDuration,
 	sortByDate: SortByDateOptions,
 	onPlaybackSpeedChange: (Float) -> Unit,
 	onSeekForward: () -> Unit,
@@ -200,7 +201,7 @@ fun PlaylistContent(
 	onDeleteVoices: (Set<String>) -> Unit,
 	onSaveVoiceFile: () -> Unit,
 	rename: (current: String, desired: String) -> Unit,
-	onSetSortByDuration: (SortByDurationOptions) -> Unit,
+	onSetSortByDuration: (SortByDuration) -> Unit,
 	onSetSortByDate: (SortByDateOptions) -> Unit,
 ) {
 	val sharedElementScope = LocalSharedTransitionScope.current
@@ -434,7 +435,7 @@ fun PlaylistPagePreview() {
 				progressSeconds = 0,
 				playbackSpeed = 0.5f,
 				duration = 0.0f,
-				sortByDuration = SortByDurationOptions.Longest,
+				sortByDuration = SortByDuration(),
 				sortByDate = SortByDateOptions.MostRecent,
 				onPlaybackSpeedChange = {},
 				onSeekForward = {},

@@ -1,12 +1,15 @@
 package com.recorder.feature.playlist.components
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilterChip
@@ -22,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.core.common.model.SortByDateOptions
+import com.core.common.model.SortByDuration
 import com.core.common.model.SortByDurationOptions
 
 @Composable
@@ -71,8 +75,8 @@ internal fun DateSortChip(
 @Composable
 internal fun DurationSortChip(
 	modifier: Modifier = Modifier,
-	sortedByDuration: SortByDurationOptions,
-	onSetByDurationChange: (SortByDurationOptions) -> Unit
+	sortedByDuration: SortByDuration,
+	onSetByDurationChange: (SortByDuration) -> Unit
 ) {
 	Box(modifier = modifier) {
 		var expand by remember {
@@ -80,7 +84,7 @@ internal fun DurationSortChip(
 		}
 		Row(verticalAlignment = Alignment.CenterVertically) {
 			FilterChip(
-				selected = true,
+				selected = sortedByDuration.isSelected,
 				onClick = { expand = true },
 				trailingIcon = {
 					Icon(
@@ -89,7 +93,27 @@ internal fun DurationSortChip(
 						contentDescription = null
 					)
 				},
-				label = { Text(sortedByDuration.name, modifier = Modifier.animateContentSize()) },
+				leadingIcon = {
+					AnimatedVisibility(sortedByDuration.isSelected) {
+						Icon(
+							Icons.Default.Check,
+							modifier = Modifier.clickable {
+								onSetByDurationChange(
+									SortByDuration(
+										isSelected = false
+									)
+								)
+							},
+							contentDescription = null
+						)
+					}
+				},
+				label = {
+					Text(
+						sortedByDuration.durationOptions?.name ?: "Duration",
+						modifier = Modifier.animateContentSize()
+					)
+				},
 				border = BorderStroke(0.dp, Color.Transparent)
 			)
 		}
@@ -97,14 +121,24 @@ internal fun DurationSortChip(
 			DropdownMenuItem(
 				text = { Text("Longest") },
 				onClick = {
-					onSetByDurationChange(SortByDurationOptions.Longest)
+					onSetByDurationChange(
+						SortByDuration(
+							durationOptions = SortByDurationOptions.Longest,
+							isSelected = true
+						)
+					)
 					expand = false
 				}
 			)
 			DropdownMenuItem(
 				text = { Text("Shortest") },
 				onClick = {
-					onSetByDurationChange(SortByDurationOptions.Shortest)
+					onSetByDurationChange(
+						SortByDuration(
+							durationOptions = SortByDurationOptions.Shortest,
+							isSelected = true
+						)
+					)
 					expand = false
 				}
 			)

@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.core.common.Storage
 import com.core.common.model.SortByDateOptions
+import com.core.common.model.SortByDuration
 import com.core.common.model.SortByDurationOptions
 import com.core.common.model.SortOrder
 import com.core.common.model.Voice
@@ -110,7 +111,7 @@ class PlaylistViewModel @Inject constructor(
 		return localUserData.getSortOrder()
 	}
 
-	private fun getSortByDuration(): Flow<SortByDurationOptions> {
+	private fun getSortByDuration(): Flow<SortByDuration> {
 		return localUserData.getSortByDuration()
 	}
 
@@ -125,7 +126,7 @@ class PlaylistViewModel @Inject constructor(
 		}
 	}
 
-	fun setDurationSort(sortDuration: SortByDurationOptions) {
+	fun setDurationSort(sortDuration: SortByDuration) {
 		viewModelScope.launch {
 			val value = Json.encodeToString(sortDuration)
 			localUserData.setSortByDuration(value)

@@ -8,7 +8,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import com.core.common.model.RecordingFormat
 import com.core.common.model.RecordingQuality
 import com.core.common.model.SortByDateOptions
-import com.core.common.model.SortByDurationOptions
+import com.core.common.model.SortByDuration
 import com.core.common.model.SortOrder
 import com.core.common.model.UserSettings
 import kotlinx.coroutines.Dispatchers
@@ -87,22 +87,22 @@ class LocalUserSettings @Inject constructor(private val dataStore: DataStore<Pre
         }.flowOn(Dispatchers.IO)
     }
 
-    fun getSortByDuration(): Flow<SortByDurationOptions> {
+    fun getSortByDuration(): Flow<SortByDuration> {
         return dataStore.data.map {
-            val orderByString = it[DURATION_SORT_KEY]
-            if (orderByString != null) {
-                Json.decodeFromString<SortByDurationOptions>(orderByString)
+            val value = it[DURATION_SORT_KEY]
+            if (value != null) {
+                Json.decodeFromString<SortByDuration>(value)
             } else {
-                SortByDurationOptions.Longest
+                SortByDuration()
             }
         }.flowOn(Dispatchers.IO)
     }
 
     fun getSortByDate(): Flow<SortByDateOptions> {
         return dataStore.data.map {
-            val orderByString = it[DATE_SORT_KEY]
-            if (orderByString != null) {
-                Json.decodeFromString<SortByDateOptions>(orderByString)
+            val value = it[DATE_SORT_KEY]
+            if (value != null) {
+                Json.decodeFromString<SortByDateOptions>(value)
             } else {
                 SortByDateOptions.MostRecent
             }
