@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilterChip
@@ -96,7 +97,7 @@ internal fun DurationSortChip(
 				leadingIcon = {
 					AnimatedVisibility(sortedByDuration.isSelected) {
 						Icon(
-							Icons.Default.Check,
+							Icons.Default.Clear,
 							modifier = Modifier.clickable {
 								onSetByDurationChange(
 									SortByDuration(
