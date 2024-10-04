@@ -75,7 +75,6 @@ fun Playlist(
 	val playlistViewModel = hiltViewModel<PlaylistViewModel>()
 	val voiceList by playlistViewModel.voices.collectAsStateWithLifecycle()
 	val state by playlistViewModel.uiState.collectAsStateWithLifecycle()
-	val sortOrder by playlistViewModel.sortOrder.collectAsStateWithLifecycle()
 
 	val playerState = rememberPlayerState()
 	val browser = playerState.browser
@@ -83,7 +82,10 @@ fun Playlist(
 	val progress by playerState.progress.collectAsStateWithLifecycle()
 	val duration by playerState.voiceDuration.collectAsStateWithLifecycle()
 
-	var playingVoiceIndex by rememberSaveable(isPlaying, playerState.browser?.currentPosition) {
+	var playingVoiceIndex by rememberSaveable(
+		isPlaying,
+		playerState.browser?.currentPosition
+	) {
 		mutableIntStateOf(
 			if (isPlaying) {
 //				state.voices.indexOfFirst {
@@ -95,7 +97,11 @@ fun Playlist(
 			}
 		)
 	}
-	LaunchedEffect(key1 = isPlaying, playerState.browser?.currentPosition, sortOrder) {
+	LaunchedEffect(
+		key1 = isPlaying,
+		playerState.browser?.currentPosition,
+		state
+	) {
 		if (isPlaying && voiceList.isNotEmpty()) {
 			playlistViewModel.updateVoiceList(
 				selectedVoiceIndex = playingVoiceIndex,
@@ -340,9 +346,28 @@ fun PlaylistContent(
 					onSetByDuration = onSetSortByDuration,
 					onSetByDate = onSetSortByDate,
 				)
-				val list by remember(voices) {
-					val value = voices
-					mutableStateOf(value)
+				//sort items
+				val list by remember(voices, sortByDate, sortByDuration) {
+					val sortedByDate = voices
+						.sortedWith(
+							comparator = when (sortByDate) {
+								SortByDateOptions.MostRecent -> compareByDescending { it.recordTimeMillis }
+								SortByDateOptions.Oldest -> compareBy { it.recordTimeMillis }
+							}
+						)
+					val sortedByDateAndDuration = if (sortByDuration.isSelected) {
+						sortedByDate
+							.sortedWith(
+								comparator =
+								when (sortByDuration.durationOptions) {
+									SortByDurationOptions.Longest -> compareByDescending { it.duration }
+									SortByDurationOptions.Shortest -> compareBy { it.duration }
+									null -> compareBy { it.duration }
+								})
+					} else {
+						sortedByDate
+					}
+					mutableStateOf(sortedByDateAndDuration)
 				}
 				if (list.isEmpty()) {
 					EmptyListMessage()

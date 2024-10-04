@@ -29,6 +29,7 @@ class Storage {
                     path = voiceFile.path,
                     duration = "$minutes:$seconds",
                     recordTime = recordTime,
+                    recordTimeMillis = voiceFile.lastModified()
                 )
             }
         }
