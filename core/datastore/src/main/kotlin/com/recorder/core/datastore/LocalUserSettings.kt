@@ -69,24 +69,6 @@ class LocalUserSettings @Inject constructor(private val dataStore: DataStore<Pre
         }
     }
 
-    fun getSortOrder(): Flow<SortOrder> {
-        return dataStore.data.map {
-            val orderByString = it[ORDER_BY_KEY]
-            if (orderByString != null) {
-                Json.decodeFromString<SortOrder>(orderByString)
-            } else {
-                SortOrder.ByRecordingDate
-            }
-        }.flowOn(Dispatchers.IO)
-    }
-
-    fun getIsSortByName(): Flow<Boolean> {
-        return dataStore.data.map {
-            val isSortByName = it[BY_NAME_KEY]
-            isSortByName ?: false
-        }.flowOn(Dispatchers.IO)
-    }
-
     fun getSortByDuration(): Flow<SortByDuration> {
         return dataStore.data.map {
             val value = it[DURATION_SORT_KEY]
@@ -131,18 +113,6 @@ class LocalUserSettings @Inject constructor(private val dataStore: DataStore<Pre
     suspend fun setRecorderQuality(value: String) {
         dataStore.edit {
             it[RECORDER_QUALITY_KEY] = value
-        }
-    }
-
-    suspend fun setSortOrder(value: String) {
-        dataStore.edit {
-            it[ORDER_BY_KEY] = value
-        }
-    }
-
-    suspend fun setSortByName(value: Boolean) {
-        dataStore.edit {
-            it[BY_NAME_KEY] = value
         }
     }
 

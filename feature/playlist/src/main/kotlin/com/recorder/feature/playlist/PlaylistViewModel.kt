@@ -52,12 +52,6 @@ class PlaylistViewModel @Inject constructor(
 		initialValue = listOf()
 	)
 
-	val sortOrder = getSortOrder().stateIn(
-		viewModelScope,
-		SharingStarted.WhileSubscribed(5_000),
-		SortOrder.ByRecordingDate
-	)
-
 	fun getVoices(context: Context) {
 		viewModelScope.launch {
 			_voices.update { storage.getVoices(context) ?: listOf() }
@@ -107,23 +101,12 @@ class PlaylistViewModel @Inject constructor(
 		}
 	}
 
-	private fun getSortOrder(): Flow<SortOrder> {
-		return localUserData.getSortOrder()
-	}
-
 	private fun getSortByDuration(): Flow<SortByDuration> {
 		return localUserData.getSortByDuration()
 	}
 
 	private fun getSortByDate(): Flow<SortByDateOptions> {
 		return localUserData.getSortByDate()
-	}
-
-	fun setSortOrder(orderBy: SortOrder) {
-		viewModelScope.launch {
-			val value = Json.encodeToString(orderBy)
-			localUserData.setSortOrder(value)
-		}
 	}
 
 	fun setDurationSort(sortDuration: SortByDuration) {
