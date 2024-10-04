@@ -4,7 +4,6 @@ import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -14,7 +13,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -27,12 +25,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Circle
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -44,7 +40,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
@@ -58,12 +53,16 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
-import com.core.common.model.SortOrder
+import com.core.common.model.SortByDateOptions
+import com.core.common.model.SortByDuration
+import com.core.common.model.SortByDurationOptions
 import com.core.common.model.Voice
 import com.recorder.core.designsystem.theme.LocalSharedTransitionScope
 import com.recorder.core.designsystem.theme.VoiceRecorderTheme
+import com.recorder.feature.playlist.components.EmptyListMessage
 import com.recorder.feature.playlist.components.OptionsSheet
 import com.recorder.feature.playlist.components.PlaylistBottomSheet
+import com.recorder.feature.playlist.components.SortOptions
 import kotlin.time.Duration.Companion.seconds
 
 @Composable
@@ -73,9 +72,9 @@ fun Playlist(
 	onBackPressed: () -> Unit,
 ) {
 	val context = LocalContext.current
-	val playerViewModel = hiltViewModel<PlaylistViewModel>()
-	val voiceList by playerViewModel.voices.collectAsStateWithLifecycle()
-	val sortOrder by playerViewModel.sortOrder.collectAsStateWithLifecycle()
+	val playlistViewModel = hiltViewModel<PlaylistViewModel>()
+	val voiceList by playlistViewModel.voices.collectAsStateWithLifecycle()
+	val state by playlistViewModel.uiState.collectAsStateWithLifecycle()
 
 	val playerState = rememberPlayerState()
 	val browser = playerState.browser
@@ -83,23 +82,33 @@ fun Playlist(
 	val progress by playerState.progress.collectAsStateWithLifecycle()
 	val duration by playerState.voiceDuration.collectAsStateWithLifecycle()
 
-	var playingVoiceIndex by rememberSaveable(isPlaying, playerState.browser?.currentPosition) {
+	var playingVoiceIndex by rememberSaveable(
+		isPlaying,
+		playerState.browser?.currentPosition
+	) {
 		mutableIntStateOf(
 			if (isPlaying) {
+//				state.voices.indexOfFirst {
+//					it.title == playerState.browser?.currentMediaItem?.mediaId
+//				}
 				voiceList.indexOf(voiceList.firstOrNull { it.title == playerState.browser?.currentMediaItem?.mediaId })
 			} else {
 				-1
 			}
 		)
 	}
-	LaunchedEffect(key1 = isPlaying, playerState.browser?.currentPosition, sortOrder) {
+	LaunchedEffect(
+		key1 = isPlaying,
+		playerState.browser?.currentPosition,
+		state
+	) {
 		if (isPlaying && voiceList.isNotEmpty()) {
-			playerViewModel.updateVoiceList(
+			playlistViewModel.updateVoiceList(
 				selectedVoiceIndex = playingVoiceIndex,
 				isPlaying = true
 			)
 		} else {
-			playerViewModel.getVoices(context)
+			playlistViewModel.getVoices(context)
 		}
 	}
 	Box(
@@ -110,9 +119,18 @@ fun Playlist(
 		PlaylistContent(
 			voices = voiceList,
 			isPlaying = isPlaying,
-			duration = if (duration > 0f) duration else 0f,
+			progressSeconds = progress,
 			playbackSpeed = playerState.browser?.playbackParameters?.speed ?: 1.0f,
-			sortOrder = sortOrder,
+			duration = if (duration > 0f) duration else 0f,
+			sortByDuration = state.sortByDurationOption,
+			sortByDate = state.sortByDateOption,
+			onPlaybackSpeedChange = { speedFactor ->
+				browser?.run {
+					if (!isPlaying) {
+						setPlaybackSpeed(speedFactor)
+					}
+				}
+			},
 			onSeekForward = {
 				if (isPlaying) {
 					browser?.run {
@@ -148,27 +166,18 @@ fun Playlist(
 			onNavigateToSettings = { onNavigateToSettings() },
 			onNavigateToRecorder = { onNavigateToRecorder() },
 			onBackPressed = { onBackPressed() },
-			progressSeconds = progress,
 			onDeleteVoices = { titles ->
-				playerViewModel.deleteVoice(titles.toList(), context)
+				playlistViewModel.deleteVoice(titles.toList(), context)
 			},
 			onSaveVoiceFile = {
 				// TODO: implement save functionality
 				//save to shared storage: eg. recording or music or downloads folder
 			},
 			rename = { current, desired ->
-				playerViewModel.renameVoice(current, desired, context)
+				playlistViewModel.renameVoice(current, desired, context)
 			},
-			onPlaybackSpeedChange = { speedFactor ->
-				browser?.run {
-					if (!isPlaying) {
-						setPlaybackSpeed(speedFactor)
-					}
-				}
-			},
-			setSortOrder = {
-				playerViewModel.setSortOrder(it)
-			}
+			onSetSortByDuration = { playlistViewModel.setDurationSort(it) },
+			onSetSortByDate = { playlistViewModel.setDateSort(it) }
 		)
 	}
 }
@@ -185,7 +194,8 @@ fun PlaylistContent(
 	progressSeconds: Long,
 	playbackSpeed: Float,
 	duration: Float,
-	sortOrder: SortOrder,
+	sortByDuration: SortByDuration,
+	sortByDate: SortByDateOptions,
 	onPlaybackSpeedChange: (Float) -> Unit,
 	onSeekForward: () -> Unit,
 	onSeekBack: () -> Unit,
@@ -197,7 +207,8 @@ fun PlaylistContent(
 	onDeleteVoices: (Set<String>) -> Unit,
 	onSaveVoiceFile: () -> Unit,
 	rename: (current: String, desired: String) -> Unit,
-	setSortOrder: (SortOrder) -> Unit,
+	onSetSortByDuration: (SortByDuration) -> Unit,
+	onSetSortByDate: (SortByDateOptions) -> Unit,
 ) {
 	val sharedElementScope = LocalSharedTransitionScope.current
 		?: throw IllegalStateException("no shared element scope found")
@@ -329,15 +340,34 @@ fun PlaylistContent(
 
 					)
 				}
-				SortOptions(sortOrder = sortOrder, setSortOrder = setSortOrder)
-				val list by remember(voices, sortOrder) {
-					mutableStateOf(voices.sortedBy { voice ->
-						when (sortOrder) {
-							SortOrder.ByName -> voice.title
-							SortOrder.ByRecordingDate -> voice.recordTime
-							SortOrder.ByRecordingDuration -> voice.duration
-						}
-					})
+				SortOptions(
+					sortedByDuration = sortByDuration,
+					sortedByDateOptions = sortByDate,
+					onSetByDuration = onSetSortByDuration,
+					onSetByDate = onSetSortByDate,
+				)
+				//sort items
+				val list by remember(voices, sortByDate, sortByDuration) {
+					val sortedByDate = voices
+						.sortedWith(
+							comparator = when (sortByDate) {
+								SortByDateOptions.MostRecent -> compareByDescending { it.recordTimeMillis }
+								SortByDateOptions.Oldest -> compareBy { it.recordTimeMillis }
+							}
+						)
+					val sortedByDateAndDuration = if (sortByDuration.isSelected) {
+						sortedByDate
+							.sortedWith(
+								comparator =
+								when (sortByDuration.durationOptions) {
+									SortByDurationOptions.Longest -> compareByDescending { it.duration }
+									SortByDurationOptions.Shortest -> compareBy { it.duration }
+									null -> compareBy { it.duration }
+								})
+					} else {
+						sortedByDate
+					}
+					mutableStateOf(sortedByDateAndDuration)
 				}
 				if (list.isEmpty()) {
 					EmptyListMessage()
@@ -417,46 +447,6 @@ fun PlaylistContent(
 	}
 }
 
-@Composable
-private fun SortOptions(
-	sortOrder: SortOrder,
-	setSortOrder: (SortOrder) -> Unit
-) {
-	Row(
-		modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-		horizontalArrangement = Arrangement.spacedBy(16.dp)
-	) {
-		FilterChip(
-			selected = sortOrder == SortOrder.ByRecordingDate,
-			onClick = { setSortOrder(SortOrder.ByRecordingDate) },
-			label = { Text("Date") }, border = BorderStroke(0.dp, Color.Transparent)
-		)
-		FilterChip(
-			selected = sortOrder == SortOrder.ByName,
-			onClick = { setSortOrder(SortOrder.ByName) },
-			label = { Text("Name") }, border = BorderStroke(0.dp, Color.Transparent)
-		)
-		FilterChip(
-			selected = sortOrder == SortOrder.ByRecordingDuration,
-			onClick = { setSortOrder(SortOrder.ByRecordingDuration) },
-			label = { Text("Duration") }, border = BorderStroke(0.dp, Color.Transparent)
-		)
-	}
-}
-
-@Composable
-fun EmptyListMessage() {
-	Column(
-		modifier = Modifier.fillMaxSize(),
-		horizontalAlignment = Alignment.CenterHorizontally,
-		verticalArrangement = Arrangement.Center
-	) {
-		Text(
-			text = "Tap on record button to add a voice recording",
-			color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-		)
-	}
-}
 
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_NO)
@@ -466,11 +456,12 @@ fun PlaylistPagePreview() {
 		Surface(color = MaterialTheme.colorScheme.background) {
 			PlaylistContent(
 				VoicesSampleData,
-				progressSeconds = 0,
 				isPlaying = false,
+				progressSeconds = 0,
 				playbackSpeed = 0.5f,
 				duration = 0.0f,
-				sortOrder = SortOrder.ByRecordingDate,
+				sortByDuration = SortByDuration(),
+				sortByDate = SortByDateOptions.MostRecent,
 				onPlaybackSpeedChange = {},
 				onSeekForward = {},
 				onSeekBack = {},
@@ -483,7 +474,8 @@ fun PlaylistPagePreview() {
 				onDeleteVoices = {},
 				onSaveVoiceFile = {},
 				rename = { _, _ -> },
-				setSortOrder = {}
+				onSetSortByDuration = {},
+				onSetSortByDate = {}
 			)
 		}
 	}

@@ -7,7 +7,8 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.core.common.model.RecordingFormat
 import com.core.common.model.RecordingQuality
-import com.core.common.model.SortOrder
+import com.core.common.model.SortByDateOptions
+import com.core.common.model.SortByDuration
 import com.core.common.model.UserSettings
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -67,13 +68,24 @@ class LocalUserSettings @Inject constructor(private val dataStore: DataStore<Pre
         }
     }
 
-    fun getSortOrder(): Flow<SortOrder> {
+    fun getSortByDuration(): Flow<SortByDuration> {
         return dataStore.data.map {
-            val orderByString = it[ORDER_BY_KEY]
-            if (orderByString != null) {
-                Json.decodeFromString<SortOrder>(orderByString)
+            val value = it[DURATION_SORT_KEY]
+            if (value != null) {
+                Json.decodeFromString<SortByDuration>(value)
             } else {
-                SortOrder.ByRecordingDate
+                SortByDuration()
+            }
+        }.flowOn(Dispatchers.IO)
+    }
+
+    fun getSortByDate(): Flow<SortByDateOptions> {
+        return dataStore.data.map {
+            val value = it[DATE_SORT_KEY]
+            if (value != null) {
+                Json.decodeFromString<SortByDateOptions>(value)
+            } else {
+                SortByDateOptions.MostRecent
             }
         }.flowOn(Dispatchers.IO)
     }
@@ -103,9 +115,15 @@ class LocalUserSettings @Inject constructor(private val dataStore: DataStore<Pre
         }
     }
 
-    suspend fun setSortOrder(value: String) {
+    suspend fun setSortByDate(value: String) {
         dataStore.edit {
-            it[ORDER_BY_KEY] = value
+            it[DATE_SORT_KEY] = value
+        }
+    }
+
+    suspend fun setSortByDuration(value: String) {
+        dataStore.edit {
+            it[DURATION_SORT_KEY] = value
         }
     }
 
@@ -115,5 +133,8 @@ class LocalUserSettings @Inject constructor(private val dataStore: DataStore<Pre
         val RECORDER_FORMAT_KEY = stringPreferencesKey("RECORDER_FORMAT_KEY")
         val RECORDER_QUALITY_KEY = stringPreferencesKey("RECORDER_QUALITY_KEY")
         val ORDER_BY_KEY = stringPreferencesKey("ORDER_BY_KEY")
+        val BY_NAME_KEY = booleanPreferencesKey("NAME_BY_KEY")
+        val DURATION_SORT_KEY = stringPreferencesKey("DURATION_SORT_KEY")
+        val DATE_SORT_KEY = stringPreferencesKey("DATE_SORT_KEY")
     }
 }
