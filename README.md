@@ -1,13 +1,13 @@
 ## Voice Recorder Sample
 A  simple work in progress (🚧) voice recorder android app. Drop an issue or a PR if you have an idea or a fix.
 ### Roadmap
-* [ ] Storage performance improvement
-* [ ] Player client refactor in compose
-* [ ] Audio visualizer while recording
-* [ ] Recorder service improvements
-### Issues and bugs
-* [ ] Recording state is not properly handled
-* [ ] No defulat notification background while playing
+
+| Active | Backlog |
+|--------|---------|
+Storage performance improvement |
+Player client refactor in compose |
+Audio visualizer while recording |
+Recorder service improvements |
 
 ### Stack
 * Jetpack Compose UI
