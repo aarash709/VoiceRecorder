@@ -10,7 +10,7 @@ plugins {
 
 android {
     namespace = "com.recorder.feature.playlist"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         minSdk = 26
