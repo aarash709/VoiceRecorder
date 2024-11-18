@@ -26,7 +26,7 @@ timberLogger = "5.0.1"
 junit4 = "4.13.2"
 espresso-core = "3.6.1"
 detekt = "1.23.7"
-kotlinter = "4.4.1"
+kotlinter = "4.5.0"
 
 [libraries]
 #UI
