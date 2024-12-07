@@ -1,5 +1,5 @@
-import org.jmailen.gradle.kotlinter.tasks.FormatTask
-import org.jmailen.gradle.kotlinter.tasks.LintTask
+//import org.jmailen.gradle.kotlinter.tasks.FormatTask
+//import org.jmailen.gradle.kotlinter.tasks.LintTask
 
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 plugins {
@@ -9,7 +9,7 @@ plugins {
     alias(libs.plugins.kotlin.android) apply false
     alias(libs.plugins.kotlin.serialization) apply false
     alias(libs.plugins.detekt) apply false
-    alias(libs.plugins.kotlinter) apply false
+//    alias(libs.plugins.kotlinter) apply false
     alias(libs.plugins.compose) apply false
     alias(libs.plugins.kotlinx.ksp) apply false
 }
@@ -23,7 +23,7 @@ buildscript {
 
 subprojects {
     apply(plugin = "io.gitlab.arturbosch.detekt")
-    apply(plugin = "org.jmailen.kotlinter")
+//    apply(plugin = "org.jmailen.kotlinter")
     tasks {
         register("detektAll", io.gitlab.arturbosch.detekt.Detekt::class) {
             exclude("**/resources/**")
@@ -41,14 +41,14 @@ subprojects {
         //reports are set in config file
     }
 
-    tasks.withType<LintTask> {
-        ignoreFailures = true
-        source(files("src"))
-    }
+//    tasks.withType<LintTask> {
+//        ignoreFailures = true
+//        source(files("src"))
+//    }
 
-    tasks.withType<FormatTask> {
-
-    }
+//    tasks.withType<FormatTask> {
+//
+//    }
 
 }
 
