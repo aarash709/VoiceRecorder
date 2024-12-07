@@ -1,5 +1,5 @@
 [versions]
-kotlin = "2.0.21"
+kotlin = "2.1.0"
 androidGradle = "8.7.2"
 kotlinxKsp = "2.0.21-1.0.28"
 composeBom = "2024.11.00"
