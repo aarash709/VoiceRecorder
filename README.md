@@ -1,5 +1,5 @@
 ## Voice Recorder Sample
-A  simple work in progress (🚧) voice recorder android app. Drop an issue or a PR if you have an idea or a fix.
+A lightweight voice recorder app with core features like recording, saving, and playback (Work in progress🚧). Issues or a PRs are welcomed.
 ### Roadmap
 
 | Active | Status |
