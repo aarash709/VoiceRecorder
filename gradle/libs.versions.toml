@@ -1,7 +1,7 @@
 [versions]
 kotlin = "2.2.0"
 composeBom = "2025.06.01"
-androidGradle = "8.10.1"
+androidGradle = "8.11.0"
 kotlinxKsp = "2.2.0-2.0.2"
 androidxActivity = "1.10.1"
 androidxComposeAlpha = "1.7.0-rc01"
