@@ -24,7 +24,7 @@ hiltNavigationCompose = "1.2.0"
 hiltAndroid = "2.56.2"
 timberLogger = "5.0.1"
 junit4 = "4.13.2"
-espresso-core = "3.6.1"
+espresso-core = "3.7.0"
 detekt = "1.23.8"
 kotlinter = "5.1.1"
 
